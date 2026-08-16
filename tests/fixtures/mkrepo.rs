@@ -25,7 +25,7 @@ impl RepoBuilder {
     /// Creates a new `RepoBuilder` in an isolated RAII-managed temporary directory.
     pub fn new() -> Result<Self, git2::Error> {
         let temp_dir = TempDir::new().map_err(|e| {
-            git2::Error::from_str(&format!("Failed to create temporary directory: {}", e))
+            git2::Error::from_str(&format!("Failed to create temporary directory: {e}"))
         })?;
         let repo = git2::Repository::init(temp_dir.path())?;
         Ok(Self {
@@ -42,7 +42,10 @@ impl RepoBuilder {
     /// Creates a new `RepoBuilder` in an explicit target directory.
     pub fn new_in(path: &Path) -> Result<Self, git2::Error> {
         std::fs::create_dir_all(path).map_err(|e| {
-            git2::Error::from_str(&format!("Failed to create directory at {:?}: {}", path, e))
+            git2::Error::from_str(&format!(
+                "Failed to create directory at {}: {e}",
+                path.display()
+            ))
         })?;
         let repo = git2::Repository::init(path)?;
         Ok(Self {
@@ -57,6 +60,7 @@ impl RepoBuilder {
     }
 
     /// Returns the filesystem path to the working tree root.
+    #[must_use]
     pub fn path(&self) -> &Path {
         if let Some(ref temp) = self.temp_dir {
             temp.path()
@@ -68,6 +72,7 @@ impl RepoBuilder {
     }
 
     /// Returns a reference to the underlying `git2::Repository`.
+    #[must_use]
     pub fn repo(&self) -> &git2::Repository {
         &self.repo
     }
@@ -78,6 +83,7 @@ impl RepoBuilder {
     }
 
     /// Returns the number of commits made so far.
+    #[must_use]
     pub fn commit_count(&self) -> u64 {
         self.commit_count
     }
@@ -100,7 +106,11 @@ impl RepoBuilder {
     }
 
     /// Writes content to a file relative to the repository working directory.
-    pub fn write_file(&mut self, rel_path: &str, content: &str) -> Result<&mut Self, std::io::Error> {
+    pub fn write_file(
+        &mut self,
+        rel_path: &str,
+        content: &str,
+    ) -> Result<&mut Self, std::io::Error> {
         let full_path = self.path().join(rel_path);
         if let Some(parent) = full_path.parent() {
             std::fs::create_dir_all(parent)?;
@@ -146,7 +156,10 @@ impl RepoBuilder {
         let tree_oid = self.stage_and_write_tree()?;
         let tree = self.repo.find_tree(tree_oid)?;
 
-        let time = git2::Time::new(self.base_time + (self.commit_count as i64) * 60, 0);
+        let time = git2::Time::new(
+            self.base_time + i64::try_from(self.commit_count).unwrap_or(0) * 60,
+            0,
+        );
         let sig = git2::Signature::new(&self.author_name, &self.author_email, &time)?;
 
         let parent_commit = match self.repo.head() {
@@ -156,11 +169,12 @@ impl RepoBuilder {
 
         let oid = match parent_commit {
             Some(ref parent) => {
-                self.repo.commit(Some("HEAD"), &sig, &sig, message, &tree, &[parent])?
+                self.repo
+                    .commit(Some("HEAD"), &sig, &sig, message, &tree, &[parent])?
             }
-            None => {
-                self.repo.commit(Some("HEAD"), &sig, &sig, message, &tree, &[])?
-            }
+            None => self
+                .repo
+                .commit(Some("HEAD"), &sig, &sig, message, &tree, &[])?,
         };
 
         self.commit_count += 1;
@@ -176,12 +190,10 @@ impl RepoBuilder {
 
     /// Checks out the specified named branch and updates the working tree.
     pub fn checkout_branch(&self, name: &str) -> Result<(), git2::Error> {
-        let refname = format!("refs/heads/{}", name);
+        let refname = format!("refs/heads/{name}");
         let obj = self.repo.revparse_single(&refname)?;
-        self.repo.checkout_tree(
-            &obj,
-            Some(git2::build::CheckoutBuilder::new().force()),
-        )?;
+        self.repo
+            .checkout_tree(&obj, Some(git2::build::CheckoutBuilder::new().force()))?;
         self.repo.set_head(&refname)?;
         Ok(())
     }
@@ -189,13 +201,16 @@ impl RepoBuilder {
     /// Merges `source_branch` into the current branch, creating a merge commit with 2 parents.
     pub fn merge(&mut self, source_branch: &str, message: &str) -> Result<git2::Oid, git2::Error> {
         let head_commit = self.repo.head()?.peel_to_commit()?;
-        let branch_ref = format!("refs/heads/{}", source_branch);
+        let branch_ref = format!("refs/heads/{source_branch}");
         let branch_commit = self.repo.find_reference(&branch_ref)?.peel_to_commit()?;
 
         let tree_oid = self.stage_and_write_tree()?;
         let tree = self.repo.find_tree(tree_oid)?;
 
-        let time = git2::Time::new(self.base_time + (self.commit_count as i64) * 60, 0);
+        let time = git2::Time::new(
+            self.base_time + i64::try_from(self.commit_count).unwrap_or(0) * 60,
+            0,
+        );
         let sig = git2::Signature::new(&self.author_name, &self.author_email, &time)?;
 
         let oid = self.repo.commit(
@@ -212,9 +227,13 @@ impl RepoBuilder {
     }
 
     /// Performs a squash merge of `source_branch` into current HEAD, producing a single parent commit.
-    pub fn squash_merge(&mut self, source_branch: &str, message: &str) -> Result<git2::Oid, git2::Error> {
+    pub fn squash_merge(
+        &mut self,
+        source_branch: &str,
+        message: &str,
+    ) -> Result<git2::Oid, git2::Error> {
         let head_commit = self.repo.head()?.peel_to_commit()?;
-        let branch_ref = format!("refs/heads/{}", source_branch);
+        let branch_ref = format!("refs/heads/{source_branch}");
         let branch_commit = self.repo.find_reference(&branch_ref)?.peel_to_commit()?;
 
         // Checkout the source branch tree onto disk without moving HEAD
@@ -226,17 +245,15 @@ impl RepoBuilder {
         let tree_oid = self.stage_and_write_tree()?;
         let tree = self.repo.find_tree(tree_oid)?;
 
-        let time = git2::Time::new(self.base_time + (self.commit_count as i64) * 60, 0);
+        let time = git2::Time::new(
+            self.base_time + i64::try_from(self.commit_count).unwrap_or(0) * 60,
+            0,
+        );
         let sig = git2::Signature::new(&self.author_name, &self.author_email, &time)?;
 
-        let oid = self.repo.commit(
-            Some("HEAD"),
-            &sig,
-            &sig,
-            message,
-            &tree,
-            &[&head_commit],
-        )?;
+        let oid = self
+            .repo
+            .commit(Some("HEAD"), &sig, &sig, message, &tree, &[&head_commit])?;
 
         self.commit_count += 1;
         Ok(oid)

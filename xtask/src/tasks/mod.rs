@@ -1,4 +1,5 @@
 pub mod clone_references;
+pub mod fixtures;
 pub mod lint;
 
 use anyhow::Result;

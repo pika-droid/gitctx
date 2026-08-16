@@ -305,7 +305,7 @@ def parse_batch(lines: list[str]) -> list[list[str]]:
 /// Rust code templates for test fixtures.
 pub mod rust {
     /// Math library initial version.
-    pub const MATH_LIB_V1: &str = r#"//! Math utility functions.
+    pub const MATH_LIB_V1: &str = r"//! Math utility functions.
 
 /// Calculates the sum of two integers.
 pub fn calculate_sum(a: i64, b: i64) -> i64 {
@@ -316,10 +316,10 @@ pub fn calculate_sum(a: i64, b: i64) -> i64 {
 pub fn calculate_product(a: i64, b: i64) -> i64 {
     a * b
 }
-"#;
+";
 
     /// Struct definition and impl.
-    pub const POINT_STRUCT: &str = r#"//! Geometry types.
+    pub const POINT_STRUCT: &str = r"//! Geometry types.
 
 /// Represents a point in 2D coordinate space.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -339,13 +339,13 @@ impl Point {
         ((self.x - other.x).powi(2) + (self.y - other.y).powi(2)).sqrt()
     }
 }
-"#;
+";
 }
 
 /// JavaScript code templates for test fixtures.
 pub mod javascript {
     /// String helper utilities.
-    pub const STRING_UTILS: &str = r#"/**
+    pub const STRING_UTILS: &str = r"/**
  * String manipulation helpers.
  */
 
@@ -357,10 +357,10 @@ export function truncate(text, maxLength = 80) {
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength)}...`;
 }
-"#;
+";
 
     /// User manager ES6 class.
-    pub const USER_MANAGER: &str = r#"/**
+    pub const USER_MANAGER: &str = r"/**
  * User session management.
  */
 
@@ -377,5 +377,5 @@ export class UserManager {
     return this.users.get(id) || null;
   }
 }
-"#;
+";
 }

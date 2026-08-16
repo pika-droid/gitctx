@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 mod tasks;
 mod util;
@@ -35,7 +36,10 @@ enum Commands {
     Fixtures {
         /// Directory to export generated test fixtures
         #[arg(long)]
-        dump_dir: Option<String>,
+        dump_dir: Option<PathBuf>,
+        /// Optional specific scenario filter (linear, rename, move, squash, evil_merge, broken_syntax)
+        #[arg(long)]
+        scenario: Option<String>,
     },
     /// Run evaluation and synthetic mutation engine
     Eval {
@@ -56,7 +60,9 @@ fn main() -> anyhow::Result<()> {
         }
         Commands::TestOffline => tasks::stub_command("test-offline"),
         Commands::TestInvariants => tasks::stub_command("test-invariants"),
-        Commands::Fixtures { .. } => tasks::stub_command("fixtures"),
+        Commands::Fixtures { dump_dir, scenario } => {
+            tasks::fixtures::run_fixtures(dump_dir.as_deref(), scenario.as_deref())
+        }
         Commands::Eval { .. } => tasks::stub_command("eval"),
         Commands::DownloadModels => tasks::stub_command("download-models"),
     }
