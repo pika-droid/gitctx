@@ -20,11 +20,11 @@
 
 ### Corpus Selection & Ground Truth (CORP)
 
-- [ ] **CORP-01**: Scripted multi-language repository analyzer computing traceable issue densities, merge fractions, churn, and rename density across diverse languages (Python, Rust, TypeScript/JavaScript, Go, etc.).
-- [ ] **CORP-02**: Pinned evaluation corpus locked by exact commit SHAs in `eval/corpus.lock.toml` (Invariant I6).
-- [ ] **CORP-03**: Ground truth harvester (`eval/harvest.py`) extracting issue-closing commits (Set A) and revert pairs with manual audit measuring harvester precision.
-- [ ] **CORP-04**: Leakage sanitization pipeline stripping issue numbers, PR trailers (`Fixes #N`, `Closes #N`), URLs, and squash prefixes from indexed chunk text.
-- [ ] **CORP-05**: Hand-authored why-shaped evaluation set (Set B, 25-30 queries) curated from issue/PR discussions prior to inspection of tool outputs.
+- [x] **CORP-01**: Scripted multi-language repository analyzer computing traceable issue densities, merge fractions, churn, and rename density across diverse languages (Python, Rust, TypeScript/JavaScript, Go, etc.).
+- [x] **CORP-02**: Pinned evaluation corpus locked by exact commit SHAs in `eval/corpus.lock.toml` (Invariant I6).
+- [x] **CORP-03**: Ground truth harvester (`eval/harvest.py`) extracting issue-closing commits (Set A) and revert pairs with manual audit measuring harvester precision.
+- [x] **CORP-04**: Leakage sanitization pipeline stripping issue numbers, PR trailers (`Fixes #N`, `Closes #N`), URLs, and squash prefixes from indexed chunk text.
+- [x] **CORP-05**: Hand-authored why-shaped evaluation set (Set B, 25-30 queries) curated from issue/PR discussions prior to inspection of tool outputs.
 
 ### Thesis Validation & Ablation (THESIS)
 
@@ -120,11 +120,11 @@
 | INVAR-02 | Phase 1 | Complete |
 | FIXT-01 | Phase 1 | Complete |
 | FIXT-02 | Phase 1 | Complete |
-| CORP-01 | Phase 2 | Pending |
-| CORP-02 | Phase 2 | Pending |
-| CORP-03 | Phase 2 | Pending |
-| CORP-04 | Phase 2 | Pending |
-| CORP-05 | Phase 2 | Pending |
+| CORP-01 | Phase 2 | Complete |
+| CORP-02 | Phase 2 | Complete |
+| CORP-03 | Phase 2 | Complete |
+| CORP-04 | Phase 2 | Complete |
+| CORP-05 | Phase 2 | Complete |
 | THESIS-01 | Phase 3 | Pending |
 | THESIS-02 | Phase 3 | Pending |
 | THESIS-03 | Phase 3 | Pending |

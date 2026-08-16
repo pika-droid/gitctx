@@ -5,7 +5,9 @@
 `gitctx` is constructed systematically in 11 structured phases (plus a deferred Phase 12 slip-absorber), strictly prioritizing thesis verification and methodological rigor. We first build synthetic fixture tools and non-circular ground truth pipelines, execute a Python ablation study to validate the retrieval thesis, construct the Rust extraction and MinHash lineage engines, build deterministic hybrid storage (SQLite + Tantivy + dense embeddings with RRF), implement statistical co-change coupling, expose polished CLI and MCP agent surfaces, and produce an exhaustive, reproducible evaluation and defense report.
 
 ### Reference Codebases & Pattern Reuse
+
 To avoid reinventing the wheel and ensure architectural alignment, all phases leverage local reference implementations in `reference_repos/` (synchronized via `cargo xtask clone-references`):
+
 - **`reference_repos/codanna`**: Patterns for `libgit2` walkers, `tree-sitter` AST parsers, Tantivy BM25 schema, SQLite connection pooling, FastEmbed vector scoring, and Stdio MCP servers.
 - **`reference_repos/code-maat`**: Mathematical specifications for VCS co-change coupling ($P(B|A)$, support, lift), churn, and impact analysis.
 - **`reference_repos/pydriller`**: Python Git mining, commit iteration, diff analysis, and issue-closing trailer parsing.
@@ -14,7 +16,7 @@ To avoid reinventing the wheel and ensure architectural alignment, all phases le
 ## Phases
 
 - [x] **Phase 1: Project Foundation, Invariants & Fixture Scaffolding** - Initialize Rust workspace, establish invariant enforcement harness, and build synthetic git fixture and mutation generators. (completed 2026-08-16)
-- [ ] **Phase 2: Corpus Selection, Ground Truth Harvesting & Leakage Sanitization** - Scripted repository profiling, SHA-locked corpus selection, issue-closing ground truth harvester, and leakage stripper.
+- [x] **Phase 2: Corpus Selection, Ground Truth Harvesting & Leakage Sanitization** - Scripted repository profiling, SHA-locked corpus selection, issue-closing ground truth harvester, and leakage stripper. (completed 2026-08-16)
 - [ ] **Phase 3: Retrieval Thesis Validation (Phase 0 Python Ablation)** - Run throwaway Python ablation grid testing document representations (D1-D5) and retrievers (R1-R5) to validate retrieval quality and decision gate.
 - [ ] **Phase 4: Rust Git Extraction & Tree-Sitter Historical Parser** - Build `libgit2` first-parent commit walker with rename detection, historical `tree-sitter` parser with graceful degradation, and template chunk renderer.
 - [ ] **Phase 5: Function Lineage Engine & Mutation Oracle** - Implement multi-tier MinHash lineage resolution across renames/moves, validated against synthetic mutation suite (M1-M10) and `git log -L`.
@@ -74,13 +76,13 @@ Plans:
   4. Leakage stripping pipeline verifiably removes issue numbers, `Fixes #N` trailers, PR URLs, and squash suffixes from chunk text across languages.
   5. 25-30 why-shaped queries (Set B) are authored from issue/PR discussions prior to inspecting search outputs.
 
-**Plans**: 3 plans
+**Plans**: 3/3 plans executed
 
 Plans:
 
-- [ ] 02-01: Scripted repository profiler and corpus selection criteria documentation (`eval/corpus.lock.toml`).
-- [ ] 02-02: Issue-closing and revert-pair ground truth harvester (`eval/harvest.py`) with manual precision audit logging.
-- [ ] 02-03: Leakage sanitization module and Set B why-query curation protocol.
+- [x] 02-01: Scripted repository profiler and corpus selection criteria documentation (`eval/corpus.lock.toml`).
+- [x] 02-02: Issue-closing and revert-pair ground truth harvester (`eval/harvest.py`) with manual precision audit logging.
+- [x] 02-03: Leakage sanitization module and Set B why-query curation protocol.
 
 ### Phase 3: Retrieval Thesis Validation (Phase 0 Python Ablation)
 
@@ -290,7 +292,7 @@ Phases execute sequentially in numeric order: 1 → 2 → 3 → 4 → 5 → 6 �
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Project Foundation, Invariants & Fixtures | 3/3 | Complete    | 2026-08-16 |
-| 2. Corpus Selection & Ground Truth | 0/3 | Not started | - |
+| 2. Corpus Selection & Ground Truth | 3/3 | In Progress|  |
 | 3. Retrieval Thesis Validation (Phase 0) | 0/2 | Not started | - |
 | 4. Rust Git Extraction & Parser | 0/3 | Not started | - |
 | 5. Function Lineage Engine | 0/3 | Not started | - |
