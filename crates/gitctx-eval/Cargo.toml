@@ -19,3 +19,4 @@ tempfile.workspace = true
 git2.workspace = true
 clap.workspace = true
 tracing.workspace = true
+anyhow.workspace = true
