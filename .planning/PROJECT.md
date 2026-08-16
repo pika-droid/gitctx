@@ -41,6 +41,7 @@ Providing LLMs and developers with deterministic, citation-backed Git history fa
 
 - **Repository**: `https://github.com/pika-droid/gitctx.git`
 - **Positioning**: Complementary to current-state tools (like codanna). Where codanna models *what* the code looks like now, `gitctx` provides *why* it changed over time, who changed it, and what historical coupling risks exist.
+- **Reference Repositories Policy**: Vetted reference implementations are cloned in `reference_repos/` (via `cargo xtask clone-references`) covering `codanna` (AST parsing, Tantivy, SQLite, FastEmbed, MCP), `code-maat` (co-change coupling formulas), `pydriller` (Git mining and trailer extraction), and `tree-sitter-python` (grammar definitions). Planners and executors inspect and adapt these implementations to avoid reinventing the wheel.
 - **Core Thesis Elements**:
   1. Deterministic template-rendered pseudo-documents bridge the cross-modal gap between natural-language queries and unified diff syntax.
   2. Function-level lineage tracking across renames and moves produces complete, deterministic chronological history chains.

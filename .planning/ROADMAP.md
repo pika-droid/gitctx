@@ -4,6 +4,13 @@
 
 `gitctx` is constructed systematically in 11 structured phases (plus a deferred Phase 12 slip-absorber), strictly prioritizing thesis verification and methodological rigor. We first build synthetic fixture tools and non-circular ground truth pipelines, execute a Python ablation study to validate the retrieval thesis, construct the Rust extraction and MinHash lineage engines, build deterministic hybrid storage (SQLite + Tantivy + dense embeddings with RRF), implement statistical co-change coupling, expose polished CLI and MCP agent surfaces, and produce an exhaustive, reproducible evaluation and defense report.
 
+### Reference Codebases & Pattern Reuse
+To avoid reinventing the wheel and ensure architectural alignment, all phases leverage local reference implementations in `reference_repos/` (synchronized via `cargo xtask clone-references`):
+- **`reference_repos/codanna`**: Patterns for `libgit2` walkers, `tree-sitter` AST parsers, Tantivy BM25 schema, SQLite connection pooling, FastEmbed vector scoring, and Stdio MCP servers.
+- **`reference_repos/code-maat`**: Mathematical specifications for VCS co-change coupling ($P(B|A)$, support, lift), churn, and impact analysis.
+- **`reference_repos/pydriller`**: Python Git mining, commit iteration, diff analysis, and issue-closing trailer parsing.
+- **`reference_repos/tree-sitter-python`**: Official Python grammar AST node types and query patterns.
+
 ## Phases
 
 - [x] **Phase 1: Project Foundation, Invariants & Fixture Scaffolding** - Initialize Rust workspace, establish invariant enforcement harness, and build synthetic git fixture and mutation generators. (completed 2026-08-16)
@@ -58,6 +65,7 @@ Plans:
 **Goal**: Select and pin real-world Python evaluation repositories, harvest issue-closing ground truth with leakage stripping, and curate why-shaped queries.
 **Depends on**: Phase 1
 **Requirements**: CORP-01, CORP-02, CORP-03, CORP-04, CORP-05
+**Reference Repos**: `reference_repos/pydriller` (`pydriller/repository.py`, `pydriller/domain/commit.py` for issue/trailer parsing, `pydriller/domain/modification.py` for diff classification)
 **Success Criteria** (what must be TRUE):
 
   1. Scripted repository selection profiles $\ge 15$ repos, selecting $\ge 3$ diverse target repos with $\ge 150$ traceable issues and $<40\%$ merge fraction.
@@ -79,6 +87,7 @@ Plans:
 **Goal**: Validate the core thesis in disposable Python: confirm that deterministic template-rendered diffs outperform BM25 and raw diffs before investing in Rust retrieval.
 **Depends on**: Phase 2
 **Requirements**: THESIS-01, THESIS-02, THESIS-03, THESIS-04
+**Reference Repos**: `reference_repos/pydriller` (commit dataset processing), `reference_repos/codanna/src/indexing/` (Tantivy/BM25 comparison baseline)
 **Success Criteria** (what must be TRUE):
 
   1. Full ablation grid running D1-D5 representations across R1-R5 retrievers against Set A and Set B queries.
@@ -98,6 +107,7 @@ Plans:
 **Goal**: Build the core extraction engine in Rust: `git2` first-parent commit walker with rename tracking, historical `tree-sitter` parsing, and templated pseudo-doc generation.
 **Depends on**: Phase 3
 **Requirements**: PARSE-01, PARSE-02, PARSE-03, PARSE-04, PARSE-05, PARSE-06
+**Reference Repos**: `reference_repos/codanna/src/git.rs` (libgit2 repo access, ignore matching), `reference_repos/codanna/src/parsing/` (tree-sitter language loader & AST traversal), `reference_repos/tree-sitter-python/` (Python AST grammar & node types)
 **Success Criteria** (what must be TRUE):
 
   1. `git2` extractor correctly walks first-parent commit graph, tracks file insertions/deletions, and detects renames.
@@ -119,6 +129,7 @@ Plans:
 **Goal**: Implement the multi-tier function identity resolution engine across renames and moves, proven against synthetic mutation testing and `git log -L`.
 **Depends on**: Phase 4
 **Requirements**: LINEAGE-01, LINEAGE-02, LINEAGE-03, LINEAGE-04, LINEAGE-05
+**Reference Repos**: `reference_repos/codanna/src/symbol/` (qualified naming conventions, symbol hashing), `reference_repos/codanna/src/relationship/` (graph relationship mapping)
 **Success Criteria** (what must be TRUE):
 
   1. Standardized qualified name rules implemented for module functions, class methods, nested functions, closures, and decorators.
@@ -140,6 +151,7 @@ Plans:
 **Goal**: Build the unified storage and retrieval engine in Rust combining SQLite, Tantivy BM25, memory-mapped dense vectors, and RRF fusion.
 **Depends on**: Phase 5
 **Requirements**: INVAR-03, INVAR-04, INVAR-05, INDEX-01, INDEX-02, INDEX-03, INDEX-04, INDEX-05, INDEX-06, INDEX-07
+**Reference Repos**: `reference_repos/codanna/src/storage/` (SQLite WAL mode connection management & PRAGMAs), `reference_repos/codanna/src/indexing/` (Tantivy schema & custom tokenizers), `reference_repos/codanna/src/vector/` & `src/semantic/` (FastEmbed dense vector scoring & hybrid fusion)
 **Success Criteria** (what must be TRUE):
 
   1. SQLite schema with WAL mode, single writer channel, topological commit ordering, and isolated `explain_cache` table.
@@ -163,6 +175,7 @@ Plans:
 **Goal**: Build statistical file and function coupling analysis with commit size filtering, normalization, and time-decay weighting.
 **Depends on**: Phase 6
 **Requirements**: GRAPH-01, GRAPH-02, GRAPH-03, GRAPH-04, GRAPH-05
+**Reference Repos**: `reference_repos/code-maat/src/code_maat/analysis/` (`logical_coupling.clj` coupling formulas $P(B|A)$, `coupling_algos.clj`, `churn.clj`)
 **Success Criteria** (what must be TRUE):
 
   1. Co-change accounting filters out reformat commits ($>25$ files) and bots, logging excluded commit metrics.
@@ -183,6 +196,7 @@ Plans:
 **Goal**: Implement the user-facing CLI commands with structured `--json` envelopes, rich `--format table` terminal rendering, and diagnostic tooling.
 **Depends on**: Phase 7
 **Requirements**: CLI-01, CLI-02, CLI-03, CLI-04
+**Reference Repos**: `reference_repos/codanna/src/cli/` (Clap command hierarchy, colored console rendering, formatted output)
 **Success Criteria** (what must be TRUE):
 
   1. CLI commands `gitctx index`, `search`, `evolution`, `show`, `impact`, `blame`, and `doctor` operational.
@@ -202,6 +216,7 @@ Plans:
 **Goal**: Build the stdio MCP server for agent integration with token budgeting, stdout isolation, and automated initialization skills.
 **Depends on**: Phase 8
 **Requirements**: MCP-01, MCP-02, MCP-03, MCP-04, MCP-05
+**Reference Repos**: `reference_repos/codanna/src/mcp/` (Stdio JSON-RPC protocol implementation, MCP tool schemas, stdout isolation)
 **Success Criteria** (what must be TRUE):
 
   1. Stdio MCP server exposes `search_history`, `function_evolution`, `change_impact`, `who_knows_this`, and `commit_detail`.

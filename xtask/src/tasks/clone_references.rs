@@ -11,8 +11,8 @@ struct RefRepo {
 const REPOSITORIES: &[RefRepo] = &[
     RefRepo {
         name: "codanna",
-        url: "https://github.com/sourcegraph/codanna.git",
-        description: "Sourcegraph's Rust-based code indexing and symbol analysis tool",
+        url: "https://github.com/bartolli/codanna.git",
+        description: "Local code intelligence tool and persistent MCP server in Rust",
     },
     RefRepo {
         name: "code-maat",
@@ -23,6 +23,11 @@ const REPOSITORIES: &[RefRepo] = &[
         name: "tree-sitter-python",
         url: "https://github.com/tree-sitter/tree-sitter-python.git",
         description: "Tree-sitter Python grammar reference",
+    },
+    RefRepo {
+        name: "pydriller",
+        url: "https://github.com/ishepard/pydriller.git",
+        description: "Python framework for mining software repositories and commit analysis",
     },
 ];
 
