@@ -15,7 +15,7 @@
 
 ### Synthetic Fixtures (FIXT)
 
-- [ ] **FIXT-01**: Synthetic repository generator (`tests/fixtures/mkrepo.rs`) producing isolated Git histories (linear commits, merges, evil merges, squash-merges, renames, moves, syntax errors).
+- [x] **FIXT-01**: Synthetic repository generator (`tests/fixtures/mkrepo.rs`) producing isolated Git histories (linear commits, merges, evil merges, squash-merges, renames, moves, syntax errors).
 - [ ] **FIXT-02**: Mutation testing harness (`gitctx-eval mutate`) implementing transformation classes M1-M10 (in-place rename, cross-file move, simultaneous move+rename, signature change, reformatting, local var rename, function split, decoy delete+add, directory move, function copy).
 
 ### Corpus Selection & Ground Truth (CORP)
@@ -119,7 +119,7 @@
 |-------------|-------|--------|
 | INVAR-01 | Phase 1 | Complete |
 | INVAR-02 | Phase 1 | Pending |
-| FIXT-01 | Phase 1 | Pending |
+| FIXT-01 | Phase 1 | Complete |
 | FIXT-02 | Phase 1 | Pending |
 | CORP-01 | Phase 2 | Pending |
 | CORP-02 | Phase 2 | Pending |

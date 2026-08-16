@@ -33,12 +33,12 @@
   3. `tests/fixtures/mkrepo.rs` programmatically generates miniature Git repos for linear commits, file renames, cross-file moves, squash merges, conflict merges, and syntax errors.
   4. Mutation test generator can apply transformations M1-M10 to benchmark lineage tracking.
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 Plans:
 
 - [x] 01-01-PLAN.md
-- [ ] 01-02-PLAN.md
+- [x] 01-02-PLAN.md
 - [ ] 01-03-PLAN.md
 
 **Wave 1**
@@ -275,7 +275,7 @@ Phases execute sequentially in numeric order: 1 → 2 → 3 → 4 → 5 → 6 �
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Project Foundation, Invariants & Fixtures | 1/3 | In Progress|  |
+| 1. Project Foundation, Invariants & Fixtures | 2/3 | In Progress|  |
 | 2. Corpus Selection & Ground Truth | 0/3 | Not started | - |
 | 3. Retrieval Thesis Validation (Phase 0) | 0/2 | Not started | - |
 | 4. Rust Git Extraction & Parser | 0/3 | Not started | - |
