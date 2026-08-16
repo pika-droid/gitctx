@@ -20,7 +20,7 @@
 
 ### Corpus Selection & Ground Truth (CORP)
 
-- [ ] **CORP-01**: Scripted Python repository analyzer computing traceable issue densities, merge fractions, churn, and rename density.
+- [ ] **CORP-01**: Scripted multi-language repository analyzer computing traceable issue densities, merge fractions, churn, and rename density across diverse languages (Python, Rust, TypeScript/JavaScript, Go, etc.).
 - [ ] **CORP-02**: Pinned evaluation corpus locked by exact commit SHAs in `eval/corpus.lock.toml` (Invariant I6).
 - [ ] **CORP-03**: Ground truth harvester (`eval/harvest.py`) extracting issue-closing commits (Set A) and revert pairs with manual audit measuring harvester precision.
 - [ ] **CORP-04**: Leakage sanitization pipeline stripping issue numbers, PR trailers (`Fixes #N`, `Closes #N`), URLs, and squash prefixes from indexed chunk text.
@@ -36,15 +36,15 @@
 ### Git Extraction & Parsing (PARSE)
 
 - [ ] **PARSE-01**: `libgit2` / `git2` walker implementing first-parent traversal and diff extraction with Git rename detection enabled.
-- [ ] **PARSE-02**: `tree-sitter` historical blob parser extracting function definitions, signatures, docstrings, and identifiers as of each historical commit.
+- [ ] **PARSE-02**: `tree-sitter` historical blob parser with multi-language grammar registry (Python, Rust, JavaScript, TypeScript, Go, C/C++, Java, PHP, etc., leveraging `codanna`'s parser patterns) extracting function definitions, signatures, docstrings, and identifiers as of each historical commit.
 - [ ] **PARSE-03**: Graceful degradation handler emitting file-level chunks with `parse_status = 'degraded'` on syntax errors without crashing indexer.
 - [ ] **PARSE-04**: Blob-level OID parse cache to accelerate historical parsing across recurring unchanged blobs.
-- [ ] **PARSE-05**: Deterministic template generator producing structured pseudo-documents per (commit, function) touch.
+- [ ] **PARSE-05**: Deterministic template generator producing structured pseudo-documents per (commit, function) touch across all supported languages.
 - [ ] **PARSE-06**: Defense-in-depth secret redaction replacing high-entropy strings and recognized API key prefixes in chunks and indexes.
 
 ### Function Lineage Engine (LINEAGE)
 
-- [ ] **LINEAGE-01**: Formal qualified name convention for module-level functions, class methods, nested functions, closures, decorated functions, and async definitions.
+- [ ] **LINEAGE-01**: Formal qualified name convention for module-level functions, class methods, trait/impl blocks, nested functions, closures, decorated functions, and async definitions across supported programming languages.
 - [ ] **LINEAGE-02**: Multi-stage lineage resolver per commit (1. Exact key match, 2. Same-file MinHash fingerprint, 3. Git file rename mapping, 4. Scoped cross-file MinHash search).
 - [ ] **LINEAGE-03**: Ambiguity and conflict resolution (maximum-weight bipartite matching, function split inheritance with `derived_from` edges, decoy rejection).
 - [ ] **LINEAGE-04**: Lineage oracle verification measuring precision and recall across M1-M10 synthetic transformation classes.

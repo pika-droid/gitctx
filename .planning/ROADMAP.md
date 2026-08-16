@@ -62,16 +62,16 @@ Plans:
 
 ### Phase 2: Corpus Selection, Ground Truth Harvesting & Leakage Sanitization
 
-**Goal**: Select and pin real-world Python evaluation repositories, harvest issue-closing ground truth with leakage stripping, and curate why-shaped queries.
+**Goal**: Select and pin real-world evaluation repositories across diverse languages (Python, Rust, TypeScript, Go), harvest issue-closing ground truth with leakage stripping, and curate why-shaped queries.
 **Depends on**: Phase 1
 **Requirements**: CORP-01, CORP-02, CORP-03, CORP-04, CORP-05
 **Reference Repos**: `reference_repos/pydriller` (`pydriller/repository.py`, `pydriller/domain/commit.py` for issue/trailer parsing, `pydriller/domain/modification.py` for diff classification)
 **Success Criteria** (what must be TRUE):
 
-  1. Scripted repository selection profiles $\ge 15$ repos, selecting $\ge 3$ diverse target repos with $\ge 150$ traceable issues and $<40\%$ merge fraction.
+  1. Scripted repository selection profiles $\ge 15$ multi-language repos, selecting $\ge 3$ diverse target repos (covering Python, Rust, and TypeScript/Go) with $\ge 150$ traceable issues and $<40\%$ merge fraction.
   2. Selected repositories and exact commit SHAs are locked in `eval/corpus.lock.toml`.
   3. Ground truth harvester (`eval/harvest.py`) extracts issue-closing commit pairs (Set A) and revert pairs with audited precision $\ge 0.85$.
-  4. Leakage stripping pipeline verifiably removes issue numbers, `Fixes #N` trailers, PR URLs, and squash suffixes from chunk text.
+  4. Leakage stripping pipeline verifiably removes issue numbers, `Fixes #N` trailers, PR URLs, and squash suffixes from chunk text across languages.
   5. 25-30 why-shaped queries (Set B) are authored from issue/PR discussions prior to inspecting search outputs.
 
 **Plans**: 3 plans
@@ -104,14 +104,14 @@ Plans:
 
 ### Phase 4: Rust Git Extraction & Tree-Sitter Historical Parser
 
-**Goal**: Build the core extraction engine in Rust: `git2` first-parent commit walker with rename tracking, historical `tree-sitter` parsing, and templated pseudo-doc generation.
+**Goal**: Build the core extraction engine in Rust: `git2` first-parent commit walker with rename tracking, multi-language `tree-sitter` parser registry (Python, Rust, JavaScript, TypeScript, Go, C/C++, Java, PHP), and templated pseudo-doc generation.
 **Depends on**: Phase 3
 **Requirements**: PARSE-01, PARSE-02, PARSE-03, PARSE-04, PARSE-05, PARSE-06
-**Reference Repos**: `reference_repos/codanna/src/git.rs` (libgit2 repo access, ignore matching), `reference_repos/codanna/src/parsing/` (tree-sitter language loader & AST traversal), `reference_repos/tree-sitter-python/` (Python AST grammar & node types)
+**Reference Repos**: `reference_repos/codanna/src/git.rs` (libgit2 repo access, ignore matching), `reference_repos/codanna/src/parsing/` (multi-language parser registry, AST traversal, behavior definitions), `reference_repos/tree-sitter-python/` (grammar & AST node types)
 **Success Criteria** (what must be TRUE):
 
-  1. `git2` extractor correctly walks first-parent commit graph, tracks file insertions/deletions, and detects renames.
-  2. `tree-sitter` parses blobs at historical commit states, successfully extracting function signatures, docstrings, and identifier deltas.
+  1. `git2` extractor correctly walks first-parent commit graph, tracks file insertions/deletions, and detects renames across all file types.
+  2. Multi-language `tree-sitter` registry parses historical blobs across Python, Rust, JavaScript, TypeScript, Go, C/C++, Java, and PHP, extracting function/method signatures, docstrings, and identifier deltas.
   3. Syntactically broken commits emit `parse_status = 'degraded'` file chunks without panicking or halting the indexer.
   4. Blob OID parse cache eliminates redundant AST parses across unchanged historical blobs.
   5. Deterministic chunk templater formats pseudo-documents matching the Phase 0 specification with defense-in-depth secret redaction.
@@ -271,15 +271,14 @@ Plans:
 
 ### Phase 12: Current-State Extensions (Deferred / Slip-Absorber)
 
-**Goal**: Optional v2 extensions: secondary language grammars (Rust, TypeScript), temporal call graph edges, symbol lookup commands, and cached LLM explanation layer.
+**Goal**: Optional v2 extensions: temporal call graph edges, symbol lookup commands, and cached LLM explanation layer.
 **Depends on**: Phase 11
-**Requirements**: V2-LANG, V2-CALLS, V2-SYMBOLS, V2-MMAP, V2-EXPLAIN, V2-WATCH, V2-NPX
+**Requirements**: V2-CALLS, V2-SYMBOLS, V2-MMAP, V2-EXPLAIN, V2-WATCH, V2-NPX
 **Success Criteria** (what must be TRUE):
 
-  1. Rust and TypeScript AST extractors parse historical blobs.
-  2. Temporal call graph edges recorded with intra-file / same-package resolution precision reported.
-  3. `symbols find` and `symbols callers` CLI/MCP tools operational.
-  4. Opt-in `--explain` generates cached summaries in physically isolated `explain_cache`.
+  1. Temporal call graph edges recorded with intra-file / same-package resolution precision reported.
+  2. `symbols find` and `symbols callers` CLI/MCP tools operational.
+  3. Opt-in `--explain` generates cached summaries in physically isolated `explain_cache`.
 
 **Plans**: TBD
 
