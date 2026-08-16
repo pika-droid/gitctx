@@ -28,8 +28,12 @@ pub enum CoreError {
     #[error("Invalid identifier: {0}")]
     InvalidIdentifier(String),
 
+    #[error("Ground truth corrupted for {file:?}: {message}")]
+    GroundTruthCorrupted { file: String, message: String },
+
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
+
 }
 
 pub type Result<T> = std::result::Result<T, CoreError>;

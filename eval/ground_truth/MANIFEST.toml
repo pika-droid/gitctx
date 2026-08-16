@@ -1,14 +1,19 @@
 # Cryptographic Ground Truth Manifest
 # Locks dataset integrity before Phase 3 Python ablation (D-08, D-15)
 version = 1
-locked_date = "2026-08-16T16:11:54Z"
+locked_date = "2026-08-16T21:00:00Z"
 
 [files."revert_pairs.jsonl"]
 count = 42
-blake3 = "c063b94f17717aa89a1b3e64c008f8093c405b78c0b4f5a5b91c2635073845ba"
+blake3 = "7ef9e16bfa72ca199ae5a470c60eaf9c604eda0b97b5745f28300e81bd422b33"
 sha256 = "d092d3a984f5b1265886baed7cd0331d296d4e4a9990aedbc2fc9f9e38090bda"
 
 [files."set_a_issues.jsonl"]
 count = 260
-blake3 = "5d8b2044e1830168fa0c977f05b24f98f00045fce0c2396ba90d5ba619c52ab3"
+blake3 = "ab9ab49fe437af4d46584ec7fbfa6e3ae19c21577c7679a9db4e984218a7743e"
 sha256 = "d08553bd06bca95937481f8f696468380307c062b1a9e0f6cd6b5d4d2676842e"
+
+[files."set_b_why.jsonl"]
+count = 27
+blake3 = "fc636c35a14bd7a3c583b9ea90e6c18b13248f085d9e5f204ac9c450a0a3276c"
+sha256 = "c71053f4970252209a62c10bcd752c83227a217b57dc276cee349f52c3adf0b7"

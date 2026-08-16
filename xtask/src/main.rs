@@ -106,6 +106,8 @@ enum Commands {
         #[arg(long)]
         non_interactive: bool,
     },
+    /// Verify cryptographic integrity of ground truth datasets against MANIFEST.toml
+    VerifyGroundTruth,
 }
 
 #[derive(Subcommand, Debug)]
@@ -174,5 +176,7 @@ fn main() -> anyhow::Result<()> {
             synthetic,
             non_interactive,
         ),
+        Commands::VerifyGroundTruth => tasks::verify_ground_truth::run_verify_ground_truth(),
     }
 }
+

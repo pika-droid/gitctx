@@ -126,7 +126,7 @@ pub fn run_test_invariants() -> Result<()> {
 
     // Check 5: Invariant I6 - Pinned Evaluation Corpus SHA Enforcement
     {
-        println!("[5/5] Running Invariant I6 Check (Pinned Corpus SHA Verification)...");
+        println!("[5/6] Running Invariant I6 Check (Pinned Corpus SHA Verification)...");
         let start = Instant::now();
         let mut cmd = Command::new("cargo");
         cmd.current_dir(&root);
@@ -147,10 +147,31 @@ pub fn run_test_invariants() -> Result<()> {
         });
     }
 
+    // Check 6: Ground Truth Cryptographic Manifest Verification (D-08, D-15)
+    {
+        println!("[6/6] Running Ground Truth Cryptographic Integrity Check...");
+        let start = Instant::now();
+        let result = crate::tasks::verify_ground_truth::run_verify_ground_truth();
+        let duration = start.elapsed().as_millis();
+        let (passed, err) = match result {
+            Ok(()) => (true, None),
+            Err(e) => (false, Some(e.to_string())),
+        };
+        checks.push(InvariantCheck {
+            id: "GT",
+            name: "Ground Truth Cryptographic Integrity",
+            target: "xtask verify-ground-truth",
+            passed,
+            duration_ms: duration,
+            error_msg: err,
+        });
+    }
+
     // Print Structured Summary Report Table
     println!("\n==========================================================================================");
     println!("                               INVARIANTS SUMMARY REPORT                                  ");
     println!("==========================================================================================");
+
     println!(
         "{:<4} | {:<42} | {:<20} | {:<8} | Time",
         "ID", "Invariant Description", "Target / Harness", "Status"

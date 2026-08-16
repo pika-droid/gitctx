@@ -9,3 +9,5 @@ pub mod lint;
 pub mod profile_corpus;
 pub mod test_invariants;
 pub mod test_offline;
+pub mod verify_ground_truth;
+

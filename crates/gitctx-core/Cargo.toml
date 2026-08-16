@@ -14,3 +14,5 @@ blake3.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
+regex.workspace = true
+
