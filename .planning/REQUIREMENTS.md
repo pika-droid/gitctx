@@ -94,7 +94,6 @@
 
 ### Extended Code Intelligence (Deferred / Slip-Absorber)
 
-- **V2-LANG**: Secondary language grammars (Rust, TypeScript) for tree-sitter extraction.
 - **V2-CALLS**: Intra-file and explicit same-package call graph edges stored with temporal validity (`valid_from_commit`).
 - **V2-SYMBOLS**: `symbols find` and `symbols callers` commands querying symbol call graphs.
 - **V2-MMAP**: Dedicated memory-mapped symbol cache for low-latency symbol lookup if SQLite benchmark indicates necessity.
