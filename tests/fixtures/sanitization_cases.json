@@ -1,0 +1,134 @@
+[
+  {
+    "id": "case_01_squash_pr_suffix",
+    "raw": "Fix memory leak in parser (#412)",
+    "expected": "Fix memory leak in parser",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_02_squash_pr_suffix_gh",
+    "raw": "Refactor router (gh-987)",
+    "expected": "Refactor router",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_03_action_trailer_fixes_colon",
+    "raw": "Fix deadlock in worker pool\n\nFixes: #1024",
+    "expected": "Fix deadlock in worker pool",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_04_action_trailer_closes_no_colon",
+    "raw": "Fix deadlock in worker pool\n\nCloses #1024",
+    "expected": "Fix deadlock in worker pool",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_05_action_trailer_resolves",
+    "raw": "Update TLS handshake logic\n\nResolves: gh-2048",
+    "expected": "Update TLS handshake logic",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_06_action_trailer_ref",
+    "raw": "Refactor authentication provider\n\nRef: https://github.com/psf/requests/issues/5000",
+    "expected": "Refactor authentication provider",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_07_attribution_signed_off_by",
+    "raw": "Improve error message\n\nSigned-off-by: Alice <alice@example.com>",
+    "expected": "Improve error message",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_08_attribution_co_authored_by",
+    "raw": "Support streaming uploads\n\nCo-authored-by: Bob <bob@example.com>",
+    "expected": "Support streaming uploads",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_09_attribution_multiple_trailers",
+    "raw": "Add rate limiting middleware\n\nReviewed-by: Charlie <charlie@example.com>\nApproved-by: Dave <dave@example.com>",
+    "expected": "Add rate limiting middleware",
+    "expected_strips": 2
+  },
+  {
+    "id": "case_10_github_issue_url",
+    "raw": "Refactor session state.\nDetails in https://github.com/psf/requests/issues/999 and more",
+    "expected": "Refactor session state.\nDetails in and more",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_11_github_pr_url",
+    "raw": "Backport fix for keep-alive socket timeout\nSee https://github.com/psf/requests/pull/1000 for discussion",
+    "expected": "Backport fix for keep-alive socket timeout\nSee for discussion",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_12_inline_hash_issue",
+    "raw": "Regression caused by #5678 in client",
+    "expected": "Regression caused by in client",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_13_inline_gh_issue",
+    "raw": "Fixes regression introduced in gh-4321 when handling empty payloads",
+    "expected": "Fixes regression introduced in when handling empty payloads",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_14_merge_pull_request",
+    "raw": "Merge pull request #123 from user/branch\n\nAdd support for custom headers",
+    "expected": "Add support for custom headers",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_15_merge_branch",
+    "raw": "Merge branch 'main' of https://github.com/owner/repo\n\nSync with upstream main",
+    "expected": "Sync with upstream main",
+    "expected_strips": 1
+  },
+  {
+    "id": "case_16_preserved_code_identifiers",
+    "raw": "fn calculate_hash_v2(seed: u64) -> u64 {\n    seed ^ 0x517cc1b727220a95\n}",
+    "expected": "fn calculate_hash_v2(seed: u64) -> u64 {\n    seed ^ 0x517cc1b727220a95\n}",
+    "expected_strips": 0
+  },
+  {
+    "id": "case_17_preserved_csharp_and_tags",
+    "raw": "Added support for C# language syntax and tag #release-2.0 in build",
+    "expected": "Added support for C# language syntax and tag #release-2.0 in build",
+    "expected_strips": 0
+  },
+  {
+    "id": "case_18_multiline_complex_commit",
+    "raw": "Implement connection pooling (#512)\n\nCloses #510\nFixes: gh-511\nSigned-off-by: Dev <dev@test.org>\n\nSee https://github.com/psf/requests/issues/509 for root cause.",
+    "expected": "Implement connection pooling\n\nSee for root cause.",
+    "expected_strips": 5
+  },
+  {
+    "id": "case_19_whitespace_collapse",
+    "raw": "Initial title\n\n\n\n\nBody paragraph with extra newlines.\n\n\n",
+    "expected": "Initial title\n\nBody paragraph with extra newlines.",
+    "expected_strips": 0
+  },
+  {
+    "id": "case_20_addresses_and_related_to",
+    "raw": "Clean up socket handles\n\nAddresses: #333\nRelated-to: gh-444\nIssue: #555",
+    "expected": "Clean up socket handles",
+    "expected_strips": 3
+  },
+  {
+    "id": "case_21_pure_clean_commit",
+    "raw": "Optimize regex compilation for literal matchers",
+    "expected": "Optimize regex compilation for literal matchers",
+    "expected_strips": 0
+  },
+  {
+    "id": "case_22_suggested_and_reported_by",
+    "raw": "Fix out of bounds panic\n\nReported-by: Eve <eve@sec.com>\nSuggested-by: Frank <frank@sec.com>\nTested-by: Grace <grace@sec.com>",
+    "expected": "Fix out of bounds panic",
+    "expected_strips": 3
+  }
+]
