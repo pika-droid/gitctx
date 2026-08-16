@@ -241,7 +241,8 @@ def track_inventory_item(item_id: str, quantity: int, unit_price: float) -> floa
             Self::BASE_SERVICE_PY.to_string()
         };
 
-        let reformatted = format!("# Formatted according to PEP-8\n\n{content}\n# End of service file\n");
+        let reformatted =
+            format!("# Formatted according to PEP-8\n\n{content}\n# End of service file\n");
         builder.write_file("src/service.py", &reformatted)?;
         let oid = builder.commit("style(M5): apply formatting, comments, and spacing")?;
 
@@ -302,7 +303,8 @@ def process_item(item_id: str, quantity: int, price: float) -> float:
             split_addition,
         );
         builder.write_file("src/service.py", &updated)?;
-        let oid = builder.commit("refactor(M7): split _compute_item_subtotal helper from process_item")?;
+        let oid = builder
+            .commit("refactor(M7): split _compute_item_subtotal helper from process_item")?;
 
         Ok(LineageLink::new(
             oid.to_string(),

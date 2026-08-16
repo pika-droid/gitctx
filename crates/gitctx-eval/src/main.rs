@@ -65,9 +65,8 @@ fn run_mutate(class: &str, chain_depth: usize, out_dir: Option<&std::path::Path>
         println!("Output Target: In-Memory / Temporary (Pass --out <dir> to export)");
     }
 
-    let (builder, manifest) =
-        MutationEngine::generate_and_save(out_dir, Some(class), chain_depth)
-            .map_err(|e| anyhow::anyhow!("Mutation generation failed: {e}"))?;
+    let (builder, manifest) = MutationEngine::generate_and_save(out_dir, Some(class), chain_depth)
+        .map_err(|e| anyhow::anyhow!("Mutation generation failed: {e}"))?;
 
     println!("{:-<90}", "");
     println!(
@@ -100,7 +99,10 @@ fn run_mutate(class: &str, chain_depth: usize, out_dir: Option<&std::path::Path>
         manifest.links.len()
     );
     if let Some(dir) = out_dir {
-        println!("Saved Manifest: {}", dir.join("lineage_ground_truth.json").display());
+        println!(
+            "Saved Manifest: {}",
+            dir.join("lineage_ground_truth.json").display()
+        );
     }
     println!("{:-<90}\n", "");
 

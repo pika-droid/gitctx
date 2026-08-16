@@ -56,7 +56,14 @@ enum Commands {
         out: Option<PathBuf>,
     },
     /// Download local embedding models and tokenizers
-    DownloadModels,
+    DownloadModels {
+        /// Optional model identifier (e.g. BAAI/bge-small-en-v1.5)
+        #[arg(long)]
+        model: Option<String>,
+        /// Destination directory for model weights
+        #[arg(long)]
+        dest: Option<PathBuf>,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -82,8 +89,8 @@ fn main() -> anyhow::Result<()> {
         Commands::CloneReferences { repo } => {
             tasks::clone_references::run_clone_references(repo.as_deref())
         }
-        Commands::TestOffline => tasks::stub_command("test-offline"),
-        Commands::TestInvariants => tasks::stub_command("test-invariants"),
+        Commands::TestOffline => tasks::test_offline::run_test_offline(),
+        Commands::TestInvariants => tasks::test_invariants::run_test_invariants(),
         Commands::Fixtures { dump_dir, scenario } => {
             tasks::fixtures::run_fixtures(dump_dir.as_deref(), scenario.as_deref())
         }
@@ -97,13 +104,11 @@ fn main() -> anyhow::Result<()> {
                 class: sub_class,
                 chain_depth: sub_depth,
                 out: sub_out,
-            }) => tasks::eval::run_eval_mutate(
-                sub_class.as_deref(),
-                sub_depth,
-                sub_out.as_deref(),
-            ),
+            }) => tasks::eval::run_eval_mutate(sub_class.as_deref(), sub_depth, sub_out.as_deref()),
             None => tasks::eval::run_eval_mutate(class.as_deref(), chain_depth, out.as_deref()),
         },
-        Commands::DownloadModels => tasks::stub_command("download-models"),
+        Commands::DownloadModels { model, dest } => {
+            tasks::download_models::run_download_models(model.as_deref(), dest.as_deref())
+        }
     }
 }

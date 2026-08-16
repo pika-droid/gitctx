@@ -13,19 +13,35 @@ use std::str::FromStr;
 #[serde(rename_all = "snake_case")]
 pub enum MutationClass {
     /// M1: Renames a function in-place within the same file; body remains semantically identical.
-    #[serde(rename = "m1_in_place_rename", alias = "M1_InPlaceRename", alias = "m1")]
+    #[serde(
+        rename = "m1_in_place_rename",
+        alias = "M1_InPlaceRename",
+        alias = "m1"
+    )]
     M1_InPlaceRename,
 
     /// M2: Moves a function from one file to another without modifying signature or body.
-    #[serde(rename = "m2_cross_file_move", alias = "M2_CrossFileMove", alias = "m2")]
+    #[serde(
+        rename = "m2_cross_file_move",
+        alias = "M2_CrossFileMove",
+        alias = "m2"
+    )]
     M2_CrossFileMove,
 
     /// M3: Moves a function to another file and renames it in the same commit.
-    #[serde(rename = "m3_move_and_rename", alias = "M3_MoveAndRename", alias = "m3")]
+    #[serde(
+        rename = "m3_move_and_rename",
+        alias = "M3_MoveAndRename",
+        alias = "m3"
+    )]
     M3_MoveAndRename,
 
     /// M4: Modifies function parameters (add, remove, or reorder parameters).
-    #[serde(rename = "m4_signature_change", alias = "M4_SignatureChange", alias = "m4")]
+    #[serde(
+        rename = "m4_signature_change",
+        alias = "M4_SignatureChange",
+        alias = "m4"
+    )]
     M4_SignatureChange,
 
     /// M5: Modifies formatting, docstrings, or whitespace without changing AST semantics.
@@ -33,7 +49,11 @@ pub enum MutationClass {
     M5_Reformatting,
 
     /// M6: Renames local variables inside the function body preserving signature and name.
-    #[serde(rename = "m6_local_var_rename", alias = "M6_LocalVarRename", alias = "m6")]
+    #[serde(
+        rename = "m6_local_var_rename",
+        alias = "M6_LocalVarRename",
+        alias = "m6"
+    )]
     M6_LocalVarRename,
 
     /// M7: Splits part of a function into a new helper function (`derived_from` relation).
@@ -41,7 +61,11 @@ pub enum MutationClass {
     M7_FunctionSplit,
 
     /// M8: Deletes an old function and simultaneously adds an unrelated function in the same commit.
-    #[serde(rename = "m8_decoy_delete_add", alias = "M8_DecoyDeleteAdd", alias = "m8")]
+    #[serde(
+        rename = "m8_decoy_delete_add",
+        alias = "M8_DecoyDeleteAdd",
+        alias = "m8"
+    )]
     M8_DecoyDeleteAdd,
 
     /// M9: Relocates an entire directory or module path.
@@ -49,7 +73,11 @@ pub enum MutationClass {
     M9_DirectoryMove,
 
     /// M10: Duplicates a function into a second file while retaining the original (`copied` relation).
-    #[serde(rename = "m10_function_copy", alias = "M10_FunctionCopy", alias = "m10")]
+    #[serde(
+        rename = "m10_function_copy",
+        alias = "M10_FunctionCopy",
+        alias = "m10"
+    )]
     M10_FunctionCopy,
 }
 
@@ -148,7 +176,9 @@ impl MutationClass {
             "m1" | "m1_in_place_rename" | "in_place_rename" | "rename" => {
                 Some(Self::M1_InPlaceRename)
             }
-            "m2" | "m2_cross_file_move" | "cross_file_move" | "move" => Some(Self::M2_CrossFileMove),
+            "m2" | "m2_cross_file_move" | "cross_file_move" | "move" => {
+                Some(Self::M2_CrossFileMove)
+            }
             "m3" | "m3_move_and_rename" | "move_and_rename" => Some(Self::M3_MoveAndRename),
             "m4" | "m4_signature_change" | "signature_change" | "signature" => {
                 Some(Self::M4_SignatureChange)
@@ -181,9 +211,7 @@ impl FromStr for MutationClass {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::from_str_loose(s).ok_or_else(|| {
-            format!(
-                "Unknown mutation class '{s}'. Valid values: M1..M10, or descriptive names."
-            )
+            format!("Unknown mutation class '{s}'. Valid values: M1..M10, or descriptive names.")
         })
     }
 }
