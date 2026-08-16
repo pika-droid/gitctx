@@ -6,17 +6,20 @@
 ## v1 Requirements
 
 ### Invariant & Scaffolding (INVAR)
-- [ ] **INVAR-01**: Rust workspace initialized (`gitctx-core`, `gitctx-index`, `gitctx-query`, `gitctx-cli`, `gitctx-mcp`, `gitctx-eval`, `xtask`) with CI enforcing `fmt`, `clippy -D warnings`, and fast unit tests.
+
+- [x] **INVAR-01**: Rust workspace initialized (`gitctx-core`, `gitctx-index`, `gitctx-query`, `gitctx-cli`, `gitctx-mcp`, `gitctx-eval`, `xtask`) with CI enforcing `fmt`, `clippy -D warnings`, and fast unit tests.
 - [ ] **INVAR-02**: Offline enforcement (Invariant I1) verified via network-isolated test harness.
 - [ ] **INVAR-03**: Configuration hashing mechanism (`config_hash`) computed across schema, model, tokenizer, and params to reject mismatched indexes.
 - [ ] **INVAR-04**: Double-indexing determinism test (Invariant I2) asserting byte-identical SQLite/vector dumps and identical top-10 search results.
 - [ ] **INVAR-05**: Incremental vs. full index equivalence test (Invariant I3) asserting identical database states for matching commit ranges.
 
 ### Synthetic Fixtures (FIXT)
+
 - [ ] **FIXT-01**: Synthetic repository generator (`tests/fixtures/mkrepo.rs`) producing isolated Git histories (linear commits, merges, evil merges, squash-merges, renames, moves, syntax errors).
 - [ ] **FIXT-02**: Mutation testing harness (`gitctx-eval mutate`) implementing transformation classes M1-M10 (in-place rename, cross-file move, simultaneous move+rename, signature change, reformatting, local var rename, function split, decoy delete+add, directory move, function copy).
 
 ### Corpus Selection & Ground Truth (CORP)
+
 - [ ] **CORP-01**: Scripted Python repository analyzer computing traceable issue densities, merge fractions, churn, and rename density.
 - [ ] **CORP-02**: Pinned evaluation corpus locked by exact commit SHAs in `eval/corpus.lock.toml` (Invariant I6).
 - [ ] **CORP-03**: Ground truth harvester (`eval/harvest.py`) extracting issue-closing commits (Set A) and revert pairs with manual audit measuring harvester precision.
@@ -24,12 +27,14 @@
 - [ ] **CORP-05**: Hand-authored why-shaped evaluation set (Set B, 25-30 queries) curated from issue/PR discussions prior to inspection of tool outputs.
 
 ### Thesis Validation & Ablation (THESIS)
+
 - [ ] **THESIS-01**: Standalone Python evaluation prototype implementing document representations D1-D5 (message only, raw diff, message+raw diff, templated pseudo-doc, templated without message).
 - [ ] **THESIS-02**: Evaluation grid across retrievers R1-R5 (keyword `git log -S`, BM25, MiniLM dense, code-aware dense, RRF hybrid).
 - [ ] **THESIS-03**: Statistical evaluation harness computing Recall@5/10/20, MRR, paired bootstrap 95% CIs, and adjudicated-miss rates.
 - [ ] **THESIS-04**: Formal Phase 0 decision gate executed to validate $\Delta\text{Recall@10} \ge 0.05$ over baselines before committing to retrieval architecture.
 
 ### Git Extraction & Parsing (PARSE)
+
 - [ ] **PARSE-01**: `libgit2` / `git2` walker implementing first-parent traversal and diff extraction with Git rename detection enabled.
 - [ ] **PARSE-02**: `tree-sitter` historical blob parser extracting function definitions, signatures, docstrings, and identifiers as of each historical commit.
 - [ ] **PARSE-03**: Graceful degradation handler emitting file-level chunks with `parse_status = 'degraded'` on syntax errors without crashing indexer.
@@ -38,6 +43,7 @@
 - [ ] **PARSE-06**: Defense-in-depth secret redaction replacing high-entropy strings and recognized API key prefixes in chunks and indexes.
 
 ### Function Lineage Engine (LINEAGE)
+
 - [ ] **LINEAGE-01**: Formal qualified name convention for module-level functions, class methods, nested functions, closures, decorated functions, and async definitions.
 - [ ] **LINEAGE-02**: Multi-stage lineage resolver per commit (1. Exact key match, 2. Same-file MinHash fingerprint, 3. Git file rename mapping, 4. Scoped cross-file MinHash search).
 - [ ] **LINEAGE-03**: Ambiguity and conflict resolution (maximum-weight bipartite matching, function split inheritance with `derived_from` edges, decoy rejection).
@@ -45,6 +51,7 @@
 - [ ] **LINEAGE-05**: Agreement evaluation against `git log -L :func:file` heuristic oracle with quantified blindness reporting.
 
 ### Storage & Hybrid Retrieval (INDEX)
+
 - [ ] **INDEX-01**: SQLite schema with WAL mode, single writer channel, atomic `.tmp` indexing, explicit topological order index, and `schema_version` validation.
 - [ ] **INDEX-02**: Physical isolation of `explain_cache` table to guarantee no LLM text enters embedding inputs (Invariant I5).
 - [ ] **INDEX-03**: Code-aware Tantivy BM25 index with camelCase/snake_case tokenization and identifier preservation.
@@ -54,6 +61,7 @@
 - [ ] **INDEX-07**: Citation payload inclusion on all retrieved facts (`commit_hash`, `path`, `start_line`, `end_line`, `match_rule`, `match_confidence`) (Invariant I4).
 
 ### Co-Change & Impact Analysis (GRAPH)
+
 - [ ] **GRAPH-01**: Co-change extractor filtering out reformat commits touching $>25$ files and bot commits.
 - [ ] **GRAPH-02**: Normalized association metrics computation (support, confidence $P(B|A)$, lift) with exponential time-decay half-life weighting.
 - [ ] **GRAPH-03**: Operational fix classification linking commits to bug issues or revert pairs to compute `followup_fix_count`.
@@ -61,12 +69,14 @@
 - [ ] **GRAPH-05**: `impact` command evaluating risk, coupled files, historical fix frequency, and top authors against `code-maat` baseline.
 
 ### CLI & Formatter (CLI)
+
 - [ ] **CLI-01**: Core CLI commands: `gitctx index`, `search`, `evolution`, `show`, `impact`, `blame`, `doctor`.
 - [ ] **CLI-02**: Structured `--json` output envelopes with schema version, config hash, warnings, and result citations.
 - [ ] **CLI-03**: Rich `--format table` terminal rendering with chronological evolution timelines, diff stats, pager integration, and `NO_COLOR` support.
 - [ ] **CLI-04**: `gitctx doctor` diagnostic tool checking index freshness, config hashes, vector consistency, and parse status distributions.
 
 ### MCP Server (MCP)
+
 - [ ] **MCP-01**: Stdio Model Context Protocol server exposing `search_history`, `function_evolution`, `change_impact`, `who_knows_this`, and `commit_detail`.
 - [ ] **MCP-02**: Dual-mode token budgeting (`compact` citations by default, `full` diffs on demand) to protect LLM context windows.
 - [ ] **MCP-03**: Strict stdout JSON-RPC isolation directing all internal logging and diagnostics to stderr.
@@ -74,6 +84,7 @@
 - [ ] **MCP-05**: `gitctx init` command generating idempotent AGENTS.md instructions and skill profile files.
 
 ### Evaluation & Defense Suite (EVAL)
+
 - [ ] **EVAL-01**: Automated evaluation runner `cargo xtask eval` producing comprehensive, reproducible `eval/REPORT.md`.
 - [ ] **EVAL-02**: Pre-registered failure taxonomy categorizing retrieval misses (vocabulary mismatch, granularity, lineage break, uninformative commit, label incomplete).
 - [ ] **EVAL-03**: Automated performance benchmark suite validating cold index (<10m/10k commits), incremental (<2s), search latency (<300ms p95), and MCP round-trip (<500ms).
@@ -82,6 +93,7 @@
 ## v2 Requirements
 
 ### Extended Code Intelligence (Deferred / Slip-Absorber)
+
 - **V2-LANG**: Secondary language grammars (Rust, TypeScript) for tree-sitter extraction.
 - **V2-CALLS**: Intra-file and explicit same-package call graph edges stored with temporal validity (`valid_from_commit`).
 - **V2-SYMBOLS**: `symbols find` and `symbols callers` commands querying symbol call graphs.
@@ -105,7 +117,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INVAR-01 | Phase 1 | Pending |
+| INVAR-01 | Phase 1 | Complete |
 | INVAR-02 | Phase 1 | Pending |
 | FIXT-01 | Phase 1 | Pending |
 | FIXT-02 | Phase 1 | Pending |
@@ -159,6 +171,7 @@
 | EVAL-04 | Phase 11 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 48 total
 - Mapped to phases: 48
 - Unmapped: 0 ✓
