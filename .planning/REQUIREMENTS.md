@@ -8,7 +8,7 @@
 ### Invariant & Scaffolding (INVAR)
 
 - [x] **INVAR-01**: Rust workspace initialized (`gitctx-core`, `gitctx-index`, `gitctx-query`, `gitctx-cli`, `gitctx-mcp`, `gitctx-eval`, `xtask`) with CI enforcing `fmt`, `clippy -D warnings`, and fast unit tests.
-- [ ] **INVAR-02**: Offline enforcement (Invariant I1) verified via network-isolated test harness.
+- [x] **INVAR-02**: Offline enforcement (Invariant I1) verified via network-isolated test harness.
 - [ ] **INVAR-03**: Configuration hashing mechanism (`config_hash`) computed across schema, model, tokenizer, and params to reject mismatched indexes.
 - [ ] **INVAR-04**: Double-indexing determinism test (Invariant I2) asserting byte-identical SQLite/vector dumps and identical top-10 search results.
 - [ ] **INVAR-05**: Incremental vs. full index equivalence test (Invariant I3) asserting identical database states for matching commit ranges.
@@ -16,7 +16,7 @@
 ### Synthetic Fixtures (FIXT)
 
 - [x] **FIXT-01**: Synthetic repository generator (`tests/fixtures/mkrepo.rs`) producing isolated Git histories (linear commits, merges, evil merges, squash-merges, renames, moves, syntax errors).
-- [ ] **FIXT-02**: Mutation testing harness (`gitctx-eval mutate`) implementing transformation classes M1-M10 (in-place rename, cross-file move, simultaneous move+rename, signature change, reformatting, local var rename, function split, decoy delete+add, directory move, function copy).
+- [x] **FIXT-02**: Mutation testing harness (`gitctx-eval mutate`) implementing transformation classes M1-M10 (in-place rename, cross-file move, simultaneous move+rename, signature change, reformatting, local var rename, function split, decoy delete+add, directory move, function copy).
 
 ### Corpus Selection & Ground Truth (CORP)
 
@@ -118,9 +118,9 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | INVAR-01 | Phase 1 | Complete |
-| INVAR-02 | Phase 1 | Pending |
+| INVAR-02 | Phase 1 | Complete |
 | FIXT-01 | Phase 1 | Complete |
-| FIXT-02 | Phase 1 | Pending |
+| FIXT-02 | Phase 1 | Complete |
 | CORP-01 | Phase 2 | Pending |
 | CORP-02 | Phase 2 | Pending |
 | CORP-03 | Phase 2 | Pending |
