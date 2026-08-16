@@ -82,6 +82,30 @@ enum Commands {
         #[arg(long)]
         offline: bool,
     },
+    /// Harvest issue-closing pairs (Set A) and revert pairs into canonical datasets
+    Harvest {
+        /// Optional specific repository identifier to harvest
+        #[arg(long)]
+        repo: Option<String>,
+        /// Run harvest strictly offline using local git history and cache
+        #[arg(long)]
+        offline: bool,
+    },
+    /// Run interactive precision audit CLI and calculate Wilson Score CI
+    AuditHarvester {
+        /// Number of sample pairs to audit (default: 30)
+        #[arg(long, default_value = "30")]
+        samples: usize,
+        /// Optional pre-recorded batch judgments JSON file
+        #[arg(long)]
+        batch_file: Option<PathBuf>,
+        /// Use synthetic ground-truth dataset
+        #[arg(long)]
+        synthetic: bool,
+        /// Run automated non-interactive audit
+        #[arg(long)]
+        non_interactive: bool,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -136,5 +160,19 @@ fn main() -> anyhow::Result<()> {
             candidates,
             offline,
         } => tasks::profile_corpus::run_profile_corpus(candidates.as_deref(), offline),
+        Commands::Harvest { repo, offline } => {
+            tasks::harvest::run_harvest(repo.as_deref(), offline)
+        }
+        Commands::AuditHarvester {
+            samples,
+            batch_file,
+            synthetic,
+            non_interactive,
+        } => tasks::audit_harvester::run_audit_harvester(
+            samples,
+            batch_file.as_deref(),
+            synthetic,
+            non_interactive,
+        ),
     }
 }

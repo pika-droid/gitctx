@@ -1,8 +1,10 @@
+pub mod audit_harvester;
 pub mod clone_corpus;
 pub mod clone_references;
 pub mod download_models;
 pub mod eval;
 pub mod fixtures;
+pub mod harvest;
 pub mod lint;
 pub mod profile_corpus;
 pub mod test_invariants;
