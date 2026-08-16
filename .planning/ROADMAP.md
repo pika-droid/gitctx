@@ -6,7 +6,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Project Foundation, Invariants & Fixture Scaffolding** - Initialize Rust workspace, establish invariant enforcement harness, and build synthetic git fixture and mutation generators.
+- [x] **Phase 1: Project Foundation, Invariants & Fixture Scaffolding** - Initialize Rust workspace, establish invariant enforcement harness, and build synthetic git fixture and mutation generators. (completed 2026-08-16)
 - [ ] **Phase 2: Corpus Selection, Ground Truth Harvesting & Leakage Sanitization** - Scripted repository profiling, SHA-locked corpus selection, issue-closing ground truth harvester, and leakage stripper.
 - [ ] **Phase 3: Retrieval Thesis Validation (Phase 0 Python Ablation)** - Run throwaway Python ablation grid testing document representations (D1-D5) and retrievers (R1-R5) to validate retrieval quality and decision gate.
 - [ ] **Phase 4: Rust Git Extraction & Tree-Sitter Historical Parser** - Build `libgit2` first-parent commit walker with rename detection, historical `tree-sitter` parser with graceful degradation, and template chunk renderer.
@@ -51,7 +51,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-03: Synthetic mutation generator (`gitctx-eval mutate`) implementing transformation classes M1-M10 and invariant verification harness.
+- [x] 01-03: Synthetic mutation generator (`gitctx-eval mutate`) implementing transformation classes M1-M10 and invariant verification harness.
 
 ### Phase 2: Corpus Selection, Ground Truth Harvesting & Leakage Sanitization
 
@@ -275,7 +275,7 @@ Phases execute sequentially in numeric order: 1 → 2 → 3 → 4 → 5 → 6 �
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Project Foundation, Invariants & Fixtures | 3/3 | In Progress|  |
+| 1. Project Foundation, Invariants & Fixtures | 3/3 | Complete    | 2026-08-16 |
 | 2. Corpus Selection & Ground Truth | 0/3 | Not started | - |
 | 3. Retrieval Thesis Validation (Phase 0) | 0/2 | Not started | - |
 | 4. Rust Git Extraction & Parser | 0/3 | Not started | - |
