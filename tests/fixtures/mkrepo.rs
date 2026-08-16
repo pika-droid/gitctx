@@ -89,6 +89,16 @@ impl RepoBuilder {
         Ok(commit.id())
     }
 
+    /// Returns the short name of the current HEAD branch (e.g. "master" or "main").
+    pub fn current_branch_name(&self) -> Result<String, git2::Error> {
+        let head = self.repo.head()?;
+        if let Some(name) = head.shorthand() {
+            Ok(name.to_string())
+        } else {
+            Ok("master".to_string())
+        }
+    }
+
     /// Writes content to a file relative to the repository working directory.
     pub fn write_file(&mut self, rel_path: &str, content: &str) -> Result<&mut Self, std::io::Error> {
         let full_path = self.path().join(rel_path);
