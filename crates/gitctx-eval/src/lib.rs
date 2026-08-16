@@ -5,8 +5,10 @@
 #[path = "../../../tests/fixtures/mod.rs"]
 pub mod fixtures;
 
+pub mod corpus;
 pub mod mutator;
 
+pub use corpus::*;
 pub use fixtures::mkrepo::RepoBuilder;
 pub use gitctx_core as core;
 pub use gitctx_index as index;

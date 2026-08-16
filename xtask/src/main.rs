@@ -64,6 +64,24 @@ enum Commands {
         #[arg(long)]
         dest: Option<PathBuf>,
     },
+    /// Clone or update pinned evaluation corpus into `eval/corpus/` per Invariant I6
+    CloneCorpus {
+        /// Optional path to corpus.lock.toml file
+        #[arg(long)]
+        lockfile: Option<PathBuf>,
+        /// Optional destination directory for corpus clones
+        #[arg(long)]
+        target_dir: Option<PathBuf>,
+    },
+    /// Profile candidate repositories and generate selection docs / lockfile
+    ProfileCorpus {
+        /// Optional candidate repository list or comma-separated repo IDs
+        #[arg(long)]
+        candidates: Option<String>,
+        /// Run profile strictly against local repositories without network calls
+        #[arg(long)]
+        offline: bool,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -110,5 +128,13 @@ fn main() -> anyhow::Result<()> {
         Commands::DownloadModels { model, dest } => {
             tasks::download_models::run_download_models(model.as_deref(), dest.as_deref())
         }
+        Commands::CloneCorpus {
+            lockfile,
+            target_dir,
+        } => tasks::clone_corpus::run_clone_corpus(lockfile.as_deref(), target_dir.as_deref()),
+        Commands::ProfileCorpus {
+            candidates,
+            offline,
+        } => tasks::profile_corpus::run_profile_corpus(candidates.as_deref(), offline),
     }
 }

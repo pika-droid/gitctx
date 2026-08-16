@@ -30,7 +30,7 @@ pub fn run_test_invariants() -> Result<()> {
 
     // Check 1: Invariant I1 - Zero Network Egress (Offline Execution)
     {
-        println!("[1/4] Running Invariant I1 Check (Zero Network Egress)...");
+        println!("[1/5] Running Invariant I1 Check (Zero Network Egress)...");
         let start = Instant::now();
         let result = crate::tasks::test_offline::run_test_offline();
         let duration = start.elapsed().as_millis();
@@ -50,7 +50,7 @@ pub fn run_test_invariants() -> Result<()> {
 
     // Check 2: Invariant I2 - Synthetic Fixture Determinism
     {
-        println!("[2/4] Running Invariant I2 Check (Fixture Deterministic Hashes)...");
+        println!("[2/5] Running Invariant I2 Check (Fixture Deterministic Hashes)...");
         let start = Instant::now();
         let mut cmd = Command::new("cargo");
         cmd.current_dir(&root);
@@ -80,7 +80,7 @@ pub fn run_test_invariants() -> Result<()> {
 
     // Check 3: Invariant I3 - Mutation Oracle & Ground Truth Manifest
     {
-        println!("[3/4] Running Invariant I3 Check (Mutation Engine M1-M10 & Manifests)...");
+        println!("[3/5] Running Invariant I3 Check (Mutation Engine M1-M10 & Manifests)...");
         let start = Instant::now();
         let mut cmd = Command::new("cargo");
         cmd.current_dir(&root);
@@ -103,7 +103,7 @@ pub fn run_test_invariants() -> Result<()> {
 
     // Check 4: Invariant I4 - Configuration Hash BLAKE3 Determinism
     {
-        println!("[4/4] Running Invariant I4 Check (Config Hash BLAKE3 Determinism)...");
+        println!("[4/5] Running Invariant I4 Check (Config Hash BLAKE3 Determinism)...");
         let start = Instant::now();
         let mut cmd = Command::new("cargo");
         cmd.current_dir(&root);
@@ -118,6 +118,29 @@ pub fn run_test_invariants() -> Result<()> {
             id: "I4",
             name: "Config Hash BLAKE3 Determinism",
             target: "gitctx-core::config",
+            passed,
+            duration_ms: duration,
+            error_msg: err,
+        });
+    }
+
+    // Check 5: Invariant I6 - Pinned Evaluation Corpus SHA Enforcement
+    {
+        println!("[5/5] Running Invariant I6 Check (Pinned Corpus SHA Verification)...");
+        let start = Instant::now();
+        let mut cmd = Command::new("cargo");
+        cmd.current_dir(&root);
+        cmd.args(["test", "-p", "gitctx-eval", "--test", "invariant_i6_test"]);
+        let result = crate::util::run_cmd(&mut cmd, "invariant_i6_test");
+        let duration = start.elapsed().as_millis();
+        let (passed, err) = match result {
+            Ok(()) => (true, None),
+            Err(e) => (false, Some(e.to_string())),
+        };
+        checks.push(InvariantCheck {
+            id: "I6",
+            name: "Pinned Evaluation Corpus SHA Lock (I6)",
+            target: "invariant_i6_test",
             passed,
             duration_ms: duration,
             error_msg: err,
