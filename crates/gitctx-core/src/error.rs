@@ -31,6 +31,9 @@ pub enum CoreError {
     #[error("Ground truth corrupted for {file:?}: {message}")]
     GroundTruthCorrupted { file: String, message: String },
 
+    #[error("Git error: {0}")]
+    Git(#[from] git2::Error),
+
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
 }
