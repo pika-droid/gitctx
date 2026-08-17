@@ -17,8 +17,9 @@ pub use git::{
     CommitDiff, CommitInfo, DeltaStatus, DiffHunk, FileDelta, GitRepo, GitWalker, TreeDiffExtractor,
 };
 pub use lineage::{
-    murmur3_32, AstNormalizer, BipartiteMatcher, CandidateGenerator, LineageResolver,
-    MatchThresholds, MatchTier, MinHashFingerprint, ResolvedCommit, ResolvedTouch,
+    murmur3_32, AstNormalizer, BipartiteMatcher, CandidateGenerator, DerivationKind, LineageDag,
+    LineageEdge, LineageResolver, MatchThresholds, MatchTier, MinHashFingerprint, ResolvedCommit,
+    ResolvedTouch,
 };
 pub use model::{Citation, CommitId, FunctionTouch, LineageId, ParseStatus};
 pub use parser::{

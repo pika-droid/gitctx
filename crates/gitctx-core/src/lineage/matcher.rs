@@ -72,10 +72,12 @@ impl Default for MatchThresholds {
             tau_same: 0.65,
             tau_cross: 0.75,
             tau_decoy: 0.25,
-            tau_split: 0.40,
+            tau_split: 0.20,
         }
     }
 }
+
+
 
 /// Full descriptor of an active or extracted function symbol for matching.
 #[derive(Debug, Clone, PartialEq, Eq)]

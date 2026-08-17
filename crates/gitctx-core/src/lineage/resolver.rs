@@ -6,6 +6,7 @@
 use crate::error::{CoreError, Result};
 use crate::git::diff::{CommitDiff, DeltaStatus, TreeDiffExtractor};
 use crate::git::repository::GitRepo;
+use crate::lineage::dag::{DerivationKind, LineageDag, LineageEdge};
 use crate::lineage::matcher::{
     BipartiteMatcher, BipartiteSolution, CandidateGenerator, MatchThresholds, SymbolDescriptor,
 };
@@ -38,6 +39,7 @@ pub struct ResolvedCommit {
     pub citations: Vec<Citation>,
     pub resolved_touches: Vec<ResolvedTouch>,
     pub solution: BipartiteSolution,
+    pub derivation_edges: Vec<LineageEdge>,
     pub parent_symbols_count: usize,
     pub child_symbols_count: usize,
 }
@@ -48,6 +50,8 @@ pub struct LineageResolver {
     normalizer: AstNormalizer,
     registry: LanguageRegistry,
     next_lineage_id: u64,
+    /// Evolutionary lineage derivation DAG per D-09, D-10, D-11.
+    dag: LineageDag,
     /// Active symbols in the repository indexed by normalized file path.
     active_symbols: HashMap<String, Vec<SymbolDescriptor>>,
     /// Enforces UNIQUE(lineage_id, commit_hash) per D-11.
@@ -75,16 +79,27 @@ impl LineageResolver {
             normalizer: AstNormalizer::new(),
             registry: LanguageRegistry::new(),
             next_lineage_id: 1,
+            dag: LineageDag::new(),
             active_symbols: HashMap::new(),
             seen_touches: HashSet::new(),
         }
     }
 
-
     /// Access current thresholds.
     #[must_use]
     pub fn thresholds(&self) -> &MatchThresholds {
         &self.thresholds
+    }
+
+    /// Access the lineage derivation DAG.
+    #[must_use]
+    pub fn dag(&self) -> &LineageDag {
+        &self.dag
+    }
+
+    /// Mutable access to the lineage derivation DAG.
+    pub fn dag_mut(&mut self) -> &mut LineageDag {
+        &mut self.dag
     }
 
     /// Access active symbols currently tracked in the working state.
@@ -221,7 +236,114 @@ impl LineageResolver {
             match_rules.insert(*child_idx, ("new_lineage".to_string(), 1.0));
         }
 
-        // 6. Update active symbols with new state
+        // 6. Secondary derivation analysis: Split (M7), Merge, and Copy (M10) per D-09, D-10, D-11
+        let mut derivation_edges = Vec::new();
+
+        // 6a. Copies (M10) & Splits (M7) for unmatched children
+        for &child_idx in &solution.unmatched_children {
+            let child = &child_symbols[child_idx];
+            let child_lineage_id = child.lineage_id.expect("child has lineage_id");
+
+            if child.is_short {
+                continue;
+            }
+
+            let mut best_copy: Option<(LineageId, f32)> = None;
+            let mut best_split: Option<(LineageId, f32)> = None;
+
+            for m in &solution.matches {
+                let parent = &parent_symbols[m.parent_index];
+                if parent.language != child.language || parent.is_short {
+                    continue;
+                }
+
+                let sim = parent.fingerprint.similarity(&child.fingerprint);
+                let parent_lineage_id = parent.lineage_id.expect("parent has lineage_id");
+
+                let is_same_file = child.path == parent.path;
+
+                if is_same_file {
+                    if sim >= self.thresholds.tau_split {
+                        if best_split.as_ref().map_or(true, |(_, s)| sim > *s) {
+                            best_split = Some((parent_lineage_id, sim));
+                        }
+                    }
+                } else if sim >= 0.80 {
+                    if best_copy.as_ref().map_or(true, |(_, s)| sim > *s) {
+                        best_copy = Some((parent_lineage_id, sim));
+                    }
+                } else if sim >= self.thresholds.tau_split {
+                    if best_split.as_ref().map_or(true, |(_, s)| sim > *s) {
+                        best_split = Some((parent_lineage_id, sim));
+                    }
+                }
+            }
+
+
+            if let Some((parent_id, sim)) = best_copy {
+                let edge = LineageEdge {
+                    parent_lineage_id: parent_id,
+                    child_lineage_id,
+                    commit_hash: commit_id.clone(),
+                    kind: DerivationKind::Copy,
+                    similarity: sim,
+                };
+                self.dag.add_edge(edge.clone());
+                derivation_edges.push(edge);
+            } else if let Some((parent_id, sim)) = best_split {
+                let edge = LineageEdge {
+                    parent_lineage_id: parent_id,
+                    child_lineage_id,
+                    commit_hash: commit_id.clone(),
+                    kind: DerivationKind::Split,
+                    similarity: sim,
+                };
+                self.dag.add_edge(edge.clone());
+                derivation_edges.push(edge);
+            }
+        }
+
+        // 6b. Merges for unmatched parents
+        for &parent_idx in &solution.unmatched_parents {
+            let parent = &parent_symbols[parent_idx];
+            let parent_lineage_id = parent.lineage_id.expect("parent has lineage_id");
+
+            if parent.is_short {
+                continue;
+            }
+
+            let mut best_merge: Option<(LineageId, f32)> = None;
+
+            for m in &solution.matches {
+                let child = &child_symbols[m.child_index];
+                if parent.language != child.language || child.is_short {
+                    continue;
+                }
+
+                let sim = parent.fingerprint.similarity(&child.fingerprint);
+                let child_lineage_id = child.lineage_id.expect("child has lineage_id");
+
+                if sim >= self.thresholds.tau_split {
+                    if best_merge.as_ref().map_or(true, |(_, s)| sim > *s) {
+                        best_merge = Some((child_lineage_id, sim));
+                    }
+                }
+            }
+
+            if let Some((child_id, sim)) = best_merge {
+                let edge = LineageEdge {
+                    parent_lineage_id,
+                    child_lineage_id: child_id,
+                    commit_hash: commit_id.clone(),
+                    kind: DerivationKind::Merge,
+                    similarity: sim,
+                };
+                self.dag.add_edge(edge.clone());
+                derivation_edges.push(edge);
+            }
+        }
+
+        // 7. Update active symbols with new state
         for child in &child_symbols {
             self.active_symbols
                 .entry(child.path.clone())
@@ -229,7 +351,7 @@ impl LineageResolver {
                 .push(child.clone());
         }
 
-        // 7. Emit FunctionTouch, Citation, and ResolvedTouch records
+        // 8. Emit FunctionTouch, Citation, and ResolvedTouch records
         let mut touches = Vec::with_capacity(child_symbols.len());
         let mut citations = Vec::with_capacity(child_symbols.len());
         let mut resolved_touches = Vec::with_capacity(child_symbols.len());
@@ -285,6 +407,7 @@ impl LineageResolver {
             citations,
             resolved_touches,
             solution,
+            derivation_edges,
             parent_symbols_count: parent_symbols.len(),
             child_symbols_count: child_symbols.len(),
         })
