@@ -122,9 +122,9 @@ Plans:
 
 Plans:
 
-- [ ] 04-01: `gitctx-core` Git walker, topological commit ordering, first-parent filter, and diff/rename extractor.
-- [ ] 04-02: Historical blob AST parser using `tree-sitter` with OID cache and graceful degradation error handling.
-- [ ] 04-03: Templated pseudo-document generator, identifier delta extractor, and secret redaction filter.
+- [x] 04-01: `gitctx-core` Git walker, topological commit ordering, first-parent filter, and diff/rename extractor.
+- [x] 04-02: Historical blob AST parser using `tree-sitter` with OID cache and graceful degradation error handling.
+- [x] 04-03: Templated pseudo-document generator, identifier delta extractor, and secret redaction filter.
 
 ### Phase 5: Function Lineage Engine & Mutation Oracle
 
