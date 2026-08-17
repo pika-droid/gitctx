@@ -3,6 +3,7 @@
 pub mod config;
 pub mod error;
 pub mod git;
+pub mod lineage;
 pub mod model;
 pub mod parser;
 pub mod qualname;
@@ -15,6 +16,7 @@ pub use error::{CoreError, Result};
 pub use git::{
     CommitDiff, CommitInfo, DeltaStatus, DiffHunk, FileDelta, GitRepo, GitWalker, TreeDiffExtractor,
 };
+pub use lineage::{murmur3_32, AstNormalizer, MinHashFingerprint};
 pub use model::{Citation, CommitId, FunctionTouch, LineageId, ParseStatus};
 pub use parser::{
     AstExtractor, BlobParseCache, DegradationHandler, LanguageBehavior, LanguageId,

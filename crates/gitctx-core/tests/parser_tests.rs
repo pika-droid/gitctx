@@ -36,7 +36,7 @@ class Calculator:
 
     let add = &res.symbols[1];
     assert_eq!(add.name, "add");
-    assert_eq!(add.qualname, "Calculator.add");
+    assert_eq!(add.qualname, "Calculator::add");
     assert_eq!(add.signature, "def add(self, a: int, b: int) -> int");
     assert_eq!(add.docstring.as_deref(), Some("Add two numbers."));
     assert!(add.is_method);
