@@ -1,0 +1,10 @@
+{
+  "tau_same": 0.55,
+  "tau_cross": 0.65,
+  "tau_decoy": 0.2,
+  "overall_f1": 1.0,
+  "m8_decoy_rejection_rate": 1.0,
+  "chain_recovery_depth_5": 1.0,
+  "grid_points_evaluated": 66,
+  "calibrated_at": "2026-08-17T12:00:00Z"
+}
