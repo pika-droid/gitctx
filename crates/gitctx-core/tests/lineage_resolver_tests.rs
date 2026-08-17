@@ -312,3 +312,287 @@ fn test_git_rename_mapping() {
     assert_eq!(candidates[0].tier, MatchTier::GitRenameExact);
     assert_eq!(candidates[0].score, 0.95);
 }
+
+#[test]
+fn test_multi_commit_lineage_continuity() {
+    use gitctx_core::git::{CommitDiff, DeltaStatus, FileDelta};
+    use gitctx_core::lineage::LineageResolver;
+    use gitctx_core::model::CommitId;
+    use gitctx_core::parser::{ParsedFileSymbols, RawFunctionSymbol};
+
+    let mut resolver = LineageResolver::new();
+
+    // Commit 1: Add src/service.rs with calculate_tax
+    let c1_id = CommitId::new("commit_1");
+    let c1_code = b"fn calculate_tax(amount: f64, rate: f64) -> f64 {\n    let base = amount * rate;\n    let surcharge = base * 0.05;\n    base + surcharge\n}\n";
+    let mut c1_symbols = HashMap::new();
+    c1_symbols.insert(
+        PathBuf::from("src/service.rs"),
+        ParsedFileSymbols {
+            symbols: vec![RawFunctionSymbol {
+                name: "calculate_tax".to_string(),
+                qualname: "calculate_tax".to_string(),
+                signature: "fn calculate_tax(amount: f64, rate: f64) -> f64".to_string(),
+                docstring: None,
+                start_byte: 0,
+                end_byte: c1_code.len(),
+                start_line: 1,
+                end_line: 5,
+                is_method: false,
+            }],
+            status: ParseStatus::Ok,
+            error_byte_ranges: vec![],
+        },
+    );
+    let mut c1_contents = HashMap::new();
+    c1_contents.insert(PathBuf::from("src/service.rs"), c1_code.to_vec());
+
+    let c1_diff = CommitDiff {
+        commit_id: c1_id.clone(),
+        parent_id: None,
+        deltas: vec![FileDelta {
+            old_path: None,
+            new_path: Some(PathBuf::from("src/service.rs")),
+            status: DeltaStatus::Added,
+            old_oid: None,
+            new_oid: Some("oid1".to_string()),
+            similarity: 0,
+            is_binary: false,
+        }],
+        hunks_by_path: HashMap::new(),
+        raw_diff: String::new(),
+    };
+
+    let res1 = resolver
+        .resolve_commit(&c1_id, &c1_diff, &c1_symbols, &c1_contents)
+        .unwrap();
+    assert_eq!(res1.touches.len(), 1);
+    assert_eq!(res1.touches[0].lineage_id.as_u64(), 1);
+    assert_eq!(res1.resolved_touches[0].match_rule, "new_lineage");
+
+    // Commit 2: Edit calculate_tax in-place (Tier 1 ExactKey)
+    let c2_id = CommitId::new("commit_2");
+    let c2_code = b"fn calculate_tax(amount: f64, rate: f64) -> f64 {\n    let base = amount * rate;\n    let surcharge = base * 0.08;\n    base + surcharge\n}\n";
+    let mut c2_symbols = HashMap::new();
+    c2_symbols.insert(
+        PathBuf::from("src/service.rs"),
+        ParsedFileSymbols {
+            symbols: vec![RawFunctionSymbol {
+                name: "calculate_tax".to_string(),
+                qualname: "calculate_tax".to_string(),
+                signature: "fn calculate_tax(amount: f64, rate: f64) -> f64".to_string(),
+                docstring: None,
+                start_byte: 0,
+                end_byte: c2_code.len(),
+                start_line: 1,
+                end_line: 5,
+                is_method: false,
+            }],
+            status: ParseStatus::Ok,
+            error_byte_ranges: vec![],
+        },
+    );
+    let mut c2_contents = HashMap::new();
+    c2_contents.insert(PathBuf::from("src/service.rs"), c2_code.to_vec());
+
+    let c2_diff = CommitDiff {
+        commit_id: c2_id.clone(),
+        parent_id: Some(c1_id),
+        deltas: vec![FileDelta {
+            old_path: Some(PathBuf::from("src/service.rs")),
+            new_path: Some(PathBuf::from("src/service.rs")),
+            status: DeltaStatus::Modified,
+            old_oid: Some("oid1".to_string()),
+            new_oid: Some("oid2".to_string()),
+            similarity: 0,
+            is_binary: false,
+        }],
+        hunks_by_path: HashMap::new(),
+        raw_diff: String::new(),
+    };
+
+    let res2 = resolver
+        .resolve_commit(&c2_id, &c2_diff, &c2_symbols, &c2_contents)
+        .unwrap();
+    assert_eq!(res2.touches.len(), 1);
+    assert_eq!(res2.touches[0].lineage_id.as_u64(), 1);
+    assert_eq!(res2.resolved_touches[0].match_rule, "exact_key");
+
+    // Commit 3: In-place Rename to compute_tax (Tier 2 SameFileMinHash)
+    let c3_id = CommitId::new("commit_3");
+    let c3_code = b"fn compute_tax(amount: f64, rate: f64) -> f64 {\n    let base = amount * rate;\n    let surcharge = base * 0.08;\n    base + surcharge\n}\n";
+    let mut c3_symbols = HashMap::new();
+    c3_symbols.insert(
+        PathBuf::from("src/service.rs"),
+        ParsedFileSymbols {
+            symbols: vec![RawFunctionSymbol {
+                name: "compute_tax".to_string(),
+                qualname: "compute_tax".to_string(),
+                signature: "fn compute_tax(amount: f64, rate: f64) -> f64".to_string(),
+                docstring: None,
+                start_byte: 0,
+                end_byte: c3_code.len(),
+                start_line: 1,
+                end_line: 5,
+                is_method: false,
+            }],
+            status: ParseStatus::Ok,
+            error_byte_ranges: vec![],
+        },
+    );
+    let mut c3_contents = HashMap::new();
+    c3_contents.insert(PathBuf::from("src/service.rs"), c3_code.to_vec());
+
+    let c3_diff = CommitDiff {
+        commit_id: c3_id.clone(),
+        parent_id: Some(c2_id),
+        deltas: vec![FileDelta {
+            old_path: Some(PathBuf::from("src/service.rs")),
+            new_path: Some(PathBuf::from("src/service.rs")),
+            status: DeltaStatus::Modified,
+            old_oid: Some("oid2".to_string()),
+            new_oid: Some("oid3".to_string()),
+            similarity: 0,
+            is_binary: false,
+        }],
+        hunks_by_path: HashMap::new(),
+        raw_diff: String::new(),
+    };
+
+    let res3 = resolver
+        .resolve_commit(&c3_id, &c3_diff, &c3_symbols, &c3_contents)
+        .unwrap();
+    assert_eq!(res3.touches.len(), 1);
+    assert_eq!(res3.touches[0].lineage_id.as_u64(), 1);
+    assert_eq!(
+        res3.resolved_touches[0].match_rule,
+        "same_file_fingerprint"
+    );
+
+    // Commit 4: Cross-file Move to src/calculator.rs (Tier 4 CrossFileMinHash)
+    let c4_id = CommitId::new("commit_4");
+    let c4_code_calc = b"fn compute_tax(amount: f64, rate: f64) -> f64 {\n    let base = amount * rate;\n    let surcharge = base * 0.08;\n    base + surcharge\n}\n";
+    let c4_code_serv = b"// empty service\n";
+    let mut c4_symbols = HashMap::new();
+    c4_symbols.insert(
+        PathBuf::from("src/service.rs"),
+        ParsedFileSymbols {
+            symbols: vec![],
+            status: ParseStatus::Ok,
+            error_byte_ranges: vec![],
+        },
+    );
+    c4_symbols.insert(
+        PathBuf::from("src/calculator.rs"),
+        ParsedFileSymbols {
+            symbols: vec![RawFunctionSymbol {
+                name: "compute_tax".to_string(),
+                qualname: "compute_tax".to_string(),
+                signature: "fn compute_tax(amount: f64, rate: f64) -> f64".to_string(),
+                docstring: None,
+                start_byte: 0,
+                end_byte: c4_code_calc.len(),
+                start_line: 1,
+                end_line: 5,
+                is_method: false,
+            }],
+            status: ParseStatus::Ok,
+            error_byte_ranges: vec![],
+        },
+    );
+    let mut c4_contents = HashMap::new();
+    c4_contents.insert(PathBuf::from("src/service.rs"), c4_code_serv.to_vec());
+    c4_contents.insert(
+        PathBuf::from("src/calculator.rs"),
+        c4_code_calc.to_vec(),
+    );
+
+    let c4_diff = CommitDiff {
+        commit_id: c4_id.clone(),
+        parent_id: Some(c3_id),
+        deltas: vec![
+            FileDelta {
+                old_path: Some(PathBuf::from("src/service.rs")),
+                new_path: Some(PathBuf::from("src/service.rs")),
+                status: DeltaStatus::Modified,
+                old_oid: Some("oid3".to_string()),
+                new_oid: Some("oid4a".to_string()),
+                similarity: 0,
+                is_binary: false,
+            },
+            FileDelta {
+                old_path: None,
+                new_path: Some(PathBuf::from("src/calculator.rs")),
+                status: DeltaStatus::Added,
+                old_oid: None,
+                new_oid: Some("oid4b".to_string()),
+                similarity: 0,
+                is_binary: false,
+            },
+        ],
+        hunks_by_path: HashMap::new(),
+        raw_diff: String::new(),
+    };
+
+    let res4 = resolver
+        .resolve_commit(&c4_id, &c4_diff, &c4_symbols, &c4_contents)
+        .unwrap();
+    assert_eq!(res4.touches.len(), 1);
+    assert_eq!(res4.touches[0].lineage_id.as_u64(), 1);
+    assert_eq!(
+        res4.resolved_touches[0].match_rule,
+        "cross_file_fingerprint"
+    );
+
+    // Commit 5: Git Rename File src/calculator.rs -> src/tax/engine.rs (Tier 3 GitRenameExact)
+    let c5_id = CommitId::new("commit_5");
+    let mut c5_symbols = HashMap::new();
+    c5_symbols.insert(
+        PathBuf::from("src/tax/engine.rs"),
+        ParsedFileSymbols {
+            symbols: vec![RawFunctionSymbol {
+                name: "compute_tax".to_string(),
+                qualname: "compute_tax".to_string(),
+                signature: "fn compute_tax(amount: f64, rate: f64) -> f64".to_string(),
+                docstring: None,
+                start_byte: 0,
+                end_byte: c4_code_calc.len(),
+                start_line: 1,
+                end_line: 5,
+                is_method: false,
+            }],
+            status: ParseStatus::Ok,
+            error_byte_ranges: vec![],
+        },
+    );
+    let mut c5_contents = HashMap::new();
+    c5_contents.insert(
+        PathBuf::from("src/tax/engine.rs"),
+        c4_code_calc.to_vec(),
+    );
+
+    let c5_diff = CommitDiff {
+        commit_id: c5_id.clone(),
+        parent_id: Some(c4_id),
+        deltas: vec![FileDelta {
+            old_path: Some(PathBuf::from("src/calculator.rs")),
+            new_path: Some(PathBuf::from("src/tax/engine.rs")),
+            status: DeltaStatus::Renamed,
+            old_oid: Some("oid4b".to_string()),
+            new_oid: Some("oid5".to_string()),
+            similarity: 100,
+            is_binary: false,
+        }],
+        hunks_by_path: HashMap::new(),
+        raw_diff: String::new(),
+    };
+
+    let res5 = resolver
+        .resolve_commit(&c5_id, &c5_diff, &c5_symbols, &c5_contents)
+        .unwrap();
+    assert_eq!(res5.touches.len(), 1);
+    assert_eq!(res5.touches[0].lineage_id.as_u64(), 1);
+    assert_eq!(res5.resolved_touches[0].match_rule, "git_rename_exact");
+
+}
+

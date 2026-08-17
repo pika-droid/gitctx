@@ -6,6 +6,7 @@
 pub mod matcher;
 pub mod minhash;
 pub mod normalizer;
+pub mod resolver;
 pub mod seeds;
 
 pub use matcher::{
@@ -17,5 +18,7 @@ pub use minhash::{
     SHORT_FUNCTION_TOKEN_THRESHOLD,
 };
 pub use normalizer::AstNormalizer;
+pub use resolver::{normalize_path, LineageResolver, ResolvedCommit, ResolvedTouch};
 pub use seeds::MINHASH_SEEDS;
+
 
