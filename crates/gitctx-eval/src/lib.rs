@@ -16,4 +16,3 @@ pub use gitctx_index as index;
 pub use gitctx_query as query;
 pub use manifest::*;
 pub use mutator::*;
-

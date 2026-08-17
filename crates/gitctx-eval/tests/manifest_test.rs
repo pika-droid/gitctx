@@ -24,7 +24,6 @@ fn test_ground_truth_manifest_integrity() {
     let report = verify_ground_truth_integrity(&manifest_path, &gt_dir)
         .expect("Ground truth manifest verification must succeed");
 
-
     assert!(report.all_passed);
     assert_eq!(report.files.len(), 3);
 

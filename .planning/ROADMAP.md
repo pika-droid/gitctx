@@ -17,7 +17,7 @@ To avoid reinventing the wheel and ensure architectural alignment, all phases le
 
 - [x] **Phase 1: Project Foundation, Invariants & Fixture Scaffolding** - Initialize Rust workspace, establish invariant enforcement harness, and build synthetic git fixture and mutation generators. (completed 2026-08-16)
 - [x] **Phase 2: Corpus Selection, Ground Truth Harvesting & Leakage Sanitization** - Scripted repository profiling, SHA-locked corpus selection, issue-closing ground truth harvester, and leakage stripper. (completed 2026-08-16)
-- [ ] **Phase 3: Retrieval Thesis Validation (Phase 0 Python Ablation)** - Run throwaway Python ablation grid testing document representations (D1-D5) and retrievers (R1-R5) to validate retrieval quality and decision gate.
+- [x] **Phase 3: Retrieval Thesis Validation (Phase 0 Python Ablation)** - Run throwaway Python ablation grid testing document representations (D1-D5) and retrievers (R1-R5) to validate retrieval quality and decision gate. (completed 2026-08-17)
 - [ ] **Phase 4: Rust Git Extraction & Tree-Sitter Historical Parser** - Build `libgit2` first-parent commit walker with rename detection, historical `tree-sitter` parser with graceful degradation, and template chunk renderer.
 - [ ] **Phase 5: Function Lineage Engine & Mutation Oracle** - Implement multi-tier MinHash lineage resolution across renames/moves, validated against synthetic mutation suite (M1-M10) and `git log -L`.
 - [ ] **Phase 6: Deterministic Storage & Hybrid Retrieval Engine** - SQLite database layer, Tantivy BM25, mmap f32 dense vectors, RRF fusion ($k=60$), exact symbol fast-path, and deterministic chain assembly.
@@ -97,12 +97,12 @@ Plans:
   3. Statistical harness reports Recall@5/10/20, MRR, paired bootstrap 95% CIs, and top-5 adjudicated miss rates per repo and pooled.
   4. Pre-registered decision gate evaluates $\Delta\text{Recall@10} \ge 0.05$ (CI excluding 0) to officially validate templated pseudo-documents.
 
-**Plans**: 2 plans
+**Plans**: 2/2 plans executed
 
 Plans:
 
-- [ ] 03-01: Standalone Python ablation framework implementing representations D1-D5, retrievers R1-R5, and max-pooled evaluation metrics.
-- [ ] 03-02: Evaluation execution, bootstrap confidence interval analysis, adjudicated miss auditing, and Phase 0 gate decision report.
+- [x] 03-01: Standalone Python ablation framework implementing representations D1-D5, retrievers R1-R5, and max-pooled evaluation metrics.
+- [x] 03-02: Evaluation execution, bootstrap confidence interval analysis, adjudicated miss auditing, and Phase 0 gate decision report.
 
 ### Phase 4: Rust Git Extraction & Tree-Sitter Historical Parser
 
@@ -292,8 +292,8 @@ Phases execute sequentially in numeric order: 1 → 2 → 3 → 4 → 5 → 6 �
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Project Foundation, Invariants & Fixtures | 3/3 | Complete    | 2026-08-16 |
-| 2. Corpus Selection & Ground Truth | 3/3 | In Progress|  |
-| 3. Retrieval Thesis Validation (Phase 0) | 0/2 | Not started | - |
+| 2. Corpus Selection & Ground Truth | 3/3 | Complete    | 2026-08-16 |
+| 3. Retrieval Thesis Validation (Phase 0) | 2/2 | Complete    | 2026-08-17 |
 | 4. Rust Git Extraction & Parser | 0/3 | Not started | - |
 | 5. Function Lineage Engine | 0/3 | Not started | - |
 | 6. Storage & Hybrid Retrieval | 0/4 | Not started | - |

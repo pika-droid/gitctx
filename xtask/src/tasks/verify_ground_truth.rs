@@ -23,7 +23,6 @@ pub fn run_verify_ground_truth() -> Result<()> {
     let report = gitctx_eval::manifest::verify_ground_truth_integrity(&manifest_path, &gt_dir)
         .map_err(|e| anyhow::anyhow!("Manifest verification failed: {e}"))?;
 
-
     println!("\n==========================================================================================");
     println!("                           GROUND TRUTH MANIFEST VERIFICATION                             ");
     println!("==========================================================================================");

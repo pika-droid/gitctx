@@ -11,4 +11,3 @@ pub use error::{CoreError, Result};
 pub use model::{Citation, CommitId, FunctionTouch, LineageId, ParseStatus};
 pub use qualname::QualName;
 pub use sanitize::{sanitize_chunk_text, SanitizedChunk};
-

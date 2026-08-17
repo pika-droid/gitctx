@@ -54,12 +54,11 @@ pub fn verify_ground_truth_integrity(
     manifest_path: &Path,
     ground_truth_dir: &Path,
 ) -> Result<ManifestVerificationReport> {
-    let manifest_content = fs::read_to_string(manifest_path).map_err(|e| {
-        CoreError::RepositoryOpen {
+    let manifest_content =
+        fs::read_to_string(manifest_path).map_err(|e| CoreError::RepositoryOpen {
             path: manifest_path.to_path_buf(),
             message: format!("Failed to read manifest file: {e}"),
-        }
-    })?;
+        })?;
 
     let manifest: GroundTruthManifest = toml::from_str(&manifest_content).map_err(|e| {
         CoreError::ParseError(format!("Failed to parse ground truth MANIFEST.toml: {e}"))
@@ -162,11 +161,12 @@ pub fn compute_file_entry(file_path: &Path) -> Result<ManifestFileEntry> {
 }
 
 /// Computes hashes and line counts for all ground truth datasets and writes `MANIFEST.toml`.
-pub fn sync_manifest(
-    manifest_path: &Path,
-    ground_truth_dir: &Path,
-) -> Result<GroundTruthManifest> {
-    let files = ["revert_pairs.jsonl", "set_a_issues.jsonl", "set_b_why.jsonl"];
+pub fn sync_manifest(manifest_path: &Path, ground_truth_dir: &Path) -> Result<GroundTruthManifest> {
+    let files = [
+        "revert_pairs.jsonl",
+        "set_a_issues.jsonl",
+        "set_b_why.jsonl",
+    ];
     let mut file_entries = BTreeMap::new();
 
     for filename in files {
@@ -208,4 +208,3 @@ pub fn sync_manifest(
 
     Ok(manifest)
 }
-

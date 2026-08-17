@@ -50,7 +50,11 @@ fn test_all_fixture_cases_parity() {
             case.id, case.expected_strips, result.strip_count
         );
         if case.expected_strips > 0 {
-            assert!(result.modified, "Case '{}' expected modified = true", case.id);
+            assert!(
+                result.modified,
+                "Case '{}' expected modified = true",
+                case.id
+            );
         }
     }
 }

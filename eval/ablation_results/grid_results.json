@@ -1,0 +1,4347 @@
+{
+  "representations_used": [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5"
+  ],
+  "retrievers_used": [
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5"
+  ],
+  "total_queries": 20,
+  "total_documents": 100,
+  "timestamp": "2026-08-17T04:30:07.384359+00:00",
+  "random_seed": 42,
+  "cells": [
+    {
+      "representation": "D1",
+      "retriever": "R1",
+      "metrics": {
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.71
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 12
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 4
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 5
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 14
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 12
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 10
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 11
+        }
+      ],
+      "elapsed_seconds": 0.002367734909057617
+    },
+    {
+      "representation": "D1",
+      "retriever": "R2",
+      "metrics": {
+        "recall@5": 0.7,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.33208333333333334
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 12
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 9
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 5
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 14
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 12
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 10
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 16
+        }
+      ],
+      "elapsed_seconds": 0.005059480667114258
+    },
+    {
+      "representation": "D1",
+      "retriever": "R3",
+      "metrics": {
+        "recall@5": 0.85,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.3383333333333333
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 6.826105117797852
+    },
+    {
+      "representation": "D1",
+      "retriever": "R4",
+      "metrics": {
+        "recall@5": 0.7,
+        "recall@10": 0.8,
+        "recall@20": 1.0,
+        "mrr": 0.4511706349206349
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "recall@20": 1.0,
+          "mrr": 0.08333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "recall@20": 1.0,
+          "mrr": 0.07142857142857142,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "recall@20": 1.0,
+          "mrr": 0.07142857142857142,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "recall@20": 1.0,
+          "mrr": 0.05555555555555555,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 87.8216004371643
+    },
+    {
+      "representation": "D1",
+      "retriever": "R5",
+      "metrics": {
+        "recall@5": 0.75,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.3267261904761905
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.14285714285714285,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 7.3858654499053955
+    },
+    {
+      "representation": "D2",
+      "retriever": "R1",
+      "metrics": {
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.7833333333333333
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 4
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 5
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 4
+        }
+      ],
+      "elapsed_seconds": 0.004297018051147461
+    },
+    {
+      "representation": "D2",
+      "retriever": "R2",
+      "metrics": {
+        "recall@5": 0.7,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.3720833333333333
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 9
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 5
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 9
+        }
+      ],
+      "elapsed_seconds": 0.02174973487854004
+    },
+    {
+      "representation": "D2",
+      "retriever": "R3",
+      "metrics": {
+        "recall@5": 0.8,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.3838095238095238
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.14285714285714285,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 8.172446489334106
+    },
+    {
+      "representation": "D2",
+      "retriever": "R4",
+      "metrics": {
+        "recall@5": 0.8,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.37416666666666665
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 15.609906196594238
+    },
+    {
+      "representation": "D2",
+      "retriever": "R5",
+      "metrics": {
+        "recall@5": 0.75,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.36505952380952383
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.14285714285714285,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 8.94815969467163
+    },
+    {
+      "representation": "D3",
+      "retriever": "R1",
+      "metrics": {
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.71
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 12
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 4
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 5
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 14
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 12
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 10
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 11
+        }
+      ],
+      "elapsed_seconds": 0.005862236022949219
+    },
+    {
+      "representation": "D3",
+      "retriever": "R2",
+      "metrics": {
+        "recall@5": 0.7,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.3595833333333333
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 12
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 13
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 5
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 14
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 12
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 10
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 19
+        }
+      ],
+      "elapsed_seconds": 0.022198915481567383
+    },
+    {
+      "representation": "D3",
+      "retriever": "R3",
+      "metrics": {
+        "recall@5": 0.8,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.3088690476190476
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.14285714285714285,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.14285714285714285,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 9.46407413482666
+    },
+    {
+      "representation": "D3",
+      "retriever": "R4",
+      "metrics": {
+        "recall@5": 0.85,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.4317261904761905
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.14285714285714285,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 18.55759620666504
+    },
+    {
+      "representation": "D3",
+      "retriever": "R5",
+      "metrics": {
+        "recall@5": 0.7,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.33220238095238097
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.14285714285714285,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.14285714285714285,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 9.047621726989746
+    },
+    {
+      "representation": "D4",
+      "retriever": "R1",
+      "metrics": {
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.71
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 12
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 5
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 14
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 12
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 10
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 11
+        }
+      ],
+      "elapsed_seconds": 0.012942790985107422
+    },
+    {
+      "representation": "D4",
+      "retriever": "R2",
+      "metrics": {
+        "recall@5": 0.7,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.44125
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 12
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 13
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 5
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 14
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 12
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 10
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 19
+        }
+      ],
+      "elapsed_seconds": 0.02852320671081543
+    },
+    {
+      "representation": "D4",
+      "retriever": "R3",
+      "metrics": {
+        "recall@5": 0.9,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.38666666666666666
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 7.510507583618164
+    },
+    {
+      "representation": "D4",
+      "retriever": "R4",
+      "metrics": {
+        "recall@5": 0.85,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.5692261904761905
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.14285714285714285,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 13.314234495162964
+    },
+    {
+      "representation": "D4",
+      "retriever": "R5",
+      "metrics": {
+        "recall@5": 0.9,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.37
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 8.314648151397705
+    },
+    {
+      "representation": "D5",
+      "retriever": "R1",
+      "metrics": {
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.7833333333333333
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 5
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 4
+        }
+      ],
+      "elapsed_seconds": 0.012279510498046875
+    },
+    {
+      "representation": "D5",
+      "retriever": "R2",
+      "metrics": {
+        "recall@5": 0.7,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.44125
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 9
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 5
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 7
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 8
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 3
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 6
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 9
+        }
+      ],
+      "elapsed_seconds": 0.023884057998657227
+    },
+    {
+      "representation": "D5",
+      "retriever": "R3",
+      "metrics": {
+        "recall@5": 0.9,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.41714285714285715
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.14285714285714285,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 6.998955249786377
+    },
+    {
+      "representation": "D5",
+      "retriever": "R4",
+      "metrics": {
+        "recall@5": 0.85,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.5175595238095239
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.14285714285714285,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 10.472912073135376
+    },
+    {
+      "representation": "D5",
+      "retriever": "R5",
+      "metrics": {
+        "recall@5": 0.9,
+        "recall@10": 1.0,
+        "recall@20": 1.0,
+        "mrr": 0.38208333333333333
+      },
+      "per_query": [
+        {
+          "qid": "syn-000",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-001",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.16666666666666666,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-002",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-003",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-004",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-005",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-006",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-007",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-008",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-009",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-010",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-011",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.5,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-012",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.25,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-013",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.2,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-014",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-015",
+          "recall@5": 0.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.125,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-016",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-017",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 1.0,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-018",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        },
+        {
+          "qid": "syn-019",
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "recall@20": 1.0,
+          "mrr": 0.3333333333333333,
+          "retrieved_count": 20
+        }
+      ],
+      "elapsed_seconds": 7.10725474357605
+    }
+  ]
+}

@@ -179,4 +179,3 @@ fn main() -> anyhow::Result<()> {
         Commands::VerifyGroundTruth => tasks::verify_ground_truth::run_verify_ground_truth(),
     }
 }
-

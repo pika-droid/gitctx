@@ -21,8 +21,10 @@ pub struct SanitizedChunk {
 
 // Stage 1: Merge commit header lines
 static RE_MERGE_HEADER: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?im)^[ \t]*Merge (?:pull request|branch|commit|remote-tracking branch)\b.*(?:\r?\n|$)")
-        .expect("valid regex")
+    Regex::new(
+        r"(?im)^[ \t]*Merge (?:pull request|branch|commit|remote-tracking branch)\b.*(?:\r?\n|$)",
+    )
+    .expect("valid regex")
 });
 
 // Stage 2: Action trailers (e.g. Fixes: #123, Closes #456, Resolves: gh-789)
@@ -38,9 +40,8 @@ static RE_ATTRIBUTION_TRAILERS: LazyLock<Regex> = LazyLock::new(|| {
 });
 
 // Stage 4: Squash PR suffixes at end of line (e.g. " (#1234)", " (gh-5678)")
-static RE_SQUASH_SUFFIX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?m)[ \t]*\((?:#|gh-)\d+\)[ \t]*$").expect("valid regex")
-});
+static RE_SQUASH_SUFFIX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?m)[ \t]*\((?:#|gh-)\d+\)[ \t]*$").expect("valid regex"));
 
 // Stage 5: GitHub issue and PR URLs
 static RE_GITHUB_URLS: LazyLock<Regex> = LazyLock::new(|| {
@@ -49,22 +50,18 @@ static RE_GITHUB_URLS: LazyLock<Regex> = LazyLock::new(|| {
 });
 
 // Stage 6: Inline issue references (e.g. #1234, gh-5678)
-static RE_INLINE_ISSUE_NUMS: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?:\bgh-|\B#)\d+\b").expect("valid regex")
-});
+static RE_INLINE_ISSUE_NUMS: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?:\bgh-|\B#)\d+\b").expect("valid regex"));
 
 // Whitespace normalization regexes
-static RE_MULTI_SPACES: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(\S)[ \t]{2,}").expect("valid regex")
-});
+static RE_MULTI_SPACES: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(\S)[ \t]{2,}").expect("valid regex"));
 
-static RE_TRAILING_LINE_SPACE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?m)[ \t]+$").expect("valid regex")
-});
+static RE_TRAILING_LINE_SPACE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?m)[ \t]+$").expect("valid regex"));
 
-static RE_MULTI_NEWLINES: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"\n{3,}").expect("valid regex")
-});
+static RE_MULTI_NEWLINES: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\n{3,}").expect("valid regex"));
 
 fn apply_sub(re: &Regex, text: &str, replacement: &str) -> (String, usize) {
     let count = re.find_iter(text).count();
@@ -130,7 +127,9 @@ pub fn sanitize_chunk_text(text: &str) -> SanitizedChunk {
 
     // Whitespace cleanup
     working = RE_MULTI_SPACES.replace_all(&working, "$1 ").into_owned();
-    working = RE_TRAILING_LINE_SPACE.replace_all(&working, "").into_owned();
+    working = RE_TRAILING_LINE_SPACE
+        .replace_all(&working, "")
+        .into_owned();
     working = RE_MULTI_NEWLINES.replace_all(&working, "\n\n").into_owned();
 
     let sanitized = working.trim().to_string();
