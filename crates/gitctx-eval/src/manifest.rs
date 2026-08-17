@@ -76,7 +76,7 @@ pub fn verify_ground_truth_integrity(
             });
         }
 
-        let raw_bytes = fs::read(&file_path)?;
+        let raw_bytes: Vec<u8> = fs::read(&file_path)?.into_iter().filter(|&b| b != b'\r').collect();
         let content_str = String::from_utf8_lossy(&raw_bytes);
         let actual_count = content_str
             .lines()
@@ -139,7 +139,7 @@ pub fn verify_ground_truth_integrity(
 
 /// Helper function to compute hash entry for a dataset file.
 pub fn compute_file_entry(file_path: &Path) -> Result<ManifestFileEntry> {
-    let raw_bytes = fs::read(file_path)?;
+    let raw_bytes: Vec<u8> = fs::read(file_path)?.into_iter().filter(|&b| b != b'\r').collect();
     let content_str = String::from_utf8_lossy(&raw_bytes);
     let count = content_str
         .lines()
