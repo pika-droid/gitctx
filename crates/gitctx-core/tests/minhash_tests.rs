@@ -173,3 +173,19 @@ fn test_murmur3_32_known_vectors() {
     assert_eq!(murmur3_32(b"hello", 0), 0x248bfa47);
     assert_eq!(murmur3_32(b"hello world", 42), 3926694905);
 }
+
+#[test]
+fn test_minhash_determinism_and_reproducibility() {
+    let normalizer = AstNormalizer::new();
+    let code = "fn compute(x: i32, y: i32) -> i32 { let z = x * y + 10; return z * 2; }";
+    let tokens = normalizer.normalize(code);
+
+    let (fp1, _) = MinHashFingerprint::from_tokens(&tokens);
+    let (fp2, _) = MinHashFingerprint::from_tokens(&tokens);
+    let (fp3, _) = MinHashFingerprint::from_tokens(&tokens);
+
+    assert_eq!(fp1, fp2);
+    assert_eq!(fp2, fp3);
+    assert_eq!(fp1.similarity(&fp2), 1.0);
+    assert_eq!(fp2.similarity(&fp3), 1.0);
+}
