@@ -1,11 +1,12 @@
 #![forbid(unsafe_code)]
 
 //! `gitctx-eval` CLI binary for running synthetic mutation generation,
-//! manifest inspections, and evaluation benchmarks.
+//! manifest inspections, benchmark evaluations, and threshold tuning.
 
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use gitctx_eval::mutator::{LineageGroundTruthManifest, MutationEngine};
+use gitctx_eval::oracle::{GitLogOracleComparator, MutationBenchmarkRunner, ThresholdTuner};
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
@@ -41,6 +42,27 @@ enum Commands {
         #[arg(long)]
         manifest: PathBuf,
     },
+
+    /// Run synthetic mutation benchmark evaluation across M1-M10 and chain depths
+    BenchLineage {
+        /// Output format (terminal, markdown, or json)
+        #[arg(long, default_value = "terminal")]
+        format: String,
+    },
+
+    /// Run parameter sweep to calibrate optimal match thresholds
+    TuneThresholds {
+        /// Path to save the calibrated thresholds config (default: eval/lineage_thresholds.json)
+        #[arg(long, default_value = "eval/lineage_thresholds.json")]
+        out: PathBuf,
+    },
+
+    /// Compare gitctx lineage tracking against git log -L heuristic oracle
+    EvalOracle {
+        /// Path to repository to evaluate
+        #[arg(long)]
+        repo: PathBuf,
+    },
 }
 
 fn main() -> Result<()> {
@@ -52,7 +74,78 @@ fn main() -> Result<()> {
             out,
         } => run_mutate(&class, chain_depth, out.as_deref()),
         Commands::InspectManifest { manifest } => run_inspect_manifest(&manifest),
+        Commands::BenchLineage { format } => run_bench_lineage(&format),
+        Commands::TuneThresholds { out } => run_tune_thresholds(&out),
+        Commands::EvalOracle { repo } => run_eval_oracle(&repo),
     }
+}
+
+fn run_bench_lineage(format: &str) -> Result<()> {
+    let runner = MutationBenchmarkRunner::new();
+    let report = runner
+        .run_benchmark_suite()
+        .context("Failed running synthetic mutation benchmark suite")?;
+
+    match format.to_lowercase().as_str() {
+        "markdown" | "md" => {
+            println!("{}", runner.format_markdown_table(&report));
+        }
+        "json" => {
+            println!("{}", serde_json::to_string_pretty(&report)?);
+        }
+        _ => {
+            print!("{}", runner.format_terminal_table(&report));
+        }
+    }
+
+    Ok(())
+}
+
+fn run_tune_thresholds(out_path: &std::path::Path) -> Result<()> {
+    println!("\n=== GitCtx Lineage Threshold Calibration Sweep ===");
+    println!("Output Target: {}", out_path.display());
+
+    let tuner = ThresholdTuner::new();
+    let config = tuner.sweep().context("Failed executing threshold sweep")?;
+
+    println!("\nOptimal Calibrated Thresholds:");
+    println!("- tau_same:                 {:.2}", config.tau_same);
+    println!("- tau_cross:                {:.2}", config.tau_cross);
+    println!("- tau_decoy:                {:.2}", config.tau_decoy);
+    println!("- Objective F1 Score:       {:.3}", config.overall_f1);
+    println!(
+        "- M8 Decoy Rejection Rate:  {:.1}%",
+        config.m8_decoy_rejection_rate * 100.0
+    );
+    println!(
+        "- Chain Recovery (D=5):     {:.1}%",
+        config.chain_recovery_depth_5 * 100.0
+    );
+    println!(
+        "- Grid Points Evaluated:    {}",
+        config.grid_points_evaluated
+    );
+
+    ThresholdTuner::save_config(&config, out_path)?;
+    println!("\nSuccessfully saved: {}\n", out_path.display());
+    Ok(())
+}
+
+fn run_eval_oracle(repo_path: &std::path::Path) -> Result<()> {
+    println!("\n=== GitCtx vs git log -L Oracle Comparator ===");
+    println!("Repository: {}", repo_path.display());
+
+    let sample_funcs = vec![
+        ("calculate_sum".to_string(), "math.py".to_string(), false),
+        ("process_data".to_string(), "data.py".to_string(), true),
+    ];
+
+    let report = GitLogOracleComparator::evaluate_repository(repo_path, &sample_funcs)
+        .context("Failed running oracle comparison")?;
+
+    let comparator = GitLogOracleComparator;
+    print!("{}", comparator.format_report(&report));
+    Ok(())
 }
 
 fn run_mutate(class: &str, chain_depth: usize, out_dir: Option<&std::path::Path>) -> Result<()> {

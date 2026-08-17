@@ -108,6 +108,24 @@ enum Commands {
     },
     /// Verify cryptographic integrity of ground truth datasets against MANIFEST.toml
     VerifyGroundTruth,
+    /// Run synthetic mutation lineage accuracy benchmark evaluation
+    EvalLineage {
+        /// Output format (terminal, markdown, or json)
+        #[arg(long, default_value = "terminal")]
+        format: Option<String>,
+    },
+    /// Run threshold calibration tuning sweep
+    TuneLineage {
+        /// Destination path for calibrated lineage_thresholds.json
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
+    /// Evaluate function lineage against git log -L heuristic oracle
+    EvalOracle {
+        /// Path to repository to evaluate
+        #[arg(long)]
+        repo: PathBuf,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -123,6 +141,24 @@ enum EvalSubcommands {
         /// Directory to output the generated repository and lineage_ground_truth.json
         #[arg(long)]
         out: Option<PathBuf>,
+    },
+    /// Run synthetic lineage benchmark evaluation
+    BenchLineage {
+        /// Output format (terminal, markdown, or json)
+        #[arg(long, default_value = "terminal")]
+        format: Option<String>,
+    },
+    /// Run parameter sweep to tune match thresholds
+    TuneThresholds {
+        /// Path to save calibrated thresholds config
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
+    /// Compare lineage tracking against git log -L oracle
+    EvalOracle {
+        /// Path to repository to evaluate
+        #[arg(long)]
+        repo: PathBuf,
     },
 }
 
@@ -149,6 +185,15 @@ fn main() -> anyhow::Result<()> {
                 chain_depth: sub_depth,
                 out: sub_out,
             }) => tasks::eval::run_eval_mutate(sub_class.as_deref(), sub_depth, sub_out.as_deref()),
+            Some(EvalSubcommands::BenchLineage { format }) => {
+                tasks::eval::run_eval_bench_lineage(format.as_deref())
+            }
+            Some(EvalSubcommands::TuneThresholds { out: sub_out }) => {
+                tasks::eval::run_eval_tune_thresholds(sub_out.as_deref())
+            }
+            Some(EvalSubcommands::EvalOracle { repo }) => {
+                tasks::eval::run_eval_oracle(&repo)
+            }
             None => tasks::eval::run_eval_mutate(class.as_deref(), chain_depth, out.as_deref()),
         },
         Commands::DownloadModels { model, dest } => {
@@ -177,5 +222,14 @@ fn main() -> anyhow::Result<()> {
             non_interactive,
         ),
         Commands::VerifyGroundTruth => tasks::verify_ground_truth::run_verify_ground_truth(),
+        Commands::EvalLineage { format } => {
+            tasks::eval::run_eval_bench_lineage(format.as_deref())
+        }
+        Commands::TuneLineage { out } => {
+            tasks::eval::run_eval_tune_thresholds(out.as_deref())
+        }
+        Commands::EvalOracle { repo } => {
+            tasks::eval::run_eval_oracle(&repo)
+        }
     }
 }

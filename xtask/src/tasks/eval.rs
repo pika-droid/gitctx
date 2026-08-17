@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use std::path::Path;
 use std::process::Command;
 
-/// Runs synthetic mutation generation or evaluation tasks.
+/// Runs synthetic mutation generation.
 pub fn run_eval_mutate(
     class: Option<&str>,
     chain_depth: usize,
@@ -26,6 +26,58 @@ pub fn run_eval_mutate(
 
     crate::util::run_cmd(&mut cmd, "gitctx-eval mutate")
         .context("Failed running synthetic mutation generator")?;
+
+    Ok(())
+}
+
+/// Runs synthetic lineage benchmark evaluation suite.
+pub fn run_eval_bench_lineage(format: Option<&str>) -> Result<()> {
+    let root = crate::util::project_root();
+
+    let mut cmd = Command::new("cargo");
+    cmd.current_dir(&root);
+    cmd.args(["run", "-p", "gitctx-eval", "--", "bench-lineage"]);
+
+    if let Some(f) = format {
+        cmd.args(["--format", f]);
+    }
+
+    crate::util::run_cmd(&mut cmd, "gitctx-eval bench-lineage")
+        .context("Failed running lineage benchmark evaluation")?;
+
+    Ok(())
+}
+
+/// Runs threshold calibration tuning sweep.
+pub fn run_eval_tune_thresholds(out_path: Option<&Path>) -> Result<()> {
+    let root = crate::util::project_root();
+
+    let mut cmd = Command::new("cargo");
+    cmd.current_dir(&root);
+    cmd.args(["run", "-p", "gitctx-eval", "--", "tune-thresholds"]);
+
+    if let Some(out) = out_path {
+        cmd.arg("--out");
+        cmd.arg(out);
+    }
+
+    crate::util::run_cmd(&mut cmd, "gitctx-eval tune-thresholds")
+        .context("Failed running threshold tuning sweep")?;
+
+    Ok(())
+}
+
+/// Runs git log -L oracle comparison evaluation.
+pub fn run_eval_oracle(repo_path: &Path) -> Result<()> {
+    let root = crate::util::project_root();
+
+    let mut cmd = Command::new("cargo");
+    cmd.current_dir(&root);
+    cmd.args(["run", "-p", "gitctx-eval", "--", "eval-oracle", "--repo"]);
+    cmd.arg(repo_path);
+
+    crate::util::run_cmd(&mut cmd, "gitctx-eval eval-oracle")
+        .context("Failed running git log -L oracle evaluation")?;
 
     Ok(())
 }
