@@ -68,7 +68,7 @@ impl CBehavior {
                     }
                 }
             }
-            let last_is_class = scope_stack.last().map_or(false, |e| e.is_class);
+            let last_is_class = scope_stack.last().is_some_and(|e| e.is_class);
             if last_is_class && !is_closure {
                 format!("{path}::{leaf_name}")
             } else {
@@ -92,7 +92,7 @@ impl CBehavior {
         if is_func {
             if let Some(declarator) = node.child_by_field_name("declarator") {
                 if let Some(name_str) = Self::find_function_name(declarator, code) {
-                    let is_method = scope_stack.last().map_or(false, |e| e.is_class);
+                    let is_method = scope_stack.last().is_some_and(|e| e.is_class);
                     let qualname = Self::build_qualname(scope_stack, &name_str, false);
                     let signature = Self::extract_c_signature(node, code);
                     let docstring = Self::extract_c_docstring(node, code);

@@ -8,10 +8,10 @@
 //! 4. Ambiguous: complex merge conflicts or diverging historical branches.
 
 use anyhow::Result;
+use git2::Oid;
 use gitctx_core::git::repository::GitRepo;
 use gitctx_core::lineage::resolver::LineageResolver;
 use gitctx_core::parser::AstExtractor;
-use git2::Oid;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::path::Path;
@@ -81,7 +81,7 @@ impl GitLogOracleComparator {
             .arg("-C")
             .arg(repo_path.as_ref())
             .arg("log")
-            .arg(format!("-L:{}:{}", func_name, file_path))
+            .arg(format!("-L:{func_name}:{file_path}"))
             .arg("--format=%H")
             .arg("--no-patch")
             .output();
@@ -134,7 +134,9 @@ impl GitLogOracleComparator {
 
         let category = if gitctx_set == log_set {
             DiscrepancyTaxonomy::FullAgreement
-        } else if gitctx_set.is_superset(&log_set) && (has_renames_or_moves || git_log_l_commits.is_empty()) {
+        } else if gitctx_set.is_superset(&log_set)
+            && (has_renames_or_moves || git_log_l_commits.is_empty())
+        {
             DiscrepancyTaxonomy::GitctxAdvantage
         } else if log_set.is_superset(&gitctx_set) {
             DiscrepancyTaxonomy::GitLogLAdvantage
@@ -143,7 +145,9 @@ impl GitLogOracleComparator {
         };
 
         let notes = match category {
-            DiscrepancyTaxonomy::FullAgreement => "Exact match between gitctx and git log -L".to_string(),
+            DiscrepancyTaxonomy::FullAgreement => {
+                "Exact match between gitctx and git log -L".to_string()
+            }
             DiscrepancyTaxonomy::GitctxAdvantage => {
                 format!(
                     "gitctx traced {} commits vs {} from git log -L across renames/moves",
@@ -219,7 +223,9 @@ impl GitLogOracleComparator {
             let mut gitctx_commits = Vec::new();
 
             for touch in &all_touches {
-                if touch.path == *path && (touch.qualname == *qualname || touch.qualname.ends_with(leaf)) {
+                if touch.path == *path
+                    && (touch.qualname == *qualname || touch.qualname.ends_with(leaf))
+                {
                     gitctx_commits.push(touch.commit_id.to_string());
                 }
             }
@@ -282,7 +288,8 @@ impl GitLogOracleComparator {
             "- Full Agreement:                 {:>4} ({:>5.1}%)\n",
             report.full_agreement_count,
             if report.total_functions_evaluated > 0 {
-                (report.full_agreement_count as f32 / report.total_functions_evaluated as f32) * 100.0
+                (report.full_agreement_count as f32 / report.total_functions_evaluated as f32)
+                    * 100.0
             } else {
                 100.0
             }
@@ -291,7 +298,8 @@ impl GitLogOracleComparator {
             "- gitctx Advantage (Moves/Renames):{:>4} ({:>5.1}%)\n",
             report.gitctx_advantage_count,
             if report.total_functions_evaluated > 0 {
-                (report.gitctx_advantage_count as f32 / report.total_functions_evaluated as f32) * 100.0
+                (report.gitctx_advantage_count as f32 / report.total_functions_evaluated as f32)
+                    * 100.0
             } else {
                 0.0
             }
@@ -300,7 +308,8 @@ impl GitLogOracleComparator {
             "- git log -L Advantage:           {:>4} ({:>5.1}%)\n",
             report.git_log_l_advantage_count,
             if report.total_functions_evaluated > 0 {
-                (report.git_log_l_advantage_count as f32 / report.total_functions_evaluated as f32) * 100.0
+                (report.git_log_l_advantage_count as f32 / report.total_functions_evaluated as f32)
+                    * 100.0
             } else {
                 0.0
             }

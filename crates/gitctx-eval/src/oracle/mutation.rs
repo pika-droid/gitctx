@@ -4,22 +4,20 @@
 //! M8 decoy rejection rate, and multi-commit transitive chain recovery at depths D=2, 5, 10.
 
 use anyhow::{Context, Result};
+use git2::Oid;
 use gitctx_core::git::repository::GitRepo;
 use gitctx_core::lineage::dag::DerivationKind;
 use gitctx_core::lineage::matcher::MatchThresholds;
 use gitctx_core::lineage::resolver::LineageResolver;
 use gitctx_core::model::LineageId;
 use gitctx_core::parser::AstExtractor;
-use git2::Oid;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::fixtures::mkrepo::RepoBuilder;
-use crate::mutator::manifest::{
-    GroundTruthRelation, LineageGroundTruthManifest, LineageLink,
-};
-use crate::mutator::transformations::MutationClass;
 use crate::mutator::engine::MutationEngine;
+use crate::mutator::manifest::{GroundTruthRelation, LineageGroundTruthManifest, LineageLink};
+use crate::mutator::transformations::MutationClass;
 
 /// Accuracy metrics for a specific mutation class.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -165,7 +163,7 @@ impl MutationBenchmarkRunner {
         }
         oids.reverse(); // Chronological: [root, commit_1, ..., HEAD]
 
-        let mut resolver = LineageResolver::with_thresholds(self.thresholds.clone());
+        let mut resolver = LineageResolver::with_thresholds(self.thresholds);
         let extractor = AstExtractor::new();
 
         // Maps commit_sha -> Map of (path, qualname) -> LineageId
@@ -203,8 +201,14 @@ impl MutationBenchmarkRunner {
             let leaf_colon = qualname.rsplit("::").next().unwrap_or(qualname);
             for ((p, q), &id) in syms {
                 let p_norm = p.replace('\\', "/");
-                if (p_norm == norm_path || p_norm.ends_with(&norm_path) || norm_path.ends_with(&p_norm))
-                    && (q == qualname || q == leaf || q == leaf_colon || qualname.ends_with(q) || q.ends_with(qualname))
+                if (p_norm == norm_path
+                    || p_norm.ends_with(&norm_path)
+                    || norm_path.ends_with(&p_norm))
+                    && (q == qualname
+                        || q == leaf
+                        || q == leaf_colon
+                        || qualname.ends_with(q)
+                        || q.ends_with(qualname))
                 {
                     return Some(id);
                 }
@@ -215,7 +219,7 @@ impl MutationBenchmarkRunner {
         // Evaluate each ground truth link
         let mut results = Vec::with_capacity(manifest.links.len());
 
-        for (_idx, link) in manifest.links.iter().enumerate() {
+        for link in &manifest.links {
             // Find commit index in chronological order
             let current_commit_idx = oids
                 .iter()
@@ -223,7 +227,8 @@ impl MutationBenchmarkRunner {
                 .unwrap_or(oids.len().saturating_sub(1));
 
             // Target lineage is in link.commit_sha
-            let target_lineage = find_lineage(&link.commit_sha, &link.target.path, &link.target.qualname);
+            let target_lineage =
+                find_lineage(&link.commit_sha, &link.target.path, &link.target.qualname);
 
             // Source lineage is from the parent commit (commit before current_commit_idx)
             let parent_commit_sha = if current_commit_idx > 0 {
@@ -260,15 +265,15 @@ impl MutationBenchmarkRunner {
                 GroundTruthRelation::Decoy => {
                     // Decoy must reject the old lineage and allocate a new one (or have no lineage link)
                     if let (Some(src_id), Some(tgt_id)) = (source_lineage, target_lineage) {
-                        if src_id != tgt_id {
-                            (
-                                true,
-                                format!("Decoy successfully rejected: {src_id} != {tgt_id}"),
-                            )
-                        } else {
+                        if src_id == tgt_id {
                             (
                                 false,
                                 format!("Decoy falsely accepted: same lineage {src_id}"),
+                            )
+                        } else {
+                            (
+                                true,
+                                format!("Decoy successfully rejected: {src_id} != {tgt_id}"),
                             )
                         }
                     } else if target_lineage.is_some() {
@@ -279,17 +284,16 @@ impl MutationBenchmarkRunner {
                 }
                 GroundTruthRelation::SplitFrom => {
                     // Check if DAG contains a Split derivation edge linking source -> target
-                    let has_split_edge = if let (Some(src_id), Some(tgt_id)) =
-                        (source_lineage, target_lineage)
-                    {
-                        resolver.dag().edges().iter().any(|edge| {
-                            edge.parent_lineage_id == src_id
-                                && edge.child_lineage_id == tgt_id
-                                && edge.kind == DerivationKind::Split
-                        })
-                    } else {
-                        false
-                    };
+                    let has_split_edge =
+                        if let (Some(src_id), Some(tgt_id)) = (source_lineage, target_lineage) {
+                            resolver.dag().edges().iter().any(|edge| {
+                                edge.parent_lineage_id == src_id
+                                    && edge.child_lineage_id == tgt_id
+                                    && edge.kind == DerivationKind::Split
+                            })
+                        } else {
+                            false
+                        };
 
                     if has_split_edge {
                         (true, "Split derivation edge detected".to_string())
@@ -305,17 +309,16 @@ impl MutationBenchmarkRunner {
                 }
                 GroundTruthRelation::Copied => {
                     // Check if DAG contains a Copy derivation edge linking source -> target
-                    let has_copy_edge = if let (Some(src_id), Some(tgt_id)) =
-                        (source_lineage, target_lineage)
-                    {
-                        resolver.dag().edges().iter().any(|edge| {
-                            edge.parent_lineage_id == src_id
-                                && edge.child_lineage_id == tgt_id
-                                && edge.kind == DerivationKind::Copy
-                        })
-                    } else {
-                        false
-                    };
+                    let has_copy_edge =
+                        if let (Some(src_id), Some(tgt_id)) = (source_lineage, target_lineage) {
+                            resolver.dag().edges().iter().any(|edge| {
+                                edge.parent_lineage_id == src_id
+                                    && edge.child_lineage_id == tgt_id
+                                    && edge.kind == DerivationKind::Copy
+                            })
+                        } else {
+                            false
+                        };
 
                     if has_copy_edge {
                         (true, "Copy derivation edge detected".to_string())
@@ -451,7 +454,7 @@ impl MutationBenchmarkRunner {
         let mut results = HashMap::new();
 
         for &depth in depths {
-            let sample_chains = self.generate_sample_chains(depth);
+            let sample_chains = Self::generate_sample_chains(depth);
             let total_chains = sample_chains.len();
             let mut successful_chains = 0;
 
@@ -488,13 +491,25 @@ impl MutationBenchmarkRunner {
     }
 
     /// Generate deterministic representative mutation chains for a given depth.
-    fn generate_sample_chains(&self, depth: usize) -> Vec<Vec<MutationClass>> {
+    fn generate_sample_chains(depth: usize) -> Vec<Vec<MutationClass>> {
         match depth {
             2 => vec![
-                vec![MutationClass::M1_InPlaceRename, MutationClass::M4_SignatureChange],
-                vec![MutationClass::M5_Reformatting, MutationClass::M6_LocalVarRename],
-                vec![MutationClass::M4_SignatureChange, MutationClass::M2_CrossFileMove],
-                vec![MutationClass::M6_LocalVarRename, MutationClass::M1_InPlaceRename],
+                vec![
+                    MutationClass::M1_InPlaceRename,
+                    MutationClass::M4_SignatureChange,
+                ],
+                vec![
+                    MutationClass::M5_Reformatting,
+                    MutationClass::M6_LocalVarRename,
+                ],
+                vec![
+                    MutationClass::M4_SignatureChange,
+                    MutationClass::M2_CrossFileMove,
+                ],
+                vec![
+                    MutationClass::M6_LocalVarRename,
+                    MutationClass::M1_InPlaceRename,
+                ],
             ],
             5 => vec![
                 vec![
@@ -512,20 +527,18 @@ impl MutationBenchmarkRunner {
                     MutationClass::M9_DirectoryMove,
                 ],
             ],
-            10 => vec![
-                vec![
-                    MutationClass::M1_InPlaceRename,
-                    MutationClass::M5_Reformatting,
-                    MutationClass::M6_LocalVarRename,
-                    MutationClass::M4_SignatureChange,
-                    MutationClass::M7_FunctionSplit,
-                    MutationClass::M10_FunctionCopy,
-                    MutationClass::M8_DecoyDeleteAdd,
-                    MutationClass::M2_CrossFileMove,
-                    MutationClass::M3_MoveAndRename,
-                    MutationClass::M9_DirectoryMove,
-                ],
-            ],
+            10 => vec![vec![
+                MutationClass::M1_InPlaceRename,
+                MutationClass::M5_Reformatting,
+                MutationClass::M6_LocalVarRename,
+                MutationClass::M4_SignatureChange,
+                MutationClass::M7_FunctionSplit,
+                MutationClass::M10_FunctionCopy,
+                MutationClass::M8_DecoyDeleteAdd,
+                MutationClass::M2_CrossFileMove,
+                MutationClass::M3_MoveAndRename,
+                MutationClass::M9_DirectoryMove,
+            ]],
             _ => vec![vec![MutationClass::M1_InPlaceRename; depth]],
         }
     }

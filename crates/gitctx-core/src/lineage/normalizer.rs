@@ -71,9 +71,16 @@ impl AstNormalizer {
             }
 
             // HTML/XML comments `<!-- -->`
-            if c == '<' && i + 3 < len && chars[i + 1] == '!' && chars[i + 2] == '-' && chars[i + 3] == '-' {
+            if c == '<'
+                && i + 3 < len
+                && chars[i + 1] == '!'
+                && chars[i + 2] == '-'
+                && chars[i + 3] == '-'
+            {
                 i += 4;
-                while i + 2 < len && !(chars[i] == '-' && chars[i + 1] == '-' && chars[i + 2] == '>') {
+                while i + 2 < len
+                    && !(chars[i] == '-' && chars[i + 1] == '-' && chars[i + 2] == '>')
+                {
                     i += 1;
                 }
                 if i + 2 < len {
@@ -89,7 +96,11 @@ impl AstNormalizer {
             if (c == '"' || c == '\'') && i + 2 < len && chars[i + 1] == c && chars[i + 2] == c {
                 let quote_char = c;
                 i += 3;
-                while i + 2 < len && !(chars[i] == quote_char && chars[i + 1] == quote_char && chars[i + 2] == quote_char) {
+                while i + 2 < len
+                    && !(chars[i] == quote_char
+                        && chars[i + 1] == quote_char
+                        && chars[i + 2] == quote_char)
+                {
                     if chars[i] == '\\' {
                         i += 2;
                     } else {
@@ -126,15 +137,28 @@ impl AstNormalizer {
             // 4. Numeric literals
             if c.is_ascii_digit() || (c == '.' && i + 1 < len && chars[i + 1].is_ascii_digit()) {
                 let start = i;
-                if c == '0' && i + 1 < len && (chars[i + 1] == 'x' || chars[i + 1] == 'X' || chars[i + 1] == 'b' || chars[i + 1] == 'B' || chars[i + 1] == 'o' || chars[i + 1] == 'O') {
+                if c == '0'
+                    && i + 1 < len
+                    && (chars[i + 1] == 'x'
+                        || chars[i + 1] == 'X'
+                        || chars[i + 1] == 'b'
+                        || chars[i + 1] == 'B'
+                        || chars[i + 1] == 'o'
+                        || chars[i + 1] == 'O')
+                {
                     i += 2;
                     while i < len && (chars[i].is_ascii_hexdigit() || chars[i] == '_') {
                         i += 1;
                     }
                 } else {
-                    while i < len && (chars[i].is_ascii_alphanumeric() || chars[i] == '.' || chars[i] == '_') {
+                    while i < len
+                        && (chars[i].is_ascii_alphanumeric() || chars[i] == '.' || chars[i] == '_')
+                    {
                         // Handle scientific notation e+ / e-
-                        if (chars[i] == 'e' || chars[i] == 'E') && i + 1 < len && (chars[i + 1] == '+' || chars[i + 1] == '-') {
+                        if (chars[i] == 'e' || chars[i] == 'E')
+                            && i + 1 < len
+                            && (chars[i + 1] == '+' || chars[i + 1] == '-')
+                        {
                             i += 2;
                             continue;
                         }
@@ -149,7 +173,9 @@ impl AstNormalizer {
             // 5. Identifiers, Keywords, and Variables
             if c.is_ascii_alphabetic() || c == '_' || c == '$' {
                 let start = i;
-                while i < len && (chars[i].is_ascii_alphanumeric() || chars[i] == '_' || chars[i] == '$') {
+                while i < len
+                    && (chars[i].is_ascii_alphanumeric() || chars[i] == '_' || chars[i] == '$')
+                {
                     i += 1;
                 }
                 let ident: String = chars[start..i].iter().collect();
@@ -157,7 +183,9 @@ impl AstNormalizer {
                     tokens.push(format!("<kw:{}>", ident.to_ascii_lowercase()));
                 } else {
                     let next_idx = var_map.len();
-                    let placeholder = var_map.entry(ident).or_insert_with(|| format!("var_{next_idx}"));
+                    let placeholder = var_map
+                        .entry(ident)
+                        .or_insert_with(|| format!("var_{next_idx}"));
                     tokens.push(placeholder.clone());
                 }
                 continue;
@@ -238,18 +266,18 @@ mod tests {
     #[test]
     fn test_normalizer_m6_variable_renaming_invariance() {
         let normalizer = AstNormalizer::new();
-        let code1 = r#"
+        let code1 = r"
         def process(data, factor):
             temp = data * factor
             result = temp + 10
             return result
-        "#;
-        let code2 = r#"
+        ";
+        let code2 = r"
         def process(input_val, multiplier):
             intermediate = input_val * multiplier
             output = intermediate + 10
             return output
-        "#;
+        ";
 
         let tokens1 = normalizer.normalize(code1);
         let tokens2 = normalizer.normalize(code2);

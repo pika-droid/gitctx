@@ -68,7 +68,7 @@ impl RustBehavior {
                     }
                 }
             }
-            let last_is_class = scope_stack.last().map_or(false, |e| e.is_class);
+            let last_is_class = scope_stack.last().is_some_and(|e| e.is_class);
             if last_is_class && !is_closure {
                 format!("{path}::{leaf_name}")
             } else {
@@ -115,7 +115,7 @@ impl RustBehavior {
         } else if is_func {
             if let Some(name_node) = node.child_by_field_name("name") {
                 if let Ok(name_str) = name_node.utf8_text(code) {
-                    let is_method = scope_stack.last().map_or(false, |e| e.is_class);
+                    let is_method = scope_stack.last().is_some_and(|e| e.is_class);
                     let qualname = Self::build_qualname(scope_stack, name_str, false);
                     let signature = Self::extract_rust_signature(node, code);
                     let docstring = Self::extract_rust_docstring(node, code);
@@ -151,8 +151,7 @@ impl RustBehavior {
             let qualname = Self::build_qualname(scope_stack, &closure_marker, true);
             let signature = node
                 .utf8_text(code)
-                .map(ToString::to_string)
-                .unwrap_or_else(|_| "|...| { ... }".to_string());
+                .map_or_else(|_| "|...| { ... }".to_string(), ToString::to_string);
 
             symbols.push(RawFunctionSymbol {
                 name: format!("<{closure_marker}>"),

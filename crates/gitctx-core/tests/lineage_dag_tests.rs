@@ -1,8 +1,6 @@
 use gitctx_core::error::CoreError;
 use gitctx_core::git::{CommitDiff, DeltaStatus, FileDelta};
-use gitctx_core::lineage::{
-    DerivationKind, LineageDag, LineageEdge, LineageResolver,
-};
+use gitctx_core::lineage::{DerivationKind, LineageDag, LineageEdge, LineageResolver};
 use gitctx_core::model::{CommitId, LineageId, ParseStatus};
 use gitctx_core::parser::{ParsedFileSymbols, RawFunctionSymbol};
 use std::collections::HashMap;
@@ -120,7 +118,6 @@ fn test_split_derivation_m7() {
     let c2_code_proc = b"fn process_orders(orders: &[Order]) {\n    for o in orders {\n        verify_cart(o);\n        let total = calculate_order_total(o);\n        save_to_db(total);\n        send_notification(o, total);\n        audit_log(o, total);\n    }\n}\n";
     let c2_code_helper = b"fn calculate_order_total(o: &Order) -> f64 {\n    let tax = o.amount * 0.10;\n    let surcharge = tax * 0.05;\n    let discount = if o.amount > 100.0 { 10.0 } else { 0.0 };\n    let total = o.amount + tax + surcharge - discount;\n    total\n}\n";
 
-
     let mut c2_full_code = Vec::new();
     c2_full_code.extend_from_slice(c2_code_proc);
     let split_pos = c2_full_code.len();
@@ -161,7 +158,6 @@ fn test_split_derivation_m7() {
     let mut c2_contents = HashMap::new();
     c2_contents.insert(PathBuf::from("src/orders.rs"), c2_full_code);
 
-
     let c2_diff = CommitDiff {
         commit_id: c2_id.clone(),
         parent_id: Some(c1_id),
@@ -199,17 +195,13 @@ fn test_split_derivation_m7() {
         .unwrap();
     assert_ne!(helper_touch.lineage_id, parent_lineage);
 
-
     // Derivation DAG records Split edge
     assert_eq!(res2.derivation_edges.len(), 1);
     let edge = &res2.derivation_edges[0];
     assert_eq!(edge.kind, DerivationKind::Split);
     assert_eq!(edge.parent_lineage_id, parent_lineage);
     assert_eq!(edge.child_lineage_id, helper_touch.lineage_id);
-
-
 }
-
 
 #[test]
 fn test_merge_derivation() {
@@ -288,7 +280,8 @@ fn test_merge_derivation() {
 
     // Commit 2: Merge both into compute_part_a
     let c2_id = CommitId::new("commit_c2");
-    let c2_code = b"fn compute_part_a(x: i32) -> i32 {\n    let val = x * 2;\n    val + 10 + 20\n}\n";
+    let c2_code =
+        b"fn compute_part_a(x: i32) -> i32 {\n    let val = x * 2;\n    val + 10 + 20\n}\n";
     let mut c2_symbols = HashMap::new();
     c2_symbols.insert(
         PathBuf::from("src/compute.rs"),
@@ -660,4 +653,3 @@ fn test_uniqueness_invariant_assertion_d11() {
     let res_dup = resolver.resolve_commit(&c1_id, &c1_dup_diff, &c1_symbols, &c1_contents);
     assert!(matches!(res_dup, Err(CoreError::InvariantViolation(_))));
 }
-

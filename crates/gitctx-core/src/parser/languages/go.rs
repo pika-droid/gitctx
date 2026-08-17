@@ -68,7 +68,7 @@ impl GoBehavior {
                     }
                 }
             }
-            let last_is_class = scope_stack.last().map_or(false, |e| e.is_class);
+            let last_is_class = scope_stack.last().is_some_and(|e| e.is_class);
             if last_is_class && !is_closure {
                 format!("{path}::{leaf_name}")
             } else {
@@ -101,19 +101,19 @@ impl GoBehavior {
                         None
                     };
 
-                    let (qualname, method_flag) = match &receiver_type {
-                        Some(recv) => {
-                            let mut temp_scope = scope_stack.clone();
-                            temp_scope.push(ScopeEntry {
-                                name: recv.clone(),
-                                is_class: true,
-                            });
-                            (Self::build_qualname(&temp_scope, name_str, false), true)
-                        }
-                        None => {
-                            let method_flag = scope_stack.last().map_or(false, |e| e.is_class);
-                            (Self::build_qualname(scope_stack, name_str, false), method_flag)
-                        }
+                    let (qualname, method_flag) = if let Some(recv) = &receiver_type {
+                        let mut temp_scope = scope_stack.clone();
+                        temp_scope.push(ScopeEntry {
+                            name: recv.clone(),
+                            is_class: true,
+                        });
+                        (Self::build_qualname(&temp_scope, name_str, false), true)
+                    } else {
+                        let method_flag = scope_stack.last().is_some_and(|e| e.is_class);
+                        (
+                            Self::build_qualname(scope_stack, name_str, false),
+                            method_flag,
+                        )
                     };
 
                     let signature = Self::extract_go_signature(node, code, name_str, is_method);

@@ -77,8 +77,6 @@ impl Default for MatchThresholds {
     }
 }
 
-
-
 /// Full descriptor of an active or extracted function symbol for matching.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SymbolDescriptor {
@@ -165,9 +163,8 @@ impl CandidateGenerator {
             for (c_idx, c) in children.iter().enumerate() {
                 let is_same_path = p.path == c.path;
                 let is_same_name = p.qualname == c.qualname;
-                let is_renamed_path = rename_target
-                    .map(|target| target == Path::new(&c.path))
-                    .unwrap_or(false);
+                let is_renamed_path =
+                    rename_target.is_some_and(|target| target == Path::new(&c.path));
 
                 // Tier 1: Exact Key (same path, same qualname)
                 if is_same_path && is_same_name {

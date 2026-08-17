@@ -170,8 +170,7 @@ impl LineageResolver {
             let language_id = self
                 .registry
                 .detect(path_buf, Some(content))
-                .map(|b| b.language_id())
-                .unwrap_or(crate::parser::LanguageId::Rust);
+                .map_or(crate::parser::LanguageId::Rust, |b| b.language_id());
 
             for sym in &parsed_file.symbols {
                 let snippet = if sym.start_byte <= sym.end_byte && sym.end_byte <= content.len() {
@@ -210,11 +209,8 @@ impl LineageResolver {
         );
 
         // 4. Greedy maximum-weight bipartite matching
-        let solution = BipartiteMatcher::solve(
-            candidates,
-            parent_symbols.len(),
-            child_symbols.len(),
-        );
+        let solution =
+            BipartiteMatcher::solve(candidates, parent_symbols.len(), child_symbols.len());
 
         // 5. Lineage assignment and match rule attribution
         let mut match_rules: HashMap<usize, (String, f32)> = HashMap::new();
@@ -224,10 +220,7 @@ impl LineageResolver {
                 .lineage_id
                 .expect("parent symbol must have lineage_id");
             child_symbols[m.child_index].lineage_id = Some(parent_id);
-            match_rules.insert(
-                m.child_index,
-                (m.tier.as_rule_name().to_string(), m.score),
-            );
+            match_rules.insert(m.child_index, (m.tier.as_rule_name().to_string(), m.score));
         }
 
         for child_idx in &solution.unmatched_children {
@@ -263,19 +256,19 @@ impl LineageResolver {
                 let is_same_file = child.path == parent.path;
 
                 if is_same_file {
-                    if sim >= self.thresholds.tau_split {
-                        if best_split.as_ref().map_or(true, |(_, s)| sim > *s) {
-                            best_split = Some((parent_lineage_id, sim));
-                        }
-                    }
-                } else if sim >= 0.80 {
-                    if best_copy.as_ref().map_or(true, |(_, s)| sim > *s) {
-                        best_copy = Some((parent_lineage_id, sim));
-                    }
-                } else if sim >= self.thresholds.tau_split {
-                    if best_split.as_ref().map_or(true, |(_, s)| sim > *s) {
+                    if sim >= self.thresholds.tau_split
+                        && best_split.as_ref().is_none_or(|(_, s)| sim > *s)
+                    {
                         best_split = Some((parent_lineage_id, sim));
                     }
+                } else if sim >= 0.80 {
+                    if best_copy.as_ref().is_none_or(|(_, s)| sim > *s) {
+                        best_copy = Some((parent_lineage_id, sim));
+                    }
+                } else if sim >= self.thresholds.tau_split
+                    && best_split.as_ref().is_none_or(|(_, s)| sim > *s)
+                {
+                    best_split = Some((parent_lineage_id, sim));
                 }
             }
 
@@ -291,12 +284,11 @@ impl LineageResolver {
                         }
 
                         let sim = active_sym.fingerprint.similarity(&child.fingerprint);
-                        let parent_lineage_id = active_sym.lineage_id.expect("active symbol has lineage_id");
+                        let parent_lineage_id =
+                            active_sym.lineage_id.expect("active symbol has lineage_id");
 
-                        if sim >= 0.80 {
-                            if best_copy.as_ref().map_or(true, |(_, s)| sim > *s) {
-                                best_copy = Some((parent_lineage_id, sim));
-                            }
+                        if sim >= 0.80 && best_copy.as_ref().is_none_or(|(_, s)| sim > *s) {
+                            best_copy = Some((parent_lineage_id, sim));
                         }
                     }
                 }
@@ -345,10 +337,10 @@ impl LineageResolver {
                 let sim = parent.fingerprint.similarity(&child.fingerprint);
                 let child_lineage_id = child.lineage_id.expect("child has lineage_id");
 
-                if sim >= self.thresholds.tau_split {
-                    if best_merge.as_ref().map_or(true, |(_, s)| sim > *s) {
-                        best_merge = Some((child_lineage_id, sim));
-                    }
+                if sim >= self.thresholds.tau_split
+                    && best_merge.as_ref().is_none_or(|(_, s)| sim > *s)
+                {
+                    best_merge = Some((child_lineage_id, sim));
                 }
             }
 
@@ -384,8 +376,7 @@ impl LineageResolver {
             // Enforce UNIQUE(lineage_id, commit_hash) per D-11
             if !self.seen_touches.insert((lineage_id, commit_id.clone())) {
                 return Err(CoreError::InvariantViolation(format!(
-                    "Duplicate touch for lineage {} in commit {}",
-                    lineage_id, commit_id
+                    "Duplicate touch for lineage {lineage_id} in commit {commit_id}"
                 )));
             }
 

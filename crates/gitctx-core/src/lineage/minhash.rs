@@ -33,13 +33,13 @@ pub fn murmur3_32(data: &[u8], seed: u32) -> u32 {
 
     let mut k = 0u32;
     if remainder.len() == 3 {
-        k ^= (remainder[2] as u32) << 16;
+        k ^= u32::from(remainder[2]) << 16;
     }
     if remainder.len() >= 2 {
-        k ^= (remainder[1] as u32) << 8;
+        k ^= u32::from(remainder[1]) << 8;
     }
-    if remainder.len() >= 1 {
-        k ^= remainder[0] as u32;
+    if !remainder.is_empty() {
+        k ^= u32::from(remainder[0]);
         k = k.wrapping_mul(C1);
         k = k.rotate_left(15);
         k = k.wrapping_mul(C2);
@@ -63,7 +63,10 @@ mod serde_arrays {
     use super::MINHASH_PERMUTATIONS;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-    pub fn serialize<S>(data: &[u32; MINHASH_PERMUTATIONS], serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S>(
+        data: &[u32; MINHASH_PERMUTATIONS],
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -156,8 +159,16 @@ mod tests {
     #[test]
     fn test_minhash_identical_tokens_similarity() {
         let tokens: Vec<String> = vec![
-            "<kw:def>", "var_0", "<op:(>", "var_1", "<op:)>", "<op::>",
-            "<kw:return>", "var_1", "<op:+>", "<num>",
+            "<kw:def>",
+            "var_0",
+            "<op:(>",
+            "var_1",
+            "<op:)>",
+            "<op::>",
+            "<kw:return>",
+            "var_1",
+            "<op:+>",
+            "<num>",
         ]
         .into_iter()
         .map(ToString::to_string)

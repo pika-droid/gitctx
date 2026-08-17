@@ -2,8 +2,7 @@
 
 use gitctx_eval::fixtures::mkrepo::RepoBuilder;
 use gitctx_eval::oracle::{
-    DiscrepancyTaxonomy, FunctionComparisonResult, GitLogOracleComparator,
-    OracleComparisonReport,
+    DiscrepancyTaxonomy, FunctionComparisonResult, GitLogOracleComparator, OracleComparisonReport,
 };
 
 #[test]
@@ -43,7 +42,10 @@ fn test_git_oracle_comparator_mock_classifications() {
         agreement_rate: 0.333,
         notes: "gitctx traced across cross-file move".to_string(),
     };
-    assert_eq!(advantage_result.category, DiscrepancyTaxonomy::GitctxAdvantage);
+    assert_eq!(
+        advantage_result.category,
+        DiscrepancyTaxonomy::GitctxAdvantage
+    );
 
     // 3. Report formatting
     let report = OracleComparisonReport {
@@ -73,7 +75,10 @@ fn test_git_oracle_live_repo_execution() {
     builder.commit("Initial add").expect("Commit 1 failed");
 
     builder
-        .write_file("calc.py", "def add(a, b):\n    # Optimized\n    return a + b\n")
+        .write_file(
+            "calc.py",
+            "def add(a, b):\n    # Optimized\n    return a + b\n",
+        )
         .expect("Write 2 failed");
     builder.commit("Update add").expect("Commit 2 failed");
 

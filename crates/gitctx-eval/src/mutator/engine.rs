@@ -172,7 +172,10 @@ def validate_order(order_id: int, items: list) -> bool:
             let c = fs::read_to_string(&service_path)?;
             let code = if let Some(pos) = c.find("def process_item(") {
                 let sub = &c[pos..];
-                let end = sub.find("\ndef ").or_else(|| sub.find("\n# End")).unwrap_or(sub.len());
+                let end = sub
+                    .find("\ndef ")
+                    .or_else(|| sub.find("\n# End"))
+                    .unwrap_or(sub.len());
                 sub[..end].to_string()
             } else {
                 "def process_item(item_id: str, quantity: int, price: float) -> float:\n    total = quantity * price\n    return total\n".to_string()
@@ -262,8 +265,8 @@ def validate_order(order_id: int, items: list) -> bool:
         Ok(LineageLink::new(
             oid.to_string(),
             MutationClass::M5_Reformatting,
-            SymbolLocation::new("src/service.py", &format!("service.{func_name}"), 3, 6),
-            SymbolLocation::new("src/service.py", &format!("service.{func_name}"), 5, 8),
+            SymbolLocation::new("src/service.py", format!("service.{func_name}"), 3, 6),
+            SymbolLocation::new("src/service.py", format!("service.{func_name}"), 5, 8),
             GroundTruthRelation::Exact,
             1.0,
         ))
@@ -315,8 +318,14 @@ def validate_order(order_id: int, items: list) -> bool:
             s.push_str(split_helper);
             s.push('\n');
             s.push_str(&content[pos..]);
-            s.replace("return total", "return _compute_item_subtotal(item_id, quantity, price)")
-                .replace("return grand_total", "return _compute_item_subtotal(item_id, quantity, price)")
+            s.replace(
+                "return total",
+                "return _compute_item_subtotal(item_id, quantity, price)",
+            )
+            .replace(
+                "return grand_total",
+                "return _compute_item_subtotal(item_id, quantity, price)",
+            )
         } else {
             format!("{content}\n{split_helper}\n")
         };
@@ -387,8 +396,13 @@ def validate_order(order_id: int, items: list) -> bool:
         Ok(LineageLink::new(
             oid.to_string(),
             MutationClass::M9_DirectoryMove,
-            SymbolLocation::new("src/service.py", &format!("service.{func_name}"), 3, 6),
-            SymbolLocation::new("src/core/service.py", &format!("core.service.{func_name}"), 3, 6),
+            SymbolLocation::new("src/service.py", format!("service.{func_name}"), 3, 6),
+            SymbolLocation::new(
+                "src/core/service.py",
+                format!("core.service.{func_name}"),
+                3,
+                6,
+            ),
             GroundTruthRelation::Moved,
             1.0,
         ))
@@ -403,21 +417,27 @@ def validate_order(order_id: int, items: list) -> bool:
         };
 
         let (func_name, backup_code) = if content.contains("def compute_tax(") {
-            ("compute_tax", r#""""Backup tax calculations module."""
+            (
+                "compute_tax",
+                r#""""Backup tax calculations module."""
 
 def compute_tax(amount: float, rate: float = 0.05) -> float:
     """Calculate the tax for a given amount and rate (backup copy)."""
     tax = amount * rate
     return round(tax, 2)
-"#)
+"#,
+            )
         } else {
-            ("calculate_tax", r#""""Backup tax calculations module."""
+            (
+                "calculate_tax",
+                r#""""Backup tax calculations module."""
 
 def calculate_tax(amount: float, rate: float = 0.05) -> float:
     """Calculate the tax for a given amount and rate (backup copy)."""
     tax = amount * rate
     return round(tax, 2)
-"#)
+"#,
+            )
         };
 
         builder.write_file("src/backup/tax.py", backup_code)?;
@@ -426,8 +446,8 @@ def calculate_tax(amount: float, rate: float = 0.05) -> float:
         Ok(LineageLink::new(
             oid.to_string(),
             MutationClass::M10_FunctionCopy,
-            SymbolLocation::new("src/service.py", &format!("service.{func_name}"), 3, 6),
-            SymbolLocation::new("src/backup/tax.py", &format!("backup.tax.{func_name}"), 3, 7),
+            SymbolLocation::new("src/service.py", format!("service.{func_name}"), 3, 6),
+            SymbolLocation::new("src/backup/tax.py", format!("backup.tax.{func_name}"), 3, 7),
             GroundTruthRelation::Copied,
             0.9,
         ))

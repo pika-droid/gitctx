@@ -16,7 +16,10 @@ fn make_symbol(
     tokens: &[&str],
     signature: &str,
 ) -> SymbolDescriptor {
-    let token_vec: Vec<String> = tokens.iter().map(|s| s.to_string()).collect();
+    let token_vec: Vec<String> = tokens
+        .iter()
+        .map(std::string::ToString::to_string)
+        .collect();
     let (fingerprint, is_short) = MinHashFingerprint::from_tokens(&token_vec);
     SymbolDescriptor {
         lineage_id: lineage_id.map(LineageId::new),
@@ -104,12 +107,32 @@ fn test_bipartite_greedy_conflict_elimination() {
 #[test]
 fn test_candidate_generation_tiers() {
     let tokens_a = [
-        "<kw:fn>", "var_0", "<op:(>", "var_1", "<op::>", "var_2", "<op:)>",
-        "<kw:return>", "var_1", "<op:+>", "<num>", "<op:;>",
+        "<kw:fn>",
+        "var_0",
+        "<op:(>",
+        "var_1",
+        "<op::>",
+        "var_2",
+        "<op:)>",
+        "<kw:return>",
+        "var_1",
+        "<op:+>",
+        "<num>",
+        "<op:;>",
     ];
     let tokens_b = [
-        "<kw:fn>", "var_0", "<op:(>", "var_1", "<op::>", "var_2", "<op:)>",
-        "<kw:return>", "var_1", "<op:+>", "<num>", "<op:;>",
+        "<kw:fn>",
+        "var_0",
+        "<op:(>",
+        "var_1",
+        "<op::>",
+        "var_2",
+        "<op:)>",
+        "<kw:return>",
+        "var_1",
+        "<op:+>",
+        "<num>",
+        "<op:;>",
     ];
 
     let parent = make_symbol(
@@ -133,7 +156,7 @@ fn test_candidate_generation_tiers() {
     let thresholds = MatchThresholds::default();
 
     let candidates = CandidateGenerator::generate_candidates(
-        &[parent.clone()],
+        std::slice::from_ref(&parent),
         &[child_exact],
         &renames,
         &thresholds,
@@ -147,12 +170,31 @@ fn test_candidate_generation_tiers() {
 #[test]
 fn test_decoy_rejection_m8() {
     let tokens_old = [
-        "<kw:fn>", "var_0", "<op:(>", "<op:)>", "<kw:return>", "<num>", "<op:;>",
-        "<op:;>", "<op:;>", "<op:;>", "<op:;>",
+        "<kw:fn>",
+        "var_0",
+        "<op:(>",
+        "<op:)>",
+        "<kw:return>",
+        "<num>",
+        "<op:;>",
+        "<op:;>",
+        "<op:;>",
+        "<op:;>",
+        "<op:;>",
     ];
     let tokens_unrelated = [
-        "<kw:fn>", "var_a", "<kw:while>", "var_b", "<kw:for>", "var_c", "<kw:try>",
-        "var_d", "<kw:match>", "var_e", "<kw:loop>", "var_f",
+        "<kw:fn>",
+        "var_a",
+        "<kw:while>",
+        "var_b",
+        "<kw:for>",
+        "var_c",
+        "<kw:try>",
+        "var_d",
+        "<kw:match>",
+        "var_e",
+        "<kw:loop>",
+        "var_f",
     ];
 
     let parent = make_symbol(
@@ -208,12 +250,8 @@ fn test_short_function_length_gating() {
     let renames = HashMap::new();
     let thresholds = MatchThresholds::default();
 
-    let candidates = CandidateGenerator::generate_candidates(
-        &[parent],
-        &[child_renamed],
-        &renames,
-        &thresholds,
-    );
+    let candidates =
+        CandidateGenerator::generate_candidates(&[parent], &[child_renamed], &renames, &thresholds);
 
     // Short function should NOT match via Tier 2 SameFileMinHash
     assert!(candidates.is_empty());
@@ -222,8 +260,18 @@ fn test_short_function_length_gating() {
 #[test]
 fn test_cross_file_and_language_isolation() {
     let tokens = [
-        "<kw:fn>", "var_0", "<op:(>", "var_1", "<op::>", "var_2", "<op:)>",
-        "<kw:return>", "var_1", "<op:+>", "<num>", "<op:;>",
+        "<kw:fn>",
+        "var_0",
+        "<op:(>",
+        "var_1",
+        "<op::>",
+        "var_2",
+        "<op:)>",
+        "<kw:return>",
+        "var_1",
+        "<op:+>",
+        "<num>",
+        "<op:;>",
     ];
 
     let parent_rust = make_symbol(
@@ -256,7 +304,7 @@ fn test_cross_file_and_language_isolation() {
 
     // Cross-file with same language -> Tier 4 match
     let candidates_rust = CandidateGenerator::generate_candidates(
-        &[parent_rust.clone()],
+        std::slice::from_ref(&parent_rust),
         &[child_rust],
         &renames,
         &thresholds,
@@ -277,8 +325,18 @@ fn test_cross_file_and_language_isolation() {
 #[test]
 fn test_git_rename_mapping() {
     let tokens = [
-        "<kw:fn>", "var_0", "<op:(>", "var_1", "<op::>", "var_2", "<op:)>",
-        "<kw:return>", "var_1", "<op:+>", "<num>", "<op:;>",
+        "<kw:fn>",
+        "var_0",
+        "<op:(>",
+        "var_1",
+        "<op::>",
+        "var_2",
+        "<op:)>",
+        "<kw:return>",
+        "var_1",
+        "<op:+>",
+        "<num>",
+        "<op:;>",
     ];
 
     let parent = make_symbol(
@@ -464,10 +522,7 @@ fn test_multi_commit_lineage_continuity() {
         .unwrap();
     assert_eq!(res3.touches.len(), 1);
     assert_eq!(res3.touches[0].lineage_id.as_u64(), 1);
-    assert_eq!(
-        res3.resolved_touches[0].match_rule,
-        "same_file_fingerprint"
-    );
+    assert_eq!(res3.resolved_touches[0].match_rule, "same_file_fingerprint");
 
     // Commit 4: Cross-file Move to src/calculator.rs (Tier 4 CrossFileMinHash)
     let c4_id = CommitId::new("commit_4");
@@ -502,10 +557,7 @@ fn test_multi_commit_lineage_continuity() {
     );
     let mut c4_contents = HashMap::new();
     c4_contents.insert(PathBuf::from("src/service.rs"), c4_code_serv.to_vec());
-    c4_contents.insert(
-        PathBuf::from("src/calculator.rs"),
-        c4_code_calc.to_vec(),
-    );
+    c4_contents.insert(PathBuf::from("src/calculator.rs"), c4_code_calc.to_vec());
 
     let c4_diff = CommitDiff {
         commit_id: c4_id.clone(),
@@ -566,10 +618,7 @@ fn test_multi_commit_lineage_continuity() {
         },
     );
     let mut c5_contents = HashMap::new();
-    c5_contents.insert(
-        PathBuf::from("src/tax/engine.rs"),
-        c4_code_calc.to_vec(),
-    );
+    c5_contents.insert(PathBuf::from("src/tax/engine.rs"), c4_code_calc.to_vec());
 
     let c5_diff = CommitDiff {
         commit_id: c5_id.clone(),
@@ -593,6 +642,4 @@ fn test_multi_commit_lineage_continuity() {
     assert_eq!(res5.touches.len(), 1);
     assert_eq!(res5.touches[0].lineage_id.as_u64(), 1);
     assert_eq!(res5.resolved_touches[0].match_rule, "git_rename_exact");
-
 }
-

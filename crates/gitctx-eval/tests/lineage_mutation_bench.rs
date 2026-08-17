@@ -77,8 +77,7 @@ fn test_m1_m10_benchmark_accuracy_bars() {
                     .expect("M8 must have decoy rejection rate");
                 assert!(
                     rej_rate >= 0.95,
-                    "M8 Decoy Rejection Rate ({}) < 0.95 target",
-                    rej_rate
+                    "M8 Decoy Rejection Rate ({rej_rate}) < 0.95 target"
                 );
             }
             MutationClass::M9_DirectoryMove => {

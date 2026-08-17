@@ -191,9 +191,7 @@ fn main() -> anyhow::Result<()> {
             Some(EvalSubcommands::TuneThresholds { out: sub_out }) => {
                 tasks::eval::run_eval_tune_thresholds(sub_out.as_deref())
             }
-            Some(EvalSubcommands::EvalOracle { repo }) => {
-                tasks::eval::run_eval_oracle(&repo)
-            }
+            Some(EvalSubcommands::EvalOracle { repo }) => tasks::eval::run_eval_oracle(&repo),
             None => tasks::eval::run_eval_mutate(class.as_deref(), chain_depth, out.as_deref()),
         },
         Commands::DownloadModels { model, dest } => {
@@ -222,14 +220,8 @@ fn main() -> anyhow::Result<()> {
             non_interactive,
         ),
         Commands::VerifyGroundTruth => tasks::verify_ground_truth::run_verify_ground_truth(),
-        Commands::EvalLineage { format } => {
-            tasks::eval::run_eval_bench_lineage(format.as_deref())
-        }
-        Commands::TuneLineage { out } => {
-            tasks::eval::run_eval_tune_thresholds(out.as_deref())
-        }
-        Commands::EvalOracle { repo } => {
-            tasks::eval::run_eval_oracle(&repo)
-        }
+        Commands::EvalLineage { format } => tasks::eval::run_eval_bench_lineage(format.as_deref()),
+        Commands::TuneLineage { out } => tasks::eval::run_eval_tune_thresholds(out.as_deref()),
+        Commands::EvalOracle { repo } => tasks::eval::run_eval_oracle(&repo),
     }
 }

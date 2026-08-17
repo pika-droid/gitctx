@@ -40,7 +40,7 @@ class DataProcessor:
     assert!(!is_short1, "Normal function should not be gated as short");
 
     // 2. Rust sample
-    let rs_code = r#"
+    let rs_code = r"
 impl Engine {
     pub fn process_records(&mut self, items: &[Item], threshold: f64) -> usize {
         let mut count = 0;
@@ -53,7 +53,7 @@ impl Engine {
         count
     }
 }
-"#;
+";
     let rs_res = extractor
         .parse_blob(Path::new("engine.rs"), rs_code.as_bytes(), None)
         .expect("parse rust");
@@ -83,7 +83,7 @@ impl Engine {
 fn test_m5_reformatting_whitespace_invariance() {
     let normalizer = AstNormalizer::new();
 
-    let orig = r#"
+    let orig = r"
     def calculate_total(prices, tax_rate, discount):
         subtotal = sum(prices)
         tax = subtotal * tax_rate
@@ -91,9 +91,9 @@ fn test_m5_reformatting_whitespace_invariance() {
         if total < 0:
             return 0.0
         return total
-    "#;
+    ";
 
-    let reformatted = r#"
+    let reformatted = r"
     def calculate_total( prices , tax_rate , discount ) :
         # Calculate subtotal first
         subtotal = sum( prices )
@@ -105,7 +105,7 @@ fn test_m5_reformatting_whitespace_invariance() {
             return 0.0
 
         return total
-    "#;
+    ";
 
     let tok1 = normalizer.normalize(orig);
     let tok2 = normalizer.normalize(reformatted);
@@ -125,23 +125,23 @@ fn test_m5_reformatting_whitespace_invariance() {
 fn test_m6_local_variable_rename_invariance() {
     let normalizer = AstNormalizer::new();
 
-    let orig = r#"
+    let orig = r"
     fn evaluate_metric(values: &[f64], alpha: f64) -> f64 {
         let initial_sum = values.iter().sum::<f64>();
         let scaled_val = initial_sum * alpha;
         let final_result = scaled_val.sqrt() + 1.0;
         final_result
     }
-    "#;
+    ";
 
-    let renamed = r#"
+    let renamed = r"
     fn evaluate_metric(items: &[f64], weight: f64) -> f64 {
         let raw_total = items.iter().sum::<f64>();
         let weighted = raw_total * weight;
         let output = weighted.sqrt() + 1.0;
         output
     }
-    "#;
+    ";
 
     let tok1 = normalizer.normalize(orig);
     let tok2 = normalizer.normalize(renamed);
@@ -164,7 +164,10 @@ fn test_short_function_length_gating() {
 
     assert!(tokens.len() < 10);
     let (_fp, is_short) = MinHashFingerprint::from_tokens(&tokens);
-    assert!(is_short, "Trivial getter with < 10 tokens must be gated as short function");
+    assert!(
+        is_short,
+        "Trivial getter with < 10 tokens must be gated as short function"
+    );
 }
 
 #[test]
