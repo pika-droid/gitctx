@@ -279,23 +279,45 @@ impl LineageResolver {
                 }
             }
 
+            // Also check active symbols in untouched files across the repository for Copy (M10)
+            if best_split.is_none() {
+                for (path, syms) in &self.active_symbols {
+                    if path == &child.path {
+                        continue;
+                    }
+                    for active_sym in syms {
+                        if active_sym.language != child.language || active_sym.is_short {
+                            continue;
+                        }
 
-            if let Some((parent_id, sim)) = best_copy {
-                let edge = LineageEdge {
-                    parent_lineage_id: parent_id,
-                    child_lineage_id,
-                    commit_hash: commit_id.clone(),
-                    kind: DerivationKind::Copy,
-                    similarity: sim,
-                };
-                self.dag.add_edge(edge.clone());
-                derivation_edges.push(edge);
-            } else if let Some((parent_id, sim)) = best_split {
+                        let sim = active_sym.fingerprint.similarity(&child.fingerprint);
+                        let parent_lineage_id = active_sym.lineage_id.expect("active symbol has lineage_id");
+
+                        if sim >= 0.80 {
+                            if best_copy.as_ref().map_or(true, |(_, s)| sim > *s) {
+                                best_copy = Some((parent_lineage_id, sim));
+                            }
+                        }
+                    }
+                }
+            }
+
+            if let Some((parent_id, sim)) = best_split {
                 let edge = LineageEdge {
                     parent_lineage_id: parent_id,
                     child_lineage_id,
                     commit_hash: commit_id.clone(),
                     kind: DerivationKind::Split,
+                    similarity: sim,
+                };
+                self.dag.add_edge(edge.clone());
+                derivation_edges.push(edge);
+            } else if let Some((parent_id, sim)) = best_copy {
+                let edge = LineageEdge {
+                    parent_lineage_id: parent_id,
+                    child_lineage_id,
+                    commit_hash: commit_id.clone(),
+                    kind: DerivationKind::Copy,
                     similarity: sim,
                 };
                 self.dag.add_edge(edge.clone());

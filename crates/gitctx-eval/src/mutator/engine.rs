@@ -150,10 +150,7 @@ def validate_order(order_id: int, items: list) -> bool:
         let service_path = builder.path().join("src/service.py");
         if service_path.exists() {
             let content = fs::read_to_string(&service_path)?;
-            let updated = content.replace(
-                "def validate_order(order_id: int, items: list) -> bool:\n    \"\"\"Validate that an order has valid ID and non-empty items.\"\"\"\n    if order_id <= 0:\n        return False\n    return len(items) > 0\n\n",
-                "",
-            );
+            let updated = remove_function_from_py(&content, "validate_order");
             builder.write_file("src/service.py", &updated)?;
         }
 
@@ -170,22 +167,32 @@ def validate_order(order_id: int, items: list) -> bool:
     }
 
     fn apply_m3_move_and_rename(builder: &mut RepoBuilder) -> Result<LineageLink, MutationError> {
-        let tracker_code = r#""""Inventory item tracking module."""
-
-def track_inventory_item(item_id: str, quantity: int, unit_price: float) -> float:
-    """Compute total inventory value for item quantity."""
-    total = quantity * unit_price
-    return total
-"#;
-        builder.write_file("src/inventory/tracker.py", tracker_code)?;
-
         let service_path = builder.path().join("src/service.py");
+        let (content, process_code) = if service_path.exists() {
+            let c = fs::read_to_string(&service_path)?;
+            let code = if let Some(pos) = c.find("def process_item(") {
+                let sub = &c[pos..];
+                let end = sub.find("\ndef ").or_else(|| sub.find("\n# End")).unwrap_or(sub.len());
+                sub[..end].to_string()
+            } else {
+                "def process_item(item_id: str, quantity: int, price: float) -> float:\n    total = quantity * price\n    return total\n".to_string()
+            };
+            (c, code)
+        } else {
+            (
+                Self::BASE_SERVICE_PY.to_string(),
+                "def process_item(item_id: str, quantity: int, price: float) -> float:\n    total = quantity * price\n    return total\n".to_string(),
+            )
+        };
+
+        let tracker_code = format!(
+            "\"\"\"Inventory item tracking module.\"\"\"\n\n{}\n",
+            process_code.replace("def process_item(", "def track_inventory_item(")
+        );
+        builder.write_file("src/inventory/tracker.py", &tracker_code)?;
+
         if service_path.exists() {
-            let content = fs::read_to_string(&service_path)?;
-            let updated = content.replace(
-                "def process_item(item_id: str, quantity: int, price: float) -> float:\n    \"\"\"Compute total price for an item quantity.\"\"\"\n    total = quantity * price\n    return total\n\n",
-                "",
-            );
+            let updated = remove_function_from_py(&content, "process_item");
             builder.write_file("src/service.py", &updated)?;
         }
 
@@ -241,6 +248,12 @@ def track_inventory_item(item_id: str, quantity: int, unit_price: float) -> floa
             Self::BASE_SERVICE_PY.to_string()
         };
 
+        let func_name = if content.contains("def compute_tax(") {
+            "compute_tax"
+        } else {
+            "calculate_tax"
+        };
+
         let reformatted =
             format!("# Formatted according to PEP-8\n\n{content}\n# End of service file\n");
         builder.write_file("src/service.py", &reformatted)?;
@@ -249,8 +262,8 @@ def track_inventory_item(item_id: str, quantity: int, unit_price: float) -> floa
         Ok(LineageLink::new(
             oid.to_string(),
             MutationClass::M5_Reformatting,
-            SymbolLocation::new("src/service.py", "service.calculate_tax", 3, 6),
-            SymbolLocation::new("src/service.py", "service.calculate_tax", 5, 8),
+            SymbolLocation::new("src/service.py", &format!("service.{func_name}"), 3, 6),
+            SymbolLocation::new("src/service.py", &format!("service.{func_name}"), 5, 8),
             GroundTruthRelation::Exact,
             1.0,
         ))
@@ -289,19 +302,25 @@ def track_inventory_item(item_id: str, quantity: int, unit_price: float) -> floa
             Self::BASE_SERVICE_PY.to_string()
         };
 
-        let split_addition = r#"def _compute_item_subtotal(quantity: int, price: float) -> float:
-    """Helper extracted from process_item to compute raw subtotal."""
-    return quantity * price
-
-def process_item(item_id: str, quantity: int, price: float) -> float:
-    """Compute total price for an item quantity using helper."""
-    return _compute_item_subtotal(quantity, price)
+        let split_helper = r#"def _compute_item_subtotal(item_id: str, quantity: int, price: float) -> float:
+    """Helper extracted from process_item to compute raw subtotal price."""
+    subtotal = quantity * price
+    return subtotal
 "#;
 
-        let updated = content.replace(
-            "def process_item(item_id: str, quantity: int, price: float) -> float:\n    \"\"\"Compute total price for an item quantity.\"\"\"\n    total = quantity * price\n    return total\n",
-            split_addition,
-        );
+        let updated = if content.contains("def _compute_item_subtotal(") {
+            content
+        } else if let Some(pos) = content.find("def process_item(") {
+            let mut s = content[..pos].to_string();
+            s.push_str(split_helper);
+            s.push('\n');
+            s.push_str(&content[pos..]);
+            s.replace("return total", "return _compute_item_subtotal(item_id, quantity, price)")
+                .replace("return grand_total", "return _compute_item_subtotal(item_id, quantity, price)")
+        } else {
+            format!("{content}\n{split_helper}\n")
+        };
+
         builder.write_file("src/service.py", &updated)?;
         let oid = builder
             .commit("refactor(M7): split _compute_item_subtotal helper from process_item")?;
@@ -355,6 +374,12 @@ def process_item(item_id: str, quantity: int, price: float) -> float:
             Self::BASE_SERVICE_PY.to_string()
         };
 
+        let func_name = if content.contains("def compute_tax(") {
+            "compute_tax"
+        } else {
+            "calculate_tax"
+        };
+
         builder.remove_file("src/service.py")?;
         builder.write_file("src/core/service.py", &content)?;
         let oid = builder.commit("refactor(M9): move src/service.py to src/core/service.py")?;
@@ -362,29 +387,47 @@ def process_item(item_id: str, quantity: int, price: float) -> float:
         Ok(LineageLink::new(
             oid.to_string(),
             MutationClass::M9_DirectoryMove,
-            SymbolLocation::new("src/service.py", "service.calculate_tax", 3, 6),
-            SymbolLocation::new("src/core/service.py", "core.service.calculate_tax", 3, 6),
+            SymbolLocation::new("src/service.py", &format!("service.{func_name}"), 3, 6),
+            SymbolLocation::new("src/core/service.py", &format!("core.service.{func_name}"), 3, 6),
             GroundTruthRelation::Moved,
             1.0,
         ))
     }
 
     fn apply_m10_copy(builder: &mut RepoBuilder) -> Result<LineageLink, MutationError> {
-        let backup_code = r#""""Backup tax calculations module."""
+        let service_path = builder.path().join("src/service.py");
+        let content = if service_path.exists() {
+            fs::read_to_string(&service_path)?
+        } else {
+            Self::BASE_SERVICE_PY.to_string()
+        };
+
+        let (func_name, backup_code) = if content.contains("def compute_tax(") {
+            ("compute_tax", r#""""Backup tax calculations module."""
+
+def compute_tax(amount: float, rate: float = 0.05) -> float:
+    """Calculate the tax for a given amount and rate (backup copy)."""
+    tax = amount * rate
+    return round(tax, 2)
+"#)
+        } else {
+            ("calculate_tax", r#""""Backup tax calculations module."""
 
 def calculate_tax(amount: float, rate: float = 0.05) -> float:
     """Calculate the tax for a given amount and rate (backup copy)."""
     tax = amount * rate
     return round(tax, 2)
-"#;
+"#)
+        };
+
         builder.write_file("src/backup/tax.py", backup_code)?;
-        let oid = builder.commit("feat(M10): duplicate calculate_tax to src/backup/tax.py")?;
+        let oid = builder.commit("feat(M10): duplicate tax calculation to src/backup/tax.py")?;
 
         Ok(LineageLink::new(
             oid.to_string(),
             MutationClass::M10_FunctionCopy,
-            SymbolLocation::new("src/service.py", "service.calculate_tax", 3, 6),
-            SymbolLocation::new("src/backup/tax.py", "backup.tax.calculate_tax", 3, 7),
+            SymbolLocation::new("src/service.py", &format!("service.{func_name}"), 3, 6),
+            SymbolLocation::new("src/backup/tax.py", &format!("backup.tax.{func_name}"), 3, 7),
             GroundTruthRelation::Copied,
             0.9,
         ))
@@ -429,4 +472,27 @@ def calculate_tax(amount: float, rate: float = 0.05) -> float:
 
         Ok((builder, manifest))
     }
+}
+
+fn remove_function_from_py(content: &str, func_name: &str) -> String {
+    let lines: Vec<&str> = content.lines().collect();
+    let mut new_lines = Vec::new();
+    let mut skipping = false;
+    let target = format!("def {func_name}(");
+
+    for line in lines {
+        if line.starts_with(&target) {
+            skipping = true;
+            continue;
+        }
+        if skipping {
+            if line.starts_with("def ") || line.starts_with("# End") {
+                skipping = false;
+                new_lines.push(line);
+            }
+        } else {
+            new_lines.push(line);
+        }
+    }
+    new_lines.join("\n")
 }
