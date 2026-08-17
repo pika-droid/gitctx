@@ -142,7 +142,10 @@ impl AstExtractor {
             self.telemetry.record_degraded();
             let mut symbols = extracted_symbols;
             let line_count = u32::try_from(content.split(|&b| b == b'\n').count()).unwrap_or(1);
-            symbols.push(DegradationHandler::create_file_level_symbol(line_count, content.len()));
+            symbols.push(DegradationHandler::create_file_level_symbol(
+                line_count,
+                content.len(),
+            ));
             (symbols, ParseStatus::Degraded)
         } else {
             self.telemetry.record_ok();

@@ -14,7 +14,8 @@ impl LanguageBehavior for PythonBehavior {
     }
 
     fn matches_shebang(&self, first_line: &str) -> bool {
-        first_line.starts_with("#!") && (first_line.contains("python") || first_line.contains("python3"))
+        first_line.starts_with("#!")
+            && (first_line.contains("python") || first_line.contains("python3"))
     }
 
     fn tree_sitter_language(&self) -> tree_sitter::Language {
@@ -26,7 +27,13 @@ impl LanguageBehavior for PythonBehavior {
         let mut cursor = tree.walk();
         let mut scope_stack: Vec<String> = Vec::new();
 
-        Self::walk_node(tree.root_node(), code, &mut scope_stack, &mut symbols, &mut cursor);
+        Self::walk_node(
+            tree.root_node(),
+            code,
+            &mut scope_stack,
+            &mut symbols,
+            &mut cursor,
+        );
         Ok(symbols)
     }
 }

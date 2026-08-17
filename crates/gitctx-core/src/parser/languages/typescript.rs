@@ -14,7 +14,10 @@ impl LanguageBehavior for TypeScriptBehavior {
     }
 
     fn matches_shebang(&self, first_line: &str) -> bool {
-        first_line.starts_with("#!") && (first_line.contains("deno") || first_line.contains("bun") || first_line.contains("ts-node"))
+        first_line.starts_with("#!")
+            && (first_line.contains("deno")
+                || first_line.contains("bun")
+                || first_line.contains("ts-node"))
     }
 
     fn tree_sitter_language(&self) -> tree_sitter::Language {
@@ -26,7 +29,13 @@ impl LanguageBehavior for TypeScriptBehavior {
         let mut cursor = tree.walk();
         let mut scope_stack: Vec<String> = Vec::new();
 
-        Self::walk_node(tree.root_node(), code, &mut scope_stack, &mut symbols, &mut cursor);
+        Self::walk_node(
+            tree.root_node(),
+            code,
+            &mut scope_stack,
+            &mut symbols,
+            &mut cursor,
+        );
         Ok(symbols)
     }
 }
@@ -41,7 +50,9 @@ impl TypeScriptBehavior {
     ) {
         let kind = node.kind();
         let is_class = kind == "class_declaration" || kind == "interface_declaration";
-        let is_func = kind == "function_declaration" || kind == "method_definition" || kind == "function_signature";
+        let is_func = kind == "function_declaration"
+            || kind == "method_definition"
+            || kind == "function_signature";
 
         if is_class {
             if let Some(name_node) = node.child_by_field_name("name") {
@@ -109,9 +120,7 @@ impl TypeScriptBehavior {
             .map(|r| format!(": {r}"))
             .unwrap_or_default();
 
-        let is_async = node
-            .children(&mut node.walk())
-            .any(|c| c.kind() == "async");
+        let is_async = node.children(&mut node.walk()).any(|c| c.kind() == "async");
         let async_prefix = if is_async { "async " } else { "" };
 
         format!("{async_prefix}function {name}{params}{return_type}")

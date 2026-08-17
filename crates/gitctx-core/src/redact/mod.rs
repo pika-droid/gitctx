@@ -7,7 +7,10 @@
 pub mod entropy;
 pub mod prefixes;
 
-pub use entropy::{is_exempt, redact_high_entropy_tokens, shannon_entropy, MIN_ENTROPY_TOKEN_LEN, SHANNON_ENTROPY_THRESHOLD};
+pub use entropy::{
+    is_exempt, redact_high_entropy_tokens, shannon_entropy, MIN_ENTROPY_TOKEN_LEN,
+    SHANNON_ENTROPY_THRESHOLD,
+};
 pub use prefixes::redact_known_prefixes;
 
 use crate::sanitize::{sanitize_chunk_text, SanitizedChunk};
@@ -50,10 +53,18 @@ mod tests {
         "#;
 
         let res = SecretRedactor::redact_and_sanitize(raw);
-        assert!(res.sanitized_text.contains("[REDACTED_SECRET: github_token]"));
-        assert!(res.sanitized_text.contains("[REDACTED_SECRET: high_entropy_string]"));
-        assert!(res.sanitized_text.contains("e3b0c44298fc1c149afbf4c8996fb92427ae41e4"));
-        assert!(res.sanitized_text.contains("550e8400-e29b-41d4-a716-446655440000"));
+        assert!(res
+            .sanitized_text
+            .contains("[REDACTED_SECRET: github_token]"));
+        assert!(res
+            .sanitized_text
+            .contains("[REDACTED_SECRET: high_entropy_string]"));
+        assert!(res
+            .sanitized_text
+            .contains("e3b0c44298fc1c149afbf4c8996fb92427ae41e4"));
+        assert!(res
+            .sanitized_text
+            .contains("550e8400-e29b-41d4-a716-446655440000"));
         assert!(!res.sanitized_text.contains("#1024"));
     }
 }

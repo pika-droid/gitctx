@@ -26,7 +26,13 @@ impl LanguageBehavior for JavaScriptBehavior {
         let mut cursor = tree.walk();
         let mut scope_stack: Vec<String> = Vec::new();
 
-        Self::walk_node(tree.root_node(), code, &mut scope_stack, &mut symbols, &mut cursor);
+        Self::walk_node(
+            tree.root_node(),
+            code,
+            &mut scope_stack,
+            &mut symbols,
+            &mut cursor,
+        );
         Ok(symbols)
     }
 }
@@ -41,7 +47,9 @@ impl JavaScriptBehavior {
     ) {
         let kind = node.kind();
         let is_class = kind == "class_declaration" || kind == "class";
-        let is_func = kind == "function_declaration" || kind == "method_definition" || kind == "generator_function_declaration";
+        let is_func = kind == "function_declaration"
+            || kind == "method_definition"
+            || kind == "generator_function_declaration";
 
         if is_class {
             if let Some(name_node) = node.child_by_field_name("name") {
@@ -103,9 +111,7 @@ impl JavaScriptBehavior {
             .and_then(|p| p.utf8_text(code).ok())
             .unwrap_or("()");
 
-        let is_async = node
-            .children(&mut node.walk())
-            .any(|c| c.kind() == "async");
+        let is_async = node.children(&mut node.walk()).any(|c| c.kind() == "async");
         let async_prefix = if is_async { "async " } else { "" };
 
         format!("{async_prefix}function {name}{params}")

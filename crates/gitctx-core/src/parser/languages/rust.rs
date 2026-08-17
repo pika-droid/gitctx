@@ -26,7 +26,13 @@ impl LanguageBehavior for RustBehavior {
         let mut cursor = tree.walk();
         let mut scope_stack: Vec<String> = Vec::new();
 
-        Self::walk_node(tree.root_node(), code, &mut scope_stack, &mut symbols, &mut cursor);
+        Self::walk_node(
+            tree.root_node(),
+            code,
+            &mut scope_stack,
+            &mut symbols,
+            &mut cursor,
+        );
         Ok(symbols)
     }
 }

@@ -1,6 +1,6 @@
+use git2::Oid;
 use gitctx_core::model::ParseStatus;
 use gitctx_core::parser::{AstExtractor, LanguageId, LanguageRegistry};
-use git2::Oid;
 use std::path::Path;
 
 #[test]
@@ -70,7 +70,10 @@ impl Engine {
     let hash_fn = &res.symbols[0];
     assert_eq!(hash_fn.name, "calculate_hash");
     assert_eq!(hash_fn.qualname, "calculate_hash");
-    assert_eq!(hash_fn.signature, "pub fn calculate_hash(data: &[u8]) -> u64");
+    assert_eq!(
+        hash_fn.signature,
+        "pub fn calculate_hash(data: &[u8]) -> u64"
+    );
     assert_eq!(
         hash_fn.docstring.as_deref(),
         Some("Standalone function documentation.")
@@ -88,13 +91,41 @@ fn test_all_8_languages_smoke_test() {
     let extractor = AstExtractor::new();
 
     let cases = vec![
-        ("index.js", "function runServer(port) { return port; }", "runServer"),
-        ("app.ts", "function processRequest<T>(req: T): boolean { return true; }", "processRequest"),
-        ("main.go", "package main\nfunc StartService(cfg Config) error { return nil }", "StartService"),
-        ("driver.c", "int init_driver(void) { return 0; }", "init_driver"),
-        ("renderer.cpp", "namespace gfx { void render_frame() {} }", "gfx::render_frame"),
-        ("Service.java", "public class Service { public void executeTask() {} }", "Service.executeTask"),
-        ("index.php", "<?php function handleRequest($req) { return 1; }", "handleRequest"),
+        (
+            "index.js",
+            "function runServer(port) { return port; }",
+            "runServer",
+        ),
+        (
+            "app.ts",
+            "function processRequest<T>(req: T): boolean { return true; }",
+            "processRequest",
+        ),
+        (
+            "main.go",
+            "package main\nfunc StartService(cfg Config) error { return nil }",
+            "StartService",
+        ),
+        (
+            "driver.c",
+            "int init_driver(void) { return 0; }",
+            "init_driver",
+        ),
+        (
+            "renderer.cpp",
+            "namespace gfx { void render_frame() {} }",
+            "gfx::render_frame",
+        ),
+        (
+            "Service.java",
+            "public class Service { public void executeTask() {} }",
+            "Service.executeTask",
+        ),
+        (
+            "index.php",
+            "<?php function handleRequest($req) { return 1; }",
+            "handleRequest",
+        ),
     ];
 
     for (filename, code, expected_qualname) in cases {
@@ -119,10 +150,16 @@ fn test_shebang_language_detection() {
     let php_script = "#!/usr/bin/php\n<?php echo 1;";
 
     let py_behavior = registry.detect(Path::new("bin/task"), Some(python_script.as_bytes()));
-    assert_eq!(py_behavior.map(|b| b.language_id()), Some(LanguageId::Python));
+    assert_eq!(
+        py_behavior.map(|b| b.language_id()),
+        Some(LanguageId::Python)
+    );
 
     let js_behavior = registry.detect(Path::new("bin/serve"), Some(node_script.as_bytes()));
-    assert_eq!(js_behavior.map(|b| b.language_id()), Some(LanguageId::JavaScript));
+    assert_eq!(
+        js_behavior.map(|b| b.language_id()),
+        Some(LanguageId::JavaScript)
+    );
 
     let php_behavior = registry.detect(Path::new("bin/cron"), Some(php_script.as_bytes()));
     assert_eq!(php_behavior.map(|b| b.language_id()), Some(LanguageId::Php));

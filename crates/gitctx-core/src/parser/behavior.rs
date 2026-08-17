@@ -62,5 +62,9 @@ pub trait LanguageBehavior: Send + Sync {
     fn tree_sitter_language(&self) -> tree_sitter::Language;
 
     /// Extract all function and method symbols from the AST.
-    fn extract_symbols(&self, code: &[u8], tree: &tree_sitter::Tree) -> Result<Vec<RawFunctionSymbol>>;
+    fn extract_symbols(
+        &self,
+        code: &[u8],
+        tree: &tree_sitter::Tree,
+    ) -> Result<Vec<RawFunctionSymbol>>;
 }

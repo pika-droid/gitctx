@@ -40,8 +40,9 @@ impl GitRepo {
     /// Get the OID of HEAD.
     pub fn head_oid(&self) -> Result<Oid> {
         let head = self.repo.head().map_err(CoreError::from)?;
-        head.target()
-            .ok_or_else(|| CoreError::GitInspection("HEAD is a symbolic ref without target".to_string()))
+        head.target().ok_or_else(|| {
+            CoreError::GitInspection("HEAD is a symbolic ref without target".to_string())
+        })
     }
 
     /// Find a commit by its OID.

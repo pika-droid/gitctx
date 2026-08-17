@@ -65,7 +65,10 @@ impl LanguageRegistry {
         }
 
         if let Some(bytes) = content {
-            if let Some(first_line) = std::str::from_utf8(bytes).ok().and_then(|s| s.lines().next()) {
+            if let Some(first_line) = std::str::from_utf8(bytes)
+                .ok()
+                .and_then(|s| s.lines().next())
+            {
                 if first_line.starts_with("#!") {
                     for behavior in &self.behaviors {
                         if behavior.matches_shebang(first_line) {

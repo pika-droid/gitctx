@@ -12,7 +12,9 @@ pub mod template;
 
 pub use config::{ConfigHash, IndexConfig};
 pub use error::{CoreError, Result};
-pub use git::{CommitDiff, CommitInfo, DeltaStatus, DiffHunk, FileDelta, GitRepo, GitWalker, TreeDiffExtractor};
+pub use git::{
+    CommitDiff, CommitInfo, DeltaStatus, DiffHunk, FileDelta, GitRepo, GitWalker, TreeDiffExtractor,
+};
 pub use model::{Citation, CommitId, FunctionTouch, LineageId, ParseStatus};
 pub use parser::{
     AstExtractor, BlobParseCache, DegradationHandler, LanguageBehavior, LanguageId,
@@ -28,5 +30,3 @@ pub use template::{
     is_keyword, D4TemplateRenderer, FunctionTemplateContext, IdentifierDelta, IdentifierExtractor,
     ModuleTemplateContext,
 };
-
-

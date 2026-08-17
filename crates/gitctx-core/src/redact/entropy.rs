@@ -13,9 +13,8 @@ pub const MIN_ENTROPY_TOKEN_LEN: usize = 24;
 /// Shannon entropy threshold in bits per character.
 pub const SHANNON_ENTROPY_THRESHOLD: f64 = 4.5;
 
-static RE_CANDIDATE_TOKEN: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"[A-Za-z0-9+/=_-]{24,}").expect("valid candidate token regex")
-});
+static RE_CANDIDATE_TOKEN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"[A-Za-z0-9+/=_-]{24,}").expect("valid candidate token regex"));
 
 static RE_UUID: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
@@ -109,7 +108,7 @@ mod tests {
     #[test]
     fn test_shannon_entropy_calculation() {
         // Uniform repetitive string has 0 entropy
-        assert_eq!(shannon_entropy("AAAAAAAAAAAAAAAAAAAAAAAA"), 0.0);
+        assert!(shannon_entropy("AAAAAAAAAAAAAAAAAAAAAAAA") < f64::EPSILON);
 
         // Standard English identifier has moderate entropy (< 4.2)
         let identifier = "AuthenticationMiddlewareConfigurationService";

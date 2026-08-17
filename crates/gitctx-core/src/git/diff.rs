@@ -92,17 +92,17 @@ impl TreeDiffExtractor {
         let mut diff_opts = DiffOptions::new();
         diff_opts.context_lines(3);
 
-        let mut diff = repo.inner().diff_tree_to_tree(
-            old_tree.as_ref(),
-            Some(&new_tree),
-            Some(&mut diff_opts),
-        ).map_err(CoreError::from)?;
+        let mut diff = repo
+            .inner()
+            .diff_tree_to_tree(old_tree.as_ref(), Some(&new_tree), Some(&mut diff_opts))
+            .map_err(CoreError::from)?;
 
         let mut find_opts = DiffFindOptions::new();
         find_opts.renames(true);
         find_opts.copies(true);
         find_opts.exact_match_only(false);
-        diff.find_similar(Some(&mut find_opts)).map_err(CoreError::from)?;
+        diff.find_similar(Some(&mut find_opts))
+            .map_err(CoreError::from)?;
 
         let deltas = Self::extract_deltas(&diff)?;
         let (raw_diff, hunks_by_path) = Self::extract_hunks_and_raw(&diff)?;
@@ -194,7 +194,9 @@ impl TreeDiffExtractor {
                 if let Some(h) = maybe_hunk {
                     let hunk_header = String::from_utf8_lossy(h.header()).trim().to_string();
                     let is_new_hunk = match &current_hunk {
-                        Some(cur) => cur.old_start != h.old_start() || cur.new_start != h.new_start(),
+                        Some(cur) => {
+                            cur.old_start != h.old_start() || cur.new_start != h.new_start()
+                        }
                         None => true,
                     };
 
@@ -224,7 +226,8 @@ impl TreeDiffExtractor {
             }
 
             true
-        }).map_err(CoreError::from)?;
+        })
+        .map_err(CoreError::from)?;
 
         if let Some(hunk) = current_hunk {
             if let Some(path) = current_file_path {

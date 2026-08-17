@@ -10,9 +10,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashSet};
 use std::sync::LazyLock;
 
-static RE_IDENTIFIER: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"\b[a-zA-Z_][a-zA-Z0-9_]{2,}\b").expect("valid identifier regex")
-});
+static RE_IDENTIFIER: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\b[a-zA-Z_][a-zA-Z0-9_]{2,}\b").expect("valid identifier regex"));
 
 /// The extracted symmetric token delta representing added and removed code identifiers.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -79,14 +78,8 @@ impl IdentifierExtractor {
         }
 
         // Symmetric difference: added_only = added - removed, removed_only = removed - added
-        let added_only: BTreeSet<String> = added_raw
-            .difference(&removed_raw)
-            .cloned()
-            .collect();
-        let removed_only: BTreeSet<String> = removed_raw
-            .difference(&added_raw)
-            .cloned()
-            .collect();
+        let added_only: BTreeSet<String> = added_raw.difference(&removed_raw).cloned().collect();
+        let removed_only: BTreeSet<String> = removed_raw.difference(&added_raw).cloned().collect();
 
         IdentifierDelta {
             added_identifiers: added_only.into_iter().collect(),
@@ -111,13 +104,13 @@ mod tests {
 
     #[test]
     fn test_extract_symmetric_diff() {
-        let diff = r#"
+        let diff = r"
 --- a/src/lib.rs
 +++ b/src/lib.rs
 @@ -10,4 +10,4 @@
 -    let old_cache_key = calculate_old_hash(user_id, session_id);
 +    let new_cache_key = calculate_new_hash(user_id, session_id, ttl_seconds);
-"#;
+";
         let delta = IdentifierExtractor::extract_from_diff_text(diff);
 
         // 'user_id' and 'session_id' are in both + and -, so they are filtered by symmetric difference.

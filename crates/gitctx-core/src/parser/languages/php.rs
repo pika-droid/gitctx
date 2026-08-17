@@ -26,7 +26,13 @@ impl LanguageBehavior for PhpBehavior {
         let mut cursor = tree.walk();
         let mut scope_stack: Vec<String> = Vec::new();
 
-        Self::walk_node(tree.root_node(), code, &mut scope_stack, &mut symbols, &mut cursor);
+        Self::walk_node(
+            tree.root_node(),
+            code,
+            &mut scope_stack,
+            &mut symbols,
+            &mut cursor,
+        );
         Ok(symbols)
     }
 }
@@ -40,7 +46,9 @@ impl PhpBehavior {
         cursor: &mut tree_sitter::TreeCursor,
     ) {
         let kind = node.kind();
-        let is_class = kind == "class_declaration" || kind == "interface_declaration" || kind == "trait_declaration";
+        let is_class = kind == "class_declaration"
+            || kind == "interface_declaration"
+            || kind == "trait_declaration";
         let is_func = kind == "function_definition" || kind == "method_declaration";
 
         if is_class {

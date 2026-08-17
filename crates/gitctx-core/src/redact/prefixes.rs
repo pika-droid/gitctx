@@ -10,17 +10,15 @@ static RE_GITHUB_TOKEN: LazyLock<Regex> = LazyLock::new(|| {
         .expect("valid regex")
 });
 
-static RE_AWS_ACCESS_KEY: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"\b(?:AKIA|ASIA|AROA|AIDA)[0-9A-Z]{16}\b").expect("valid regex")
-});
+static RE_AWS_ACCESS_KEY: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\b(?:AKIA|ASIA|AROA|AIDA)[0-9A-Z]{16}\b").expect("valid regex"));
 
 static RE_OPENAI_KEY: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"\bsk-(?:proj-|org-|admin-|svcacct-)?[A-Za-z0-9_-]{20,}\b").expect("valid regex")
 });
 
-static RE_SLACK_TOKEN: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"\bxox[baprs]-[0-9A-Za-z-]{10,}\b").expect("valid regex")
-});
+static RE_SLACK_TOKEN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\bxox[baprs]-[0-9A-Za-z-]{10,}\b").expect("valid regex"));
 
 static RE_PRIVATE_KEY_BLOCK: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?s)-----BEGIN (?:[A-Z0-9_-]+ )?PRIVATE KEY-----.*?-----END (?:[A-Z0-9_-]+ )?PRIVATE KEY-----")
@@ -85,7 +83,10 @@ mod tests {
     fn test_redact_github_token() {
         let input = "export GITHUB_TOKEN=ghp_1234567890abcdefghijklmnopqrstuvwxyzAB";
         let output = redact_known_prefixes(input);
-        assert_eq!(output, "export GITHUB_TOKEN=[REDACTED_SECRET: github_token]");
+        assert_eq!(
+            output,
+            "export GITHUB_TOKEN=[REDACTED_SECRET: github_token]"
+        );
     }
 
     #[test]
@@ -111,7 +112,8 @@ mod tests {
 
     #[test]
     fn test_redact_private_key() {
-        let input = "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA...\n-----END RSA PRIVATE KEY-----";
+        let input =
+            "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA...\n-----END RSA PRIVATE KEY-----";
         let output = redact_known_prefixes(input);
         assert_eq!(output, "[REDACTED_SECRET: private_key]");
     }

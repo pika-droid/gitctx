@@ -6,7 +6,7 @@ use gitctx_core::template::{
 
 #[test]
 fn test_symmetric_identifier_extraction_python() {
-    let diff = r#"
+    let diff = r"
 --- a/calculator.py
 +++ b/calculator.py
 @@ -1,5 +1,5 @@
@@ -17,7 +17,7 @@ fn test_symmetric_identifier_extraction_python() {
 +    base_rate = lookup_role_rate(user_role)
 +    discount_multiplier = apply_coupon(coupon_code)
 +    return subtotal * base_rate * discount_multiplier
-"#;
+";
 
     let delta = IdentifierExtractor::extract_from_diff_text(diff);
 
@@ -32,7 +32,7 @@ fn test_symmetric_identifier_extraction_python() {
 
 #[test]
 fn test_symmetric_identifier_extraction_multi_language() {
-    let diff_rust = r#"
+    let diff_rust = r"
 --- a/src/service.rs
 +++ b/src/service.rs
 @@ -10,3 +10,3 @@
@@ -40,17 +40,14 @@ fn test_symmetric_identifier_extraction_multi_language() {
 -        let worker = find_idle_worker(queue).await?;
 +    pub async fn process_job(queue: &Queue, job_id: u64, priority: Priority) -> Result<Output> {
 +        let worker = find_priority_worker(queue, priority).await?;
-"#;
+";
 
     let delta = IdentifierExtractor::extract_from_diff_text(diff_rust);
     assert_eq!(
         delta.added_identifiers,
         vec!["Priority", "find_priority_worker", "priority"]
     );
-    assert_eq!(
-        delta.removed_identifiers,
-        vec!["find_idle_worker"]
-    );
+    assert_eq!(delta.removed_identifiers, vec!["find_idle_worker"]);
 }
 
 #[test]
@@ -62,7 +59,8 @@ fn test_d4_template_function_full() {
         path: "src/billing.py",
         author: "Dev Jane",
         date: "2026-08-17",
-        raw_message: "Add coupon support to discount calculation\n\nCloses: #123\nCo-authored-by: Bob",
+        raw_message:
+            "Add coupon support to discount calculation\n\nCloses: #123\nCo-authored-by: Bob",
         added_identifiers: &added,
         removed_identifiers: &removed,
         signature: Some("def compute_discount(subtotal: float, coupon_code: str) -> float:"),
@@ -147,7 +145,9 @@ fn test_d4_template_touch_router() {
         "Setup initialization flow",
         &delta,
     );
-    assert!(rendered_fn.starts_with("Function `initialize` in `crates/core/src/lib.rs` was modified"));
+    assert!(
+        rendered_fn.starts_with("Function `initialize` in `crates/core/src/lib.rs` was modified")
+    );
     assert!(rendered_fn.contains("Added: init_config"));
     assert!(!rendered_fn.contains("Removed:"));
 
@@ -239,6 +239,9 @@ fn test_template_determinism() {
     let first = D4TemplateRenderer::render_function(&ctx);
     for _ in 0..100 {
         let repeated = D4TemplateRenderer::render_function(&ctx);
-        assert_eq!(first, repeated, "D4 template output must be strictly deterministic");
+        assert_eq!(
+            first, repeated,
+            "D4 template output must be strictly deterministic"
+        );
     }
 }

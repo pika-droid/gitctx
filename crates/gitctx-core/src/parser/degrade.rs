@@ -43,9 +43,9 @@ impl DegradationHandler {
     /// Check if a modified byte range intersects any syntax error ranges.
     pub fn intersects_error(range: (usize, usize), error_ranges: &[(usize, usize)]) -> bool {
         let (start, end) = range;
-        error_ranges.iter().any(|&(err_start, err_end)| {
-            !(end <= err_start || start >= err_end)
-        })
+        error_ranges
+            .iter()
+            .any(|&(err_start, err_end)| !(end <= err_start || start >= err_end))
     }
 
     /// Create a fallback `<file_level>` raw function symbol for degraded historical edits.

@@ -2,7 +2,6 @@ use gitctx_core::redact::{
     is_exempt, redact_high_entropy_tokens, redact_known_prefixes, shannon_entropy, SecretRedactor,
 };
 
-
 #[test]
 fn test_github_token_redaction() {
     let inputs = [
@@ -64,7 +63,8 @@ fn test_slack_token_redaction() {
 
 #[test]
 fn test_private_key_redaction() {
-    let pem = "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0Y7f9...\n-----END RSA PRIVATE KEY-----";
+    let pem =
+        "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0Y7f9...\n-----END RSA PRIVATE KEY-----";
     let single_header = "line with -----BEGIN OPENSSH PRIVATE KEY----- inside";
 
     assert_eq!(
@@ -112,7 +112,6 @@ fn test_direct_prefix_redaction() {
     );
 }
 
-
 #[test]
 fn test_exemptions_uuid_and_git_sha() {
     let uuid_lower = "c4b4c73a-4a7b-4d4c-9f6e-6c8f9b7c8a1b";
@@ -134,7 +133,8 @@ fn test_exemptions_uuid_and_git_sha() {
 
 #[test]
 fn test_no_false_positives_on_long_identifiers() {
-    let long_code = "class AuthenticationMiddlewareConfigurationServiceManager {\n  fn handle_request() {}\n}";
+    let long_code =
+        "class AuthenticationMiddlewareConfigurationServiceManager {\n  fn handle_request() {}\n}";
     let result = SecretRedactor::redact(long_code);
     assert_eq!(result, long_code);
 }

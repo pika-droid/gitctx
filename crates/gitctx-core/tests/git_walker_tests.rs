@@ -32,9 +32,7 @@ fn test_first_parent_walk_and_root_commit() {
 #[test]
 fn test_branch_merge_first_parent_filtering() {
     let mut builder = RepoBuilder::new().expect("create repo");
-    builder
-        .write_file("file.txt", "base content\n")
-        .unwrap();
+    builder.write_file("file.txt", "base content\n").unwrap();
     let root_oid = builder.commit("base commit").unwrap();
 
     // Create side branch
@@ -71,17 +69,13 @@ fn test_branch_merge_first_parent_filtering() {
 #[test]
 fn test_tree_diff_extraction_and_root_diff() {
     let mut builder = RepoBuilder::new().expect("create repo");
-    builder
-        .write_file("app.rs", "fn init() {}\n")
-        .unwrap();
+    builder.write_file("app.rs", "fn init() {}\n").unwrap();
     let root_oid = builder.commit("initial commit").unwrap();
 
     builder
         .write_file("app.rs", "fn init() {\n    println!(\"started\");\n}\n")
         .unwrap();
-    builder
-        .write_file("new_file.txt", "hello world\n")
-        .unwrap();
+    builder.write_file("new_file.txt", "hello world\n").unwrap();
     let second_oid = builder.commit("update app and add new_file").unwrap();
 
     let repo = GitRepo::open(builder.path()).expect("open repo");
@@ -96,7 +90,8 @@ fn test_tree_diff_extraction_and_root_diff() {
     );
 
     // 2. Second commit diff
-    let second_diff = TreeDiffExtractor::extract(&repo, second_oid, Some(root_oid)).expect("second diff");
+    let second_diff =
+        TreeDiffExtractor::extract(&repo, second_oid, Some(root_oid)).expect("second diff");
     assert_eq!(second_diff.deltas.len(), 2);
 
     let modified_delta = second_diff
@@ -114,7 +109,10 @@ fn test_tree_diff_extraction_and_root_diff() {
     assert_eq!(added_delta.status, DeltaStatus::Added);
 
     // Check hunks
-    let hunks = second_diff.hunks_by_path.get(Path::new("app.rs")).expect("hunks for app.rs");
+    let hunks = second_diff
+        .hunks_by_path
+        .get(Path::new("app.rs"))
+        .expect("hunks for app.rs");
     assert!(!hunks.is_empty());
 }
 
