@@ -81,7 +81,7 @@ fn apply_sub(re: &Regex, text: &str, replacement: &str) -> (String, usize) {
 /// 4. Squash PR suffixes
 /// 5. GitHub issue & PR URLs
 /// 6. Inline issue numbers (#123, gh-123)
-/// followed by whitespace normalization.
+///    followed by whitespace normalization.
 #[must_use]
 pub fn sanitize_chunk_text(text: &str) -> SanitizedChunk {
     if text.is_empty() {
