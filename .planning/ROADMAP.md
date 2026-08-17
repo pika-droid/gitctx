@@ -144,9 +144,9 @@ Plans:
 
 Plans:
 
-- [ ] 05-01: Qualified name convention engine and normalized body MinHash fingerprint generator.
-- [ ] 05-02: Multi-stage lineage resolver with bipartite matching, split derivation, and uniqueness constraints.
-- [ ] 05-03: Lineage evaluation harness against synthetic mutation classes (M1-M10) and `git log -L` oracle.
+- [x] 05-01: Qualified name convention engine and normalized body MinHash fingerprint generator.
+- [x] 05-02: Multi-stage lineage resolver with bipartite matching, split derivation, and uniqueness constraints.
+- [x] 05-03: Lineage evaluation harness against synthetic mutation classes (M1-M10) and `git log -L` oracle.
 
 ### Phase 6: Deterministic Storage & Hybrid Retrieval Engine
 
