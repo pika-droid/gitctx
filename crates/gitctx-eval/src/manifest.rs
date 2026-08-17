@@ -72,7 +72,7 @@ pub fn verify_ground_truth_integrity(
         if !file_path.exists() {
             return Err(CoreError::GroundTruthCorrupted {
                 file: filename.clone(),
-                message: format!("Ground truth file not found at {file_path:?}"),
+                message: format!("Ground truth file not found at {}", file_path.display()),
             });
         }
 
@@ -174,7 +174,7 @@ pub fn sync_manifest(manifest_path: &Path, ground_truth_dir: &Path) -> Result<Gr
         if !file_path.exists() {
             return Err(CoreError::GroundTruthCorrupted {
                 file: filename.to_string(),
-                message: format!("Ground truth file not found at {file_path:?}"),
+                message: format!("Ground truth file not found at {}", file_path.display()),
             });
         }
         let entry = compute_file_entry(&file_path)?;
