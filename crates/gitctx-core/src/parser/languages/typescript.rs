@@ -27,7 +27,7 @@ impl LanguageBehavior for TypeScriptBehavior {
     fn extract_symbols(&self, code: &[u8], tree: &Tree) -> Result<Vec<RawFunctionSymbol>> {
         let mut symbols = Vec::new();
         let mut cursor = tree.walk();
-        let mut scope_stack: Vec<String> = Vec::new();
+        let mut scope_stack: Vec<ScopeEntry> = Vec::new();
 
         Self::walk_node(
             tree.root_node(),
@@ -40,36 +40,79 @@ impl LanguageBehavior for TypeScriptBehavior {
     }
 }
 
+#[derive(Clone, Debug)]
+struct ScopeEntry {
+    name: String,
+    is_class: bool,
+}
+
 impl TypeScriptBehavior {
+    fn build_qualname(scope_stack: &[ScopeEntry], leaf_name: &str, is_closure: bool) -> String {
+        if scope_stack.is_empty() {
+            if is_closure {
+                format!("<{leaf_name}>")
+            } else {
+                leaf_name.to_string()
+            }
+        } else {
+            let mut path = String::new();
+            for (i, entry) in scope_stack.iter().enumerate() {
+                if i == 0 {
+                    path.push_str(&entry.name);
+                } else {
+                    let prev_is_class = scope_stack[i - 1].is_class;
+                    if prev_is_class {
+                        path.push_str("::");
+                        path.push_str(&entry.name);
+                    } else {
+                        path.push_str("::<");
+                        path.push_str(&entry.name);
+                        path.push('>');
+                    }
+                }
+            }
+            let last_is_class = scope_stack.last().map_or(false, |e| e.is_class);
+            if last_is_class && !is_closure {
+                format!("{path}::{leaf_name}")
+            } else {
+                format!("{path}::<{leaf_name}>")
+            }
+        }
+    }
+
     fn walk_node(
         node: Node,
         code: &[u8],
-        scope_stack: &mut Vec<String>,
+        scope_stack: &mut Vec<ScopeEntry>,
         symbols: &mut Vec<RawFunctionSymbol>,
         cursor: &mut tree_sitter::TreeCursor,
     ) {
         let kind = node.kind();
-        let is_class = kind == "class_declaration" || kind == "interface_declaration";
+        let is_class = kind == "class_declaration"
+            || kind == "interface_declaration"
+            || kind == "enum_declaration";
         let is_func = kind == "function_declaration"
             || kind == "method_definition"
             || kind == "function_signature";
+        let is_arrow = kind == "arrow_function";
+
+        let mut pushed_scope = false;
 
         if is_class {
             if let Some(name_node) = node.child_by_field_name("name") {
                 if let Ok(name_str) = name_node.utf8_text(code) {
-                    scope_stack.push(name_str.to_string());
+                    scope_stack.push(ScopeEntry {
+                        name: name_str.to_string(),
+                        is_class: true,
+                    });
+                    pushed_scope = true;
                 }
             }
         } else if is_func {
             if let Some(name_node) = node.child_by_field_name("name") {
                 if let Ok(name_str) = name_node.utf8_text(code) {
-                    let is_method = !scope_stack.is_empty();
-                    let qualname = if scope_stack.is_empty() {
-                        name_str.to_string()
-                    } else {
-                        format!("{}.{}", scope_stack.join("."), name_str)
-                    };
-
+                    let is_method = scope_stack.last().map_or(false, |e| e.is_class);
+                    let qualname = Self::build_qualname(scope_stack, name_str, false);
                     let signature = Self::extract_ts_signature(node, code, name_str);
                     let docstring = Self::extract_ts_docstring(node, code);
 
@@ -89,8 +132,35 @@ impl TypeScriptBehavior {
                         end_line,
                         is_method,
                     });
+
+                    scope_stack.push(ScopeEntry {
+                        name: name_str.to_string(),
+                        is_class: false,
+                    });
+                    pushed_scope = true;
                 }
             }
+        } else if is_arrow {
+            let start_line = u32::try_from(node.start_position().row + 1).unwrap_or(1);
+            let end_line = u32::try_from(node.end_position().row + 1).unwrap_or(1);
+            let closure_marker = format!("closure@L{start_line}");
+            let qualname = Self::build_qualname(scope_stack, &closure_marker, true);
+            let signature = node
+                .utf8_text(code)
+                .map(ToString::to_string)
+                .unwrap_or_else(|_| "() => { ... }".to_string());
+
+            symbols.push(RawFunctionSymbol {
+                name: format!("<{closure_marker}>"),
+                qualname,
+                signature,
+                docstring: None,
+                start_byte: node.start_byte(),
+                end_byte: node.end_byte(),
+                start_line,
+                end_line,
+                is_method: false,
+            });
         }
 
         if cursor.goto_first_child() {
@@ -103,7 +173,7 @@ impl TypeScriptBehavior {
             cursor.goto_parent();
         }
 
-        if is_class {
+        if pushed_scope {
             scope_stack.pop();
         }
     }

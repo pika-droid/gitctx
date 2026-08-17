@@ -119,7 +119,7 @@ fn test_all_8_languages_smoke_test() {
         (
             "Service.java",
             "public class Service { public void executeTask() {} }",
-            "Service.executeTask",
+            "Service::executeTask",
         ),
         (
             "index.php",

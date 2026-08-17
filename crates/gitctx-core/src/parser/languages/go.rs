@@ -24,22 +24,72 @@ impl LanguageBehavior for GoBehavior {
     fn extract_symbols(&self, code: &[u8], tree: &Tree) -> Result<Vec<RawFunctionSymbol>> {
         let mut symbols = Vec::new();
         let mut cursor = tree.walk();
+        let mut scope_stack: Vec<ScopeEntry> = Vec::new();
 
-        Self::walk_node(tree.root_node(), code, &mut symbols, &mut cursor);
+        Self::walk_node(
+            tree.root_node(),
+            code,
+            &mut scope_stack,
+            &mut symbols,
+            &mut cursor,
+        );
         Ok(symbols)
     }
 }
 
+#[derive(Clone, Debug)]
+struct ScopeEntry {
+    name: String,
+    is_class: bool,
+}
+
 impl GoBehavior {
+    fn build_qualname(scope_stack: &[ScopeEntry], leaf_name: &str, is_closure: bool) -> String {
+        if scope_stack.is_empty() {
+            if is_closure {
+                format!("<{leaf_name}>")
+            } else {
+                leaf_name.to_string()
+            }
+        } else {
+            let mut path = String::new();
+            for (i, entry) in scope_stack.iter().enumerate() {
+                if i == 0 {
+                    path.push_str(&entry.name);
+                } else {
+                    let prev_is_class = scope_stack[i - 1].is_class;
+                    if prev_is_class {
+                        path.push_str("::");
+                        path.push_str(&entry.name);
+                    } else {
+                        path.push_str("::<");
+                        path.push_str(&entry.name);
+                        path.push('>');
+                    }
+                }
+            }
+            let last_is_class = scope_stack.last().map_or(false, |e| e.is_class);
+            if last_is_class && !is_closure {
+                format!("{path}::{leaf_name}")
+            } else {
+                format!("{path}::<{leaf_name}>")
+            }
+        }
+    }
+
     fn walk_node(
         node: Node,
         code: &[u8],
+        scope_stack: &mut Vec<ScopeEntry>,
         symbols: &mut Vec<RawFunctionSymbol>,
         cursor: &mut tree_sitter::TreeCursor,
     ) {
         let kind = node.kind();
         let is_func = kind == "function_declaration";
         let is_method = kind == "method_declaration";
+        let is_func_lit = kind == "func_literal";
+
+        let mut pushed_scope = false;
 
         if is_func || is_method {
             if let Some(name_node) = node.child_by_field_name("name") {
@@ -51,9 +101,19 @@ impl GoBehavior {
                         None
                     };
 
-                    let qualname = match &receiver_type {
-                        Some(recv) => format!("{recv}.{name_str}"),
-                        None => name_str.to_string(),
+                    let (qualname, method_flag) = match &receiver_type {
+                        Some(recv) => {
+                            let mut temp_scope = scope_stack.clone();
+                            temp_scope.push(ScopeEntry {
+                                name: recv.clone(),
+                                is_class: true,
+                            });
+                            (Self::build_qualname(&temp_scope, name_str, false), true)
+                        }
+                        None => {
+                            let method_flag = scope_stack.last().map_or(false, |e| e.is_class);
+                            (Self::build_qualname(scope_stack, name_str, false), method_flag)
+                        }
                     };
 
                     let signature = Self::extract_go_signature(node, code, name_str, is_method);
@@ -73,20 +133,58 @@ impl GoBehavior {
                         end_byte,
                         start_line,
                         end_line,
-                        is_method,
+                        is_method: method_flag,
                     });
+
+                    if let Some(recv) = &receiver_type {
+                        scope_stack.push(ScopeEntry {
+                            name: recv.clone(),
+                            is_class: true,
+                        });
+                    }
+                    scope_stack.push(ScopeEntry {
+                        name: name_str.to_string(),
+                        is_class: false,
+                    });
+                    pushed_scope = true;
                 }
             }
+        } else if is_func_lit {
+            let start_line = u32::try_from(node.start_position().row + 1).unwrap_or(1);
+            let end_line = u32::try_from(node.end_position().row + 1).unwrap_or(1);
+            let closure_marker = format!("closure@L{start_line}");
+            let qualname = Self::build_qualname(scope_stack, &closure_marker, true);
+            let signature = "func() { ... }".to_string();
+
+            symbols.push(RawFunctionSymbol {
+                name: format!("<{closure_marker}>"),
+                qualname,
+                signature,
+                docstring: None,
+                start_byte: node.start_byte(),
+                end_byte: node.end_byte(),
+                start_line,
+                end_line,
+                is_method: false,
+            });
         }
 
         if cursor.goto_first_child() {
             loop {
-                Self::walk_node(cursor.node(), code, symbols, cursor);
+                Self::walk_node(cursor.node(), code, scope_stack, symbols, cursor);
                 if !cursor.goto_next_sibling() {
                     break;
                 }
             }
             cursor.goto_parent();
+        }
+
+        if pushed_scope {
+            scope_stack.pop();
+            // If we pushed receiver as well, pop it
+            if is_method {
+                scope_stack.pop();
+            }
         }
     }
 
