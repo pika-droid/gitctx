@@ -5,3 +5,4 @@
 pub use gitctx_core as core;
 
 pub mod storage;
+pub mod tantivy_index;
