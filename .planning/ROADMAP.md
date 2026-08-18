@@ -18,9 +18,9 @@ To avoid reinventing the wheel and ensure architectural alignment, all phases le
 - [x] **Phase 1: Project Foundation, Invariants & Fixture Scaffolding** - Initialize Rust workspace, establish invariant enforcement harness, and build synthetic git fixture and mutation generators. (completed 2026-08-16)
 - [x] **Phase 2: Corpus Selection, Ground Truth Harvesting & Leakage Sanitization** - Scripted repository profiling, SHA-locked corpus selection, issue-closing ground truth harvester, and leakage stripper. (completed 2026-08-16)
 - [x] **Phase 3: Retrieval Thesis Validation (Phase 0 Python Ablation)** - Run throwaway Python ablation grid testing document representations (D1-D5) and retrievers (R1-R5) to validate retrieval quality and decision gate. (completed 2026-08-17)
-- [ ] **Phase 4: Rust Git Extraction & Tree-Sitter Historical Parser** - Build `libgit2` first-parent commit walker with rename detection, historical `tree-sitter` parser with graceful degradation, and template chunk renderer.
-- [ ] **Phase 5: Function Lineage Engine & Mutation Oracle** - Implement multi-tier MinHash lineage resolution across renames/moves, validated against synthetic mutation suite (M1-M10) and `git log -L`.
-- [ ] **Phase 6: Deterministic Storage & Hybrid Retrieval Engine** - SQLite database layer, Tantivy BM25, mmap f32 dense vectors, RRF fusion ($k=60$), exact symbol fast-path, and deterministic chain assembly.
+- [x] **Phase 4: Rust Git Extraction & Tree-Sitter Historical Parser** - Build `libgit2` first-parent commit walker with rename detection, historical `tree-sitter` parser with graceful degradation, and template chunk renderer. (completed 2026-08-17)
+- [x] **Phase 5: Function Lineage Engine & Mutation Oracle** - Implement multi-tier MinHash lineage resolution across renames/moves, validated against synthetic mutation suite (M1-M10) and `git log -L`. (completed 2026-08-17)
+- [x] **Phase 6: Deterministic Storage & Hybrid Retrieval Engine** - SQLite database layer, Tantivy BM25, mmap f32 dense vectors, RRF fusion ($k=60$), exact symbol fast-path, and deterministic chain assembly. (completed 2026-08-18)
 - [ ] **Phase 7: Co-Change Graph & Impact Analysis Engine** - Commit-size filtering ($\le 25$), normalized co-change metrics (support, confidence, lift), time-decay weighting, and `impact` risk scoring against `code-maat`.
 - [ ] **Phase 8: CLI Interface & Human Output Formatter** - Build core CLI commands (`index`, `search`, `evolution`, `show`, `impact`, `doctor`) with `--json` envelopes and `--format table` terminal timelines.
 - [ ] **Phase 9: Model Context Protocol (MCP) Server Surface** - Stdio MCP server with compact/full token budgeting, JSON-RPC stdout isolation, stale-index detection, and `gitctx init` skill generators.
@@ -163,14 +163,14 @@ Plans:
   5. Deterministic chain assembly reconstructs complete evolutionary history in a single indexed query by `lineage_id`.
   6. All search results return structured citation metadata (`commit_hash`, `path`, `start_line`, `end_line`, `match_rule`, `match_confidence`).
 
-**Plans**: 4 plans
+**Plans**: 4/4 plans executed
 
 Plans:
 
-- [ ] 06-01: SQLite storage engine (`gitctx-index`), schema migrations, WAL mode writer channel, and atomic database replacement.
-- [ ] 06-02: Code-aware Tantivy BM25 indexing pipeline with custom tokenizers.
-- [ ] 06-03: Dense embedding generation (`fastembed-rs`), memory-mapped vector file layout, and SIMD flat cosine search.
-- [ ] 06-04: RRF hybrid ranker, exact symbol fast-path, and deterministic lineage chain assembler.
+- [x] 06-01: SQLite storage engine (`gitctx-index`), schema migrations, WAL mode writer channel, and atomic database replacement.
+- [x] 06-02: Code-aware Tantivy BM25 indexing pipeline with custom tokenizers.
+- [x] 06-03: Dense embedding generation (`fastembed-rs`), memory-mapped vector file layout, and SIMD flat cosine search.
+- [x] 06-04: RRF hybrid ranker, exact symbol fast-path, and deterministic lineage chain assembler.
 
 ### Phase 7: Co-Change Graph & Impact Analysis Engine
 
