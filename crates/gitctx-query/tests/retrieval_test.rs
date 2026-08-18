@@ -1,6 +1,6 @@
-use gitctx_index::storage::{
-    initialize_schema, open_connection, CommitRecord, TouchRecord,
-};
+#![allow(clippy::cast_possible_wrap)]
+
+use gitctx_index::storage::{initialize_schema, open_connection, CommitRecord, TouchRecord};
 use gitctx_index::tantivy_index::TantivyEngine;
 use gitctx_query::chain::{ChainAssembler, LineageChain};
 use gitctx_query::citation::CitationBuilder;
@@ -72,7 +72,8 @@ fn seed_test_database(conn: &rusqlite::Connection) {
          VALUES (1, 'src/auth.rs', 'UserAuth::login', 'rust'),
                 (2, 'src/util.rs', 'format_date', 'rust');",
         [],
-    ).expect("Insert lineages");
+    )
+    .expect("Insert lineages");
 
     // Insert function touches
     let touches = vec![
@@ -177,7 +178,9 @@ fn test_rrf_hybrid_fusion_and_exact_symbol_fastpath() {
     assert!(ExactSymbolMatcher::is_symbol_candidate("UserAuth::login"));
     assert!(ExactSymbolMatcher::is_symbol_candidate("handle_request"));
     assert!(ExactSymbolMatcher::is_symbol_candidate("std.io.read"));
-    assert!(!ExactSymbolMatcher::is_symbol_candidate("how to fix login bug"));
+    assert!(!ExactSymbolMatcher::is_symbol_candidate(
+        "how to fix login bug"
+    ));
     assert!(!ExactSymbolMatcher::is_symbol_candidate("   "));
 
     // 2. Exact Symbol Fast-Path SQLite lookup
@@ -221,7 +224,9 @@ fn test_rrf_hybrid_fusion_and_exact_symbol_fastpath() {
     // 4. End-to-end HybridRetriever search with exact symbol fast-path
     let tantivy = TantivyEngine::create_in_ram().expect("Create in-ram tantivy");
     let retriever = HybridRetriever::new(&conn, Some(&tantivy), None);
-    let results = retriever.search("UserAuth::login", None, 10).expect("Search");
+    let results = retriever
+        .search("UserAuth::login", None, 10)
+        .expect("Search");
 
     assert!(!results.is_empty());
     // Exact symbol candidate should surface at Rank 0
@@ -324,8 +329,8 @@ fn test_deterministic_chain_assembly() {
     seed_test_database(&conn);
 
     // Assemble chronological lineage chain for lineage 1 (UserAuth::login)
-    let chain: LineageChain = ChainAssembler::assemble_lineage_chain(&conn, 1)
-        .expect("Assemble lineage chain");
+    let chain: LineageChain =
+        ChainAssembler::assemble_lineage_chain(&conn, 1).expect("Assemble lineage chain");
 
     assert_eq!(chain.lineage_id, 1);
     assert_eq!(chain.current_qualified_name, "UserAuth::login");
@@ -370,7 +375,8 @@ fn test_citation_payload_completeness() {
         45,
         "rrf_bm25_dense",
         0.95,
-    ).expect("Build citation");
+    )
+    .expect("Build citation");
 
     assert_eq!(citation.commit_hash, "abc1234567890");
     assert_eq!(citation.path, "src/core/auth.rs");
@@ -385,12 +391,12 @@ fn test_citation_payload_completeness() {
     assert!(CitationBuilder::build("abc1234", "src/main.rs", 1, 10, "", 0.5).is_err());
 
     // 3. Confidence clamping
-    let clamped_high = CitationBuilder::build("hash", "path.rs", 1, 10, "rule", 1.5)
-        .expect("Clamped high");
+    let clamped_high =
+        CitationBuilder::build("hash", "path.rs", 1, 10, "rule", 1.5).expect("Clamped high");
     assert_eq!(clamped_high.match_confidence, 1.0);
 
-    let clamped_low = CitationBuilder::build("hash", "path.rs", 1, 10, "rule", -0.5)
-        .expect("Clamped low");
+    let clamped_low =
+        CitationBuilder::build("hash", "path.rs", 1, 10, "rule", -0.5).expect("Clamped low");
     assert_eq!(clamped_low.match_confidence, 0.0);
 
     // 4. Citation attachment on retrieved search facts and lineage nodes

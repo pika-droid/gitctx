@@ -34,10 +34,16 @@ impl AtomicStorageManager {
     /// Create manager targeting a specific database path.
     pub fn for_db_file<P: AsRef<Path>>(db_path: P) -> Self {
         let db_buf = db_path.as_ref().to_path_buf();
-        let base = db_buf.parent().unwrap_or_else(|| Path::new(".")).to_path_buf();
+        let base = db_buf
+            .parent()
+            .unwrap_or_else(|| Path::new("."))
+            .to_path_buf();
         let tmp_db_name = format!(
             "{}.tmp",
-            db_buf.file_name().and_then(|n| n.to_str()).unwrap_or("index.db")
+            db_buf
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("index.db")
         );
         let tmp_db = base.join(tmp_db_name);
         Self {

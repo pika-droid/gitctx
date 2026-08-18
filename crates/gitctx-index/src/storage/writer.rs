@@ -74,10 +74,7 @@ pub enum WriteMessage {
     InsertLineages(Vec<LineageRecord>),
     InsertTouches(Vec<TouchRecord>),
     InsertEmbeddings(Vec<EmbeddingRecord>),
-    SetIndexState {
-        key: String,
-        value: String,
-    },
+    SetIndexState { key: String, value: String },
     Flush(Sender<Result<(), String>>),
     Close(Sender<Result<(), String>>),
 }
@@ -109,16 +106,15 @@ impl BackgroundWriter {
                 Ok(())
             };
 
-            let commit_txn =
-                |in_txn: &mut bool, uncommitted: &mut usize| -> Result<(), String> {
-                    if *in_txn {
-                        conn.execute_batch("COMMIT;")
-                            .map_err(|e| format!("Failed to commit transaction: {e}"))?;
-                        *in_txn = false;
-                        *uncommitted = 0;
-                    }
-                    Ok(())
-                };
+            let commit_txn = |in_txn: &mut bool, uncommitted: &mut usize| -> Result<(), String> {
+                if *in_txn {
+                    conn.execute_batch("COMMIT;")
+                        .map_err(|e| format!("Failed to commit transaction: {e}"))?;
+                    *in_txn = false;
+                    *uncommitted = 0;
+                }
+                Ok(())
+            };
 
             while let Ok(msg) = receiver.recv() {
                 match msg {
@@ -178,7 +174,9 @@ impl BackgroundWriter {
                                 l.current_qualified_name,
                                 l.language,
                             ])
-                            .map_err(|e| format!("Failed to insert lineage {}: {e}", l.lineage_id))?;
+                            .map_err(|e| {
+                                format!("Failed to insert lineage {}: {e}", l.lineage_id)
+                            })?;
                         }
                         uncommitted_count += lineages.len();
                     }
@@ -210,7 +208,9 @@ impl BackgroundWriter {
                                 i64::try_from(t.start_line).unwrap_or(0),
                                 i64::try_from(t.end_line).unwrap_or(0),
                             ])
-                            .map_err(|e| format!("Failed to insert touch for {}: {e}", t.qualified_name))?;
+                            .map_err(|e| {
+                                format!("Failed to insert touch for {}: {e}", t.qualified_name)
+                            })?;
                         }
                         uncommitted_count += touches.len();
                     }
@@ -224,7 +224,9 @@ impl BackgroundWriter {
 
                         for emb in &embeddings {
                             stmt.execute(params![emb.touch_id, emb.row_offset])
-                                .map_err(|e| format!("Failed to insert embedding {}: {e}", emb.touch_id))?;
+                                .map_err(|e| {
+                                    format!("Failed to insert embedding {}: {e}", emb.touch_id)
+                                })?;
                         }
                         uncommitted_count += embeddings.len();
                     }
@@ -232,7 +234,7 @@ impl BackgroundWriter {
                         begin_txn(&mut in_txn)?;
                         let mut stmt = conn
                             .prepare_cached(
-                                "INSERT OR REPLACE INTO index_state (key, value) VALUES (?1, ?2);"
+                                "INSERT OR REPLACE INTO index_state (key, value) VALUES (?1, ?2);",
                             )
                             .map_err(|e| format!("Failed to prepare index_state statement: {e}"))?;
 
@@ -300,7 +302,11 @@ impl BackgroundWriter {
             .map_err(|e| format!("Failed to send InsertEmbeddings: {e}"))
     }
 
-    pub fn set_state(&self, key: impl Into<String>, value: impl Into<String>) -> Result<(), String> {
+    pub fn set_state(
+        &self,
+        key: impl Into<String>,
+        value: impl Into<String>,
+    ) -> Result<(), String> {
         self.sender
             .send(WriteMessage::SetIndexState {
                 key: key.into(),

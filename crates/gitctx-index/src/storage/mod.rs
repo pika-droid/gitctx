@@ -118,11 +118,14 @@ impl StorageEngine {
 
     /// Record schema version and config hash in index_state.
     pub fn record_state(&self, config: &IndexConfig) -> rusqlite::Result<()> {
-        let mut stmt = self.conn.prepare_cached(
-            "INSERT OR REPLACE INTO index_state (key, value) VALUES (?1, ?2);",
-        )?;
+        let mut stmt = self
+            .conn
+            .prepare_cached("INSERT OR REPLACE INTO index_state (key, value) VALUES (?1, ?2);")?;
         stmt.execute(params!["schema_version", config.schema_version.to_string()])?;
-        stmt.execute(params!["config_hash", config.compute_config_hash().as_str()])?;
+        stmt.execute(params![
+            "config_hash",
+            config.compute_config_hash().as_str()
+        ])?;
         Ok(())
     }
 

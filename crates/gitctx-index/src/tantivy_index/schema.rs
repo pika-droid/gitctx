@@ -33,7 +33,10 @@ impl TantivySchema {
     pub fn new() -> Self {
         let mut builder = SchemaBuilder::default();
 
-        let num_options = NumericOptions::default().set_indexed().set_stored().set_fast();
+        let num_options = NumericOptions::default()
+            .set_indexed()
+            .set_stored()
+            .set_fast();
         let touch_id = builder.add_u64_field("touch_id", num_options.clone());
         let lineage_id = builder.add_u64_field("lineage_id", num_options);
         let commit_hash = builder.add_text_field("commit_hash", STRING | STORED);

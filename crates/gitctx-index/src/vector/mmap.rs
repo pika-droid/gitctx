@@ -17,11 +17,9 @@ impl MmapVectorStorage {
     #[allow(unsafe_code)]
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self, CoreError> {
         let p = path.as_ref();
-        let file = File::open(p).map_err(|e| {
-            CoreError::RepositoryOpen {
-                path: p.to_path_buf(),
-                message: format!("Failed to open vector file: {e}"),
-            }
+        let file = File::open(p).map_err(|e| CoreError::RepositoryOpen {
+            path: p.to_path_buf(),
+            message: format!("Failed to open vector file: {e}"),
         })?;
 
         let metadata = file.metadata().map_err(|e| {
@@ -30,15 +28,18 @@ impl MmapVectorStorage {
 
         if metadata.len() < VECTOR_HEADER_SIZE as u64 {
             return Err(CoreError::InvariantViolation(format!(
-                "Vector file {:?} is too small ({} bytes, min header is 16 bytes)",
-                p,
+                "Vector file {} is too small ({} bytes, min header is 16 bytes)",
+                p.display(),
                 metadata.len()
             )));
         }
 
         let mmap = unsafe {
             MmapOptions::new().map(&file).map_err(|e| {
-                CoreError::InvariantViolation(format!("Failed to memory-map vector file {:?}: {e}", p))
+                CoreError::InvariantViolation(format!(
+                    "Failed to memory-map vector file {}: {e}",
+                    p.display()
+                ))
             })?
         };
 
@@ -47,8 +48,8 @@ impl MmapVectorStorage {
         let expected_size = header.expected_file_size();
         if mmap.len() != expected_size {
             return Err(CoreError::InvariantViolation(format!(
-                "Vector file size mismatch for {:?}: expected {} bytes for {} vectors of dim {}, got {} bytes",
-                p,
+                "Vector file size mismatch for {}: expected {} bytes for {} vectors of dim {}, got {} bytes",
+                p.display(),
                 expected_size,
                 header.count,
                 header.dimension,
@@ -76,6 +77,7 @@ impl MmapVectorStorage {
 
     /// Return all stored float elements as a contiguous `&[f32]` slice.
     #[allow(unsafe_code)]
+    #[allow(clippy::cast_ptr_alignment)]
     pub fn all_vectors(&self) -> &[f32] {
         let count = self.count();
         let dim = self.dimension();
@@ -84,7 +86,7 @@ impl MmapVectorStorage {
             return &[];
         }
 
-        let payload_ptr = unsafe { self.mmap.as_ptr().add(VECTOR_HEADER_SIZE) as *const f32 };
+        let payload_ptr = unsafe { self.mmap.as_ptr().add(VECTOR_HEADER_SIZE).cast::<f32>() };
         unsafe { std::slice::from_raw_parts(payload_ptr, total_elements) }
     }
 
@@ -105,7 +107,9 @@ impl MmapVectorStorage {
     pub fn validate_with_sqlite(&self, conn: &Connection) -> Result<(), CoreError> {
         let sqlite_count: i64 = conn
             .query_row("SELECT COUNT(*) FROM embeddings;", [], |row| row.get(0))
-            .map_err(|e| CoreError::InvariantViolation(format!("Failed to query embeddings count: {e}")))?;
+            .map_err(|e| {
+                CoreError::InvariantViolation(format!("Failed to query embeddings count: {e}"))
+            })?;
 
         if sqlite_count as usize != self.count() {
             return Err(CoreError::InvariantViolation(format!(

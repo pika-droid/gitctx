@@ -32,8 +32,9 @@ impl FastEmbedGenerator {
     pub fn new(model: Option<EmbeddingModel>) -> Result<Self, CoreError> {
         let model_type = model.unwrap_or(DEFAULT_EMBEDDING_MODEL);
         let options = InitOptions::new(model_type).with_show_download_progress(false);
-        let model = TextEmbedding::try_new(options)
-            .map_err(|e| CoreError::InvariantViolation(format!("Failed to initialize FastEmbed model: {e}")))?;
+        let model = TextEmbedding::try_new(options).map_err(|e| {
+            CoreError::InvariantViolation(format!("Failed to initialize FastEmbed model: {e}"))
+        })?;
 
         Ok(Self {
             model,
@@ -47,11 +48,15 @@ impl FastEmbedGenerator {
     }
 
     /// Embed a slice of text strings with optional batch size.
-    pub fn embed_texts<S: AsRef<str>>(&mut self, texts: &[S], batch_size: Option<usize>) -> Result<Vec<Vec<f32>>, CoreError> {
+    pub fn embed_texts<S: AsRef<str>>(
+        &mut self,
+        texts: &[S],
+        batch_size: Option<usize>,
+    ) -> Result<Vec<Vec<f32>>, CoreError> {
         if texts.is_empty() {
             return Ok(Vec::new());
         }
-        let text_refs: Vec<&str> = texts.iter().map(|s| s.as_ref()).collect();
+        let text_refs: Vec<&str> = texts.iter().map(AsRef::as_ref).collect();
         let batch = batch_size.unwrap_or(DEFAULT_BATCH_SIZE);
         self.model
             .embed(text_refs, Some(batch))
@@ -81,11 +86,17 @@ impl FastEmbedGenerator {
         }
 
         let texts: Vec<&str> = eligible.iter().map(|c| c.text.as_str()).collect();
-        let effective_batch = if batch_size == 0 { DEFAULT_BATCH_SIZE } else { batch_size };
+        let effective_batch = if batch_size == 0 {
+            DEFAULT_BATCH_SIZE
+        } else {
+            batch_size
+        };
         let raw_embeddings = self
             .model
             .embed(texts, Some(effective_batch))
-            .map_err(|e| CoreError::InvariantViolation(format!("Batched embedding generation failed: {e}")))?;
+            .map_err(|e| {
+                CoreError::InvariantViolation(format!("Batched embedding generation failed: {e}"))
+            })?;
 
         if raw_embeddings.len() != eligible.len() {
             return Err(CoreError::InvariantViolation(format!(

@@ -9,7 +9,8 @@ use tempfile::tempdir;
 #[test]
 fn test_tantivy_code_tokenizer_and_bm25() {
     // 1. Test CodeTokenizer unit splitting
-    let text = "getUserById get_user_by_id crate::auth::UserManager.authenticate getter indices parser";
+    let text =
+        "getUserById get_user_by_id crate::auth::UserManager.authenticate getter indices parser";
     let mut tokenizer = CodeTokenizer;
     let mut stream = tokenizer.token_stream(text);
 
@@ -113,8 +114,7 @@ fn test_tantivy_multi_field_boosts() {
     let tantivy_tmp = temp_dir.path().join("tantivy.tmp");
     let tantivy_final = temp_dir.path().join("tantivy");
 
-    let mut engine =
-        TantivyEngine::create_in_dir(&tantivy_tmp, 32_000_000).expect("create in dir");
+    let mut engine = TantivyEngine::create_in_dir(&tantivy_tmp, 32_000_000).expect("create in dir");
 
     // Setup documents where matching term "authenticate" appears in different fields:
     // Doc 1: "authenticate" in qualified_name (boost 4.0)
@@ -165,7 +165,9 @@ fn test_tantivy_multi_field_boosts() {
 
     // Verify search ordering respects boosts:
     // qualified_name (4.0) > path (2.0) > commit_message (1.2) > chunk_text (1.0)
-    let results = engine.search("authenticate", 10).expect("search authenticate");
+    let results = engine
+        .search("authenticate", 10)
+        .expect("search authenticate");
     assert_eq!(results.len(), 4);
 
     let doc_order: Vec<u64> = results.iter().map(|(id, _)| *id).collect();
@@ -234,14 +236,15 @@ fn test_tantivy_incremental_append() {
             chunk_text: "fn hot_reload_pipeline() { trigger(); }".to_string(),
         };
 
-        inc_writer.add_touch(&new_doc).expect("add incremental touch");
+        inc_writer
+            .add_touch(&new_doc)
+            .expect("add incremental touch");
         let _opstamp = inc_writer.finish().expect("finish incremental commit");
     }
     let elapsed = start_time.elapsed();
     assert!(
         elapsed.as_secs() < 2,
-        "Incremental append and commit must finish in <2s per D-08, took {:?}",
-        elapsed
+        "Incremental append and commit must finish in <2s per D-08, took {elapsed:?}"
     );
 
     // Phase 3: Verify reader sees both original and incrementally added documents
@@ -253,7 +256,9 @@ fn test_tantivy_incremental_append() {
     assert_eq!(res1[0].0, 1);
 
     // Search for incrementally added document
-    let res2 = engine.search("hot_reload_pipeline", 10).expect("search reload");
+    let res2 = engine
+        .search("hot_reload_pipeline", 10)
+        .expect("search reload");
     assert!(!res2.is_empty());
     assert_eq!(res2[0].0, 2);
 

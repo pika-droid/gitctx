@@ -27,7 +27,7 @@ fn test_sqlite_storage_and_atomic_swap() {
             authored_at: 1000,
             topo_order: 1,
             branch: Some("main".to_string()),
-            parent_hashes: "".to_string(),
+            parent_hashes: String::new(),
             message: "Initial commit".to_string(),
             insertions: 50,
             deletions: 0,
@@ -57,7 +57,9 @@ fn test_sqlite_storage_and_atomic_swap() {
             deletions: 2,
         },
     ];
-    writer.push_commits(commits).expect("Failed to push commits");
+    writer
+        .push_commits(commits)
+        .expect("Failed to push commits");
 
     // 4. Push lineage
     let lineages = vec![LineageRecord {
@@ -66,7 +68,9 @@ fn test_sqlite_storage_and_atomic_swap() {
         current_qualified_name: "auth::login".to_string(),
         language: "rust".to_string(),
     }];
-    writer.push_lineages(lineages).expect("Failed to push lineages");
+    writer
+        .push_lineages(lineages)
+        .expect("Failed to push lineages");
 
     // 5. Push touches (out of topological order over the channel to test ordering on retrieval)
     let touches = vec![
@@ -119,7 +123,9 @@ fn test_sqlite_storage_and_atomic_swap() {
             end_line: 20,
         },
     ];
-    writer.push_touches(touches).expect("Failed to push touches");
+    writer
+        .push_touches(touches)
+        .expect("Failed to push touches");
 
     // 6. Record state
     let config = IndexConfig::new(CURRENT_SCHEMA_VERSION, "bge-small-en-v1.5", "code", 500, 1);
@@ -182,7 +188,10 @@ fn test_config_hash_mismatch_refusal() {
             .set_state("schema_version", original_config.schema_version.to_string())
             .expect("Failed to set schema_version");
         writer
-            .set_state("config_hash", original_config.compute_config_hash().as_str())
+            .set_state(
+                "config_hash",
+                original_config.compute_config_hash().as_str(),
+            )
             .expect("Failed to set config_hash");
 
         let finished_conn = writer.finish().expect("Failed to finish writer");
@@ -204,12 +213,17 @@ fn test_config_hash_mismatch_refusal() {
                 "Error message missing rebuild diagnostic: {actual}"
             );
         }
-        other => panic!("Expected ConfigMismatch error, got: {:?}", other),
+        other => panic!("Expected ConfigMismatch error, got: {other:?}"),
     }
 
     // 3. Opening with modified schema_version must fail fast with diagnostic
-    let altered_schema_config =
-        IndexConfig::new(CURRENT_SCHEMA_VERSION + 1, "bge-small-en-v1.5", "code", 500, 1);
+    let altered_schema_config = IndexConfig::new(
+        CURRENT_SCHEMA_VERSION + 1,
+        "bge-small-en-v1.5",
+        "code",
+        500,
+        1,
+    );
     match StorageEngine::open(manager.db_path(), &altered_schema_config) {
         Err(CoreError::ConfigMismatch { actual, .. }) => {
             assert!(
@@ -217,7 +231,7 @@ fn test_config_hash_mismatch_refusal() {
                 "Error message missing rebuild diagnostic: {actual}"
             );
         }
-        other => panic!("Expected ConfigMismatch error, got: {:?}", other),
+        other => panic!("Expected ConfigMismatch error, got: {other:?}"),
     }
 }
 
@@ -265,7 +279,10 @@ fn test_atomic_replacement_and_crash_cleanup() {
         swap_manager.commit_swap().expect("Failed to commit swap");
 
         assert_eq!(fs::read(swap_manager.db_path()).unwrap(), b"active v2");
-        assert_eq!(fs::read(swap_manager.vectors_path()).unwrap(), b"vectors v2");
+        assert_eq!(
+            fs::read(swap_manager.vectors_path()).unwrap(),
+            b"vectors v2"
+        );
         assert_eq!(
             fs::read(swap_manager.tantivy_dir().join("meta.json")).unwrap(),
             b"v2"
@@ -283,7 +300,9 @@ fn test_explain_cache_isolation() {
 
     let config = IndexConfig::new(CURRENT_SCHEMA_VERSION, "bge-small-en-v1.5", "code", 500, 1);
     let mut engine = StorageEngine::open_raw(&db_path).expect("Failed to open raw storage");
-    engine.record_state(&config).expect("Failed to record state");
+    engine
+        .record_state(&config)
+        .expect("Failed to record state");
 
     // 1. Insert code commit, lineage, and function touch
     let conn = engine.connection_mut();
@@ -297,7 +316,8 @@ fn test_explain_cache_isolation() {
         "INSERT INTO function_lineage (lineage_id, current_path, current_qualified_name, language)
          VALUES (99, 'src/math.rs', 'math::calculate_total', 'rust');",
         [],
-    ).unwrap();
+    )
+    .unwrap();
 
     conn.execute(
         "INSERT INTO function_touches (
@@ -313,7 +333,8 @@ fn test_explain_cache_isolation() {
     let cache_key = "hash_c100_math_calculate_total_v1";
     let llm_model = "gpt-4o-mini";
     let prompt_ver = "v1.2";
-    let llm_text = "This function sums item prices using iterator map. (LLM_SYNTHETIC_EXPLANATION_TOKEN_9988)";
+    let llm_text =
+        "This function sums item prices using iterator map. (LLM_SYNTHETIC_EXPLANATION_TOKEN_9988)";
     let timestamp = 1700000000;
 
     explain_cache
@@ -340,20 +361,29 @@ fn test_explain_cache_isolation() {
     // 5. Enforce Invariant I5: Verify touch extraction queries NEVER leak explain_cache text
     let touches_by_lineage = engine.query_touches_by_lineage(99).unwrap();
     assert_eq!(touches_by_lineage.len(), 1);
-    assert_eq!(touches_by_lineage[0].qualified_name, "math::calculate_total");
+    assert_eq!(
+        touches_by_lineage[0].qualified_name,
+        "math::calculate_total"
+    );
     assert_eq!(
         touches_by_lineage[0].chunk_text,
         "fn calculate_total(items: &[Item]) -> u64 { items.iter().map(|i| i.price).sum() }"
     );
     assert!(
-        !touches_by_lineage[0].chunk_text.contains("LLM_SYNTHETIC_EXPLANATION_TOKEN"),
+        !touches_by_lineage[0]
+            .chunk_text
+            .contains("LLM_SYNTHETIC_EXPLANATION_TOKEN"),
         "Invariant I5 violation: LLM explanation leaked into touch chunk_text"
     );
 
-    let touches_by_qualname = engine.query_touches_by_qualname("math::calculate_total").unwrap();
+    let touches_by_qualname = engine
+        .query_touches_by_qualname("math::calculate_total")
+        .unwrap();
     assert_eq!(touches_by_qualname.len(), 1);
     assert!(
-        !touches_by_qualname[0].chunk_text.contains("LLM_SYNTHETIC_EXPLANATION_TOKEN"),
+        !touches_by_qualname[0]
+            .chunk_text
+            .contains("LLM_SYNTHETIC_EXPLANATION_TOKEN"),
         "Invariant I5 violation: LLM explanation leaked into touch chunk_text"
     );
 }

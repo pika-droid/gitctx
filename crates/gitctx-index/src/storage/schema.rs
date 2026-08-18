@@ -2,7 +2,7 @@ use rusqlite::{Connection, Result};
 
 pub const CURRENT_SCHEMA_VERSION: u32 = 1;
 
-pub const SCHEMA_DDL: &str = r#"
+pub const SCHEMA_DDL: &str = r"
 CREATE TABLE IF NOT EXISTS index_state (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS explain_cache (
     text TEXT NOT NULL,
     created_at INTEGER NOT NULL
 );
-"#;
+";
 
 pub fn initialize_schema(conn: &Connection) -> Result<()> {
     conn.execute_batch(SCHEMA_DDL)?;

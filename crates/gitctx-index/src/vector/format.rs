@@ -50,8 +50,7 @@ impl VectorHeader {
         magic.copy_from_slice(&bytes[0..4]);
         if &magic != VECTOR_MAGIC {
             return Err(CoreError::InvariantViolation(format!(
-                "Invalid vector file magic: expected {:?}, got {:?}",
-                VECTOR_MAGIC, magic
+                "Invalid vector file magic: expected {VECTOR_MAGIC:?}, got {magic:?}"
             )));
         }
 
@@ -60,8 +59,7 @@ impl VectorHeader {
         })?);
         if version != VECTOR_VERSION {
             return Err(CoreError::InvariantViolation(format!(
-                "Unsupported vector file version: expected {}, got {}",
-                VECTOR_VERSION, version
+                "Unsupported vector file version: expected {VECTOR_VERSION}, got {version}"
             )));
         }
 
@@ -83,7 +81,8 @@ impl VectorHeader {
 
     /// Calculate expected total file size in bytes including the 16-byte header.
     pub fn expected_file_size(&self) -> usize {
-        VECTOR_HEADER_SIZE + (self.count as usize * self.dimension as usize * std::mem::size_of::<f32>())
+        VECTOR_HEADER_SIZE
+            + (self.count as usize * self.dimension as usize * std::mem::size_of::<f32>())
     }
 }
 
@@ -106,7 +105,8 @@ pub fn write_vector_file<P: AsRef<Path>>(
     }
 
     let header = VectorHeader::new(count, dimension);
-    let file = File::create(path.as_ref()).map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
+    let file =
+        File::create(path.as_ref()).map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
     let mut writer = BufWriter::new(file);
 
     writer
@@ -119,7 +119,9 @@ pub fn write_vector_file<P: AsRef<Path>>(
             .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
     }
 
-    writer.flush().map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
+    writer
+        .flush()
+        .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
     Ok(())
 }
 
@@ -138,8 +140,9 @@ pub fn write_vector_file_atomic<P: AsRef<Path>>(
     std::fs::rename(&tmp_path, target).map_err(|e| {
         let _ = std::fs::remove_file(&tmp_path);
         CoreError::InvariantViolation(format!(
-            "Failed atomic vector file rename from {:?} to {:?}: {e}",
-            tmp_path, target
+            "Failed atomic vector file rename from {} to {}: {e}",
+            tmp_path.display(),
+            target.display()
         ))
     })?;
 
@@ -148,7 +151,8 @@ pub fn write_vector_file_atomic<P: AsRef<Path>>(
 
 /// Read header from a vector file on disk.
 pub fn read_vector_header<P: AsRef<Path>>(path: P) -> Result<VectorHeader, CoreError> {
-    let mut file = File::open(path.as_ref()).map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
+    let mut file =
+        File::open(path.as_ref()).map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
     let mut buf = [0u8; VECTOR_HEADER_SIZE];
     file.read_exact(&mut buf)
         .map_err(|e| CoreError::InvariantViolation(format!("Failed to read vector header: {e}")))?;

@@ -51,7 +51,9 @@ pub fn deduplicate_and_cap_touches(
         }
 
         // 2. Commit Density Capping
-        let count = commit_touch_counts.entry(touch.commit_hash.clone()).or_insert(0);
+        let count = commit_touch_counts
+            .entry(touch.commit_hash.clone())
+            .or_insert(0);
         if *count >= max_touches_per_commit {
             // Maximum touch threshold reached for this commit; skip candidate
             continue;
@@ -103,17 +105,20 @@ impl<'a> HybridRetriever<'a> {
         }
     }
 
+    #[must_use]
     pub fn with_rrf_params(mut self, params: RrfParams) -> Self {
         self.rrf_params = params;
         self
     }
 
+    #[must_use]
     pub fn with_max_touches_per_commit(mut self, max: usize) -> Self {
         self.max_touches_per_commit = max;
         self
     }
 
     /// Query the database for a single TouchRecord by touch_id.
+    #[allow(clippy::cast_possible_wrap)]
     pub fn fetch_touch(&self, touch_id: u64) -> rusqlite::Result<Option<TouchRecord>> {
         let mut stmt = self.conn.prepare_cached(
             "SELECT 
@@ -150,9 +155,9 @@ impl<'a> HybridRetriever<'a> {
 
     /// Build vector row_offset to touch_id mapping from SQLite embeddings table.
     fn load_row_offset_to_touch_map(&self) -> rusqlite::Result<HashMap<usize, u64>> {
-        let mut stmt = self.conn.prepare_cached(
-            "SELECT touch_id, row_offset FROM embeddings;",
-        )?;
+        let mut stmt = self
+            .conn
+            .prepare_cached("SELECT touch_id, row_offset FROM embeddings;")?;
         let rows = stmt.query_map([], |row| {
             let touch_id: i64 = row.get(0)?;
             let row_offset: u32 = row.get(1)?;
@@ -177,11 +182,11 @@ impl<'a> HybridRetriever<'a> {
         let candidate_pool_size = (limit * 5).max(50);
 
         // 1. Exact Symbol Fast-Path (D-13)
-        let exact_matches = ExactSymbolMatcher::find_exact_symbol_touches(
-            self.conn,
-            query,
-            candidate_pool_size,
-        ).map_err(|e| CoreError::InvariantViolation(format!("Exact symbol query error: {e}")))?;
+        let exact_matches =
+            ExactSymbolMatcher::find_exact_symbol_touches(self.conn, query, candidate_pool_size)
+                .map_err(|e| {
+                    CoreError::InvariantViolation(format!("Exact symbol query error: {e}"))
+                })?;
 
         // 2. Lexical Tantivy BM25 Search
         let bm25_hits: Vec<u64> = if let Some(tantivy) = self.tantivy {
@@ -196,32 +201,31 @@ impl<'a> HybridRetriever<'a> {
         };
 
         // 3. Dense Vector SIMD Cosine Search
-        let dense_hits: Vec<u64> = if let (Some(vectors), Some(q_vec)) = (self.vectors, query_vector) {
-            let offset_to_id = self.load_row_offset_to_touch_map()
-                .map_err(|e| CoreError::InvariantViolation(format!("Embeddings map query error: {e}")))?;
-            let top_vectors = search_cosine_top_k(q_vec, vectors, candidate_pool_size);
-            top_vectors
-                .into_iter()
-                .filter_map(|(offset, _score)| offset_to_id.get(&offset).copied())
-                .collect()
-        } else {
-            Vec::new()
-        };
+        let dense_hits: Vec<u64> =
+            if let (Some(vectors), Some(q_vec)) = (self.vectors, query_vector) {
+                let offset_to_id = self.load_row_offset_to_touch_map().map_err(|e| {
+                    CoreError::InvariantViolation(format!("Embeddings map query error: {e}"))
+                })?;
+                let top_vectors = search_cosine_top_k(q_vec, vectors, candidate_pool_size);
+                top_vectors
+                    .into_iter()
+                    .filter_map(|(offset, _score)| offset_to_id.get(&offset).copied())
+                    .collect()
+            } else {
+                Vec::new()
+            };
 
         // 4. Reciprocal Rank Fusion (D-14)
-        let fused_candidates = fuse_rankings(
-            &exact_matches,
-            &bm25_hits,
-            &dense_hits,
-            &self.rrf_params,
-        );
+        let fused_candidates =
+            fuse_rankings(&exact_matches, &bm25_hits, &dense_hits, &self.rrf_params);
 
         // 5. Hydrate candidates from SQLite
         let exact_set: HashSet<u64> = exact_matches.into_iter().collect();
         let mut candidates_to_filter = Vec::new();
 
         for candidate in fused_candidates {
-            if let Some(touch) = self.fetch_touch(candidate.touch_id)
+            if let Some(touch) = self
+                .fetch_touch(candidate.touch_id)
                 .map_err(|e| CoreError::InvariantViolation(format!("Touch fetch error: {e}")))?
             {
                 let is_exact = exact_set.contains(&candidate.touch_id);
@@ -247,10 +251,6 @@ impl<'a> HybridRetriever<'a> {
         }
 
         // 6. Deduplication and Commit Density Capping (D-15)
-        deduplicate_and_cap_touches(
-            candidates_to_filter,
-            self.max_touches_per_commit,
-            limit,
-        )
+        deduplicate_and_cap_touches(candidates_to_filter, self.max_touches_per_commit, limit)
     }
 }

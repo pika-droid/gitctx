@@ -168,7 +168,10 @@ impl TantivyEngine {
 
     /// Commit pending changes, close reader/writer handles, atomically swap directory to `target_dir`,
     /// and reopen the engine at the new location per D-07.
-    pub fn commit_and_swap_to<P: AsRef<Path>>(mut self, target_dir: P) -> Result<Self, tantivy::TantivyError> {
+    pub fn commit_and_swap_to<P: AsRef<Path>>(
+        mut self,
+        target_dir: P,
+    ) -> Result<Self, tantivy::TantivyError> {
         let src_path = self.index_path.take().ok_or_else(|| {
             tantivy::TantivyError::SystemError("Cannot swap in-memory index".to_string())
         })?;
@@ -199,7 +202,11 @@ impl TantivyEngine {
     /// - `path`: 2.0
     /// - `commit_message`: 1.2
     /// - `chunk_text`: 1.0
-    pub fn search(&self, query_str: &str, top_k: usize) -> Result<Vec<(u64, f32)>, tantivy::TantivyError> {
+    pub fn search(
+        &self,
+        query_str: &str,
+        top_k: usize,
+    ) -> Result<Vec<(u64, f32)>, tantivy::TantivyError> {
         let searcher = self.reader.searcher();
 
         let search_fields = vec![
@@ -216,22 +223,27 @@ impl TantivyEngine {
         query_parser.set_field_boost(self.schema_fields.chunk_text, BOOST_CHUNK_TEXT);
 
         // Sanitize or fallback parse
-        let parsed_query = match query_parser.parse_query(query_str) {
-            Ok(q) => q,
-            Err(_) => {
-                // If direct parse fails (due to syntax characters in code snippet), sanitize to terms
-                let sanitized: String = query_str
-                    .chars()
-                    .map(|c| if c.is_alphanumeric() || c == '_' { c } else { ' ' })
-                    .collect();
-                let clean = sanitized.split_whitespace().collect::<Vec<_>>().join(" ");
-                if clean.is_empty() {
-                    return Ok(Vec::new());
-                }
-                query_parser.parse_query(&clean).unwrap_or_else(|_| {
-                    Box::new(tantivy::query::EmptyQuery)
+        let parsed_query = if let Ok(q) = query_parser.parse_query(query_str) {
+            q
+        } else {
+            // If direct parse fails (due to syntax characters in code snippet), sanitize to terms
+            let sanitized: String = query_str
+                .chars()
+                .map(|c| {
+                    if c.is_alphanumeric() || c == '_' {
+                        c
+                    } else {
+                        ' '
+                    }
                 })
+                .collect();
+            let clean = sanitized.split_whitespace().collect::<Vec<_>>().join(" ");
+            if clean.is_empty() {
+                return Ok(Vec::new());
             }
+            query_parser
+                .parse_query(&clean)
+                .unwrap_or_else(|_| Box::new(tantivy::query::EmptyQuery))
         };
 
         let top_docs = searcher.search(&parsed_query, &TopDocs::with_limit(top_k))?;

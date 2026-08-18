@@ -136,11 +136,7 @@ fn emit_chunk_tokens(
     // 2. Emit lowercased full chunk if different
     let lower_chunk = chunk.to_lowercase();
     if lower_chunk != chunk {
-        push_token(
-            &lower_chunk,
-            chunk_offset,
-            chunk_offset + chunk.len(),
-        );
+        push_token(&lower_chunk, chunk_offset, chunk_offset + chunk.len());
     }
 
     // 3. Split by path/namespace separators ("::", "/", "\\", ".", "-", "$", "->", "_")
@@ -180,10 +176,7 @@ fn split_by_separators(s: &str) -> Vec<(usize, usize, &str)> {
             && ((bytes[i] == b':' && bytes[i + 1] == b':')
                 || (bytes[i] == b'-' && bytes[i + 1] == b'>'));
 
-        let is_sep_1 = matches!(
-            bytes[i],
-            b'/' | b'\\' | b'.' | b'-' | b'$' | b'_' | b':'
-        );
+        let is_sep_1 = matches!(bytes[i], b'/' | b'\\' | b'.' | b'-' | b'$' | b'_' | b':');
 
         if is_sep_2 {
             if i > start {
@@ -247,11 +240,7 @@ fn split_subtokens(s: &str) -> Vec<(usize, usize, &str)> {
 
         if is_boundary || i + 1 == chars.len() {
             let start_byte = chars[start_idx].0;
-            let end_byte = if is_boundary {
-                chars[i + 1].0
-            } else {
-                s.len()
-            };
+            let end_byte = if is_boundary { chars[i + 1].0 } else { s.len() };
             if start_byte < end_byte {
                 result.push((start_byte, end_byte, &s[start_byte..end_byte]));
             }

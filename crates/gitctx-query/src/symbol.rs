@@ -3,7 +3,8 @@ use rusqlite::{params, Connection};
 use std::sync::LazyLock;
 
 static SYMBOL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^[a-zA-Z_][a-zA-Z0-9_]*(?:::[a-zA-Z_][a-zA-Z0-9_]*|\.[a-zA-Z_][a-zA-Z0-9_]*)*$").unwrap()
+    Regex::new(r"^[a-zA-Z_][a-zA-Z0-9_]*(?:::[a-zA-Z_][a-zA-Z0-9_]*|\.[a-zA-Z_][a-zA-Z0-9_]*)*$")
+        .unwrap()
 });
 
 /// Exact symbol detection heuristic and direct SQLite index lookup engine per D-13 and INDEX-05.
@@ -20,6 +21,7 @@ impl ExactSymbolMatcher {
     }
 
     /// Query SQLite index on `function_touches(qualified_name)` to retrieve exact matching `touch_id`s per D-13.
+    #[allow(clippy::cast_possible_wrap)]
     pub fn find_exact_symbol_touches(
         conn: &Connection,
         query: &str,
@@ -30,8 +32,8 @@ impl ExactSymbolMatcher {
             return Ok(Vec::new());
         }
 
-        let like_suffix = format!("%::{}", trimmed);
-        let like_dot = format!("%.{}", trimmed);
+        let like_suffix = format!("%::{trimmed}");
+        let like_dot = format!("%.{trimmed}");
 
         let mut stmt = conn.prepare_cached(
             "SELECT touch_id FROM function_touches 

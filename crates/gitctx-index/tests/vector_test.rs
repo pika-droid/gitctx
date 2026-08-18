@@ -1,3 +1,9 @@
+#![allow(
+    clippy::cast_possible_wrap,
+    clippy::uninlined_format_args,
+    clippy::needless_range_loop
+)]
+
 use gitctx_core::model::ParseStatus;
 use gitctx_index::storage::{
     initialize_schema, open_connection, CommitRecord, LineageRecord, TouchRecord,
@@ -49,7 +55,10 @@ fn test_mmap_vector_storage_and_simd_scoring() {
         assert_eq!(in_place_vec, norm_vec);
 
         let norm: f32 = norm_vec.iter().map(|x| x * x).sum::<f32>().sqrt();
-        assert!((norm - 1.0).abs() < 1e-5, "Vector must be unit L2 normalized");
+        assert!(
+            (norm - 1.0).abs() < 1e-5,
+            "Vector must be unit L2 normalized"
+        );
         flat_vectors.extend_from_slice(&norm_vec);
     }
 
@@ -108,7 +117,8 @@ fn test_mmap_vector_storage_and_simd_scoring() {
         "INSERT INTO function_lineage (lineage_id, current_path, current_qualified_name, language)
          VALUES (1, 'src/lib.rs', 'test_fn', 'rust');",
         [],
-    ).expect("insert lineage");
+    )
+    .expect("insert lineage");
 
     // Insert 10 function touches and embeddings records
     for i in 0..count {
@@ -125,7 +135,9 @@ fn test_mmap_vector_storage_and_simd_scoring() {
         )
         .expect("insert embedding");
     }
-    storage.validate_with_sqlite(&conn).expect("sqlite count matches");
+    storage
+        .validate_with_sqlite(&conn)
+        .expect("sqlite count matches");
 
     // Insert an extra touch + embedding record to test mismatch failure
     conn.execute(
@@ -159,8 +171,7 @@ fn test_vector_simd_scoring_and_incremental() {
         }
     }
 
-    write_vector_file(&vec_file, &flat_vectors, dim as u32, count as u32)
-        .expect("write vectors");
+    write_vector_file(&vec_file, &flat_vectors, dim as u32, count as u32).expect("write vectors");
 
     let storage = MmapVectorStorage::open(&vec_file).expect("open mmap storage");
     let query = vec![1.0 / (dim as f32).sqrt(); dim];
@@ -204,7 +215,8 @@ fn test_fastembed_batch_embedding_and_status_filtering() {
         },
         EmbeddingInput {
             touch_id: 4,
-            text: "class UserAuthenticationService: def verify_token(self, token): pass".to_string(),
+            text: "class UserAuthenticationService: def verify_token(self, token): pass"
+                .to_string(),
             parse_status: ParseStatus::Ok,
         },
     ];
@@ -245,7 +257,11 @@ fn generate_synthetic_data(num_commits: usize) -> Vec<SyntheticCommitData> {
             authored_at: 1700000000 + (c as i64 * 60),
             topo_order: c as u32,
             branch: Some("main".to_string()),
-            parent_hashes: if c == 1 { String::new() } else { format!("commit_{:04}", c - 1) },
+            parent_hashes: if c == 1 {
+                String::new()
+            } else {
+                format!("commit_{:04}", c - 1)
+            },
             message: format!("Commit message {}", c),
             insertions: (c * 10) as u32,
             deletions: (c * 2) as u32,
@@ -265,8 +281,16 @@ fn generate_synthetic_data(num_commits: usize) -> Vec<SyntheticCommitData> {
             path: format!("src/module_{}.rs", c),
             qualified_name: format!("module_{}::handle_request", c),
             arity: 2,
-            change_type: if c == 1 { "add".to_string() } else { "modify".to_string() },
-            signature_before: if c == 1 { None } else { Some("fn handle_request(req: &Request)".to_string()) },
+            change_type: if c == 1 {
+                "add".to_string()
+            } else {
+                "modify".to_string()
+            },
+            signature_before: if c == 1 {
+                None
+            } else {
+                Some("fn handle_request(req: &Request)".to_string())
+            },
             signature_after: Some("fn handle_request(req: &Request) -> Response".to_string()),
             fingerprint: Some(vec![c as u8; 32]),
             chunk_text: format!("fn handle_request_{}() {{ let x = {}; }}", c, c * 100),
@@ -373,7 +397,9 @@ fn apply_commit_batches_to_index(
                 .unwrap();
 
             let row_offset = (flat_vectors.len() / 384) as i64;
-            stmt_emb.execute(rusqlite::params![touch_id, row_offset]).unwrap();
+            stmt_emb
+                .execute(rusqlite::params![touch_id, row_offset])
+                .unwrap();
 
             flat_vectors.extend_from_slice(&batch.vectors[i]);
 
@@ -412,34 +438,46 @@ fn test_double_indexing_determinism() {
     // Run A
     let conn_a = open_connection(&db_path_a).expect("open db a");
     initialize_schema(&conn_a).expect("init schema a");
-    let mut tantivy_a = TantivyEngine::create_in_dir(&tantivy_path_a, 15_000_000).expect("create tantivy a");
+    let mut tantivy_a =
+        TantivyEngine::create_in_dir(&tantivy_path_a, 15_000_000).expect("create tantivy a");
     let mut vectors_a = Vec::new();
     apply_commit_batches_to_index(&conn_a, &mut tantivy_a, &mut vectors_a, &data);
     let count_a = (vectors_a.len() / 384) as u32;
     write_vector_file_atomic(&vec_path_a, &vectors_a, 384, count_a).expect("write vec a");
-    conn_a.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);").expect("checkpoint a");
+    conn_a
+        .execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
+        .expect("checkpoint a");
     drop(conn_a);
 
     // Run B
     let conn_b = open_connection(&db_path_b).expect("open db b");
     initialize_schema(&conn_b).expect("init schema b");
-    let mut tantivy_b = TantivyEngine::create_in_dir(&tantivy_path_b, 15_000_000).expect("create tantivy b");
+    let mut tantivy_b =
+        TantivyEngine::create_in_dir(&tantivy_path_b, 15_000_000).expect("create tantivy b");
     let mut vectors_b = Vec::new();
     apply_commit_batches_to_index(&conn_b, &mut tantivy_b, &mut vectors_b, &data);
     let count_b = (vectors_b.len() / 384) as u32;
     write_vector_file_atomic(&vec_path_b, &vectors_b, 384, count_b).expect("write vec b");
-    conn_b.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);").expect("checkpoint b");
+    conn_b
+        .execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
+        .expect("checkpoint b");
     drop(conn_b);
 
     // 1. Assert byte-identical vectors.bin
     let vec_bytes_a = fs::read(&vec_path_a).expect("read vec a");
     let vec_bytes_b = fs::read(&vec_path_b).expect("read vec b");
-    assert_eq!(vec_bytes_a, vec_bytes_b, "vectors.bin must be byte-identical across runs");
+    assert_eq!(
+        vec_bytes_a, vec_bytes_b,
+        "vectors.bin must be byte-identical across runs"
+    );
 
     // 2. Assert byte-identical SQLite database files (Invariant I2 / INVAR-04)
     let db_bytes_a = fs::read(&db_path_a).expect("read db a");
     let db_bytes_b = fs::read(&db_path_b).expect("read db b");
-    assert_eq!(db_bytes_a, db_bytes_b, "index.db must be byte-identical across runs");
+    assert_eq!(
+        db_bytes_a, db_bytes_b,
+        "index.db must be byte-identical across runs"
+    );
 
     // 3. Assert exact identical search rankings across both runs
     let storage_a = MmapVectorStorage::open(&vec_path_a).expect("open storage a");
@@ -448,7 +486,10 @@ fn test_double_indexing_determinism() {
 
     let scores_a = search_cosine_top_k(&query_vec, &storage_a, 5);
     let scores_b = search_cosine_top_k(&query_vec, &storage_b, 5);
-    assert_eq!(scores_a, scores_b, "Dense vector search rankings must be identical");
+    assert_eq!(
+        scores_a, scores_b,
+        "Dense vector search rankings must be identical"
+    );
 
     let bm25_a = tantivy_a.search("handle_request", 5).expect("bm25 a");
     let bm25_b = tantivy_b.search("handle_request", 5).expect("bm25 b");
@@ -474,49 +515,94 @@ fn test_incremental_vs_full_equivalence() {
     // Full Index (1..6)
     let conn_full = open_connection(&db_path_full).expect("open db full");
     initialize_schema(&conn_full).expect("init schema full");
-    let mut tantivy_full = TantivyEngine::create_in_dir(&tantivy_path_full, 15_000_000).expect("create tantivy full");
+    let mut tantivy_full =
+        TantivyEngine::create_in_dir(&tantivy_path_full, 15_000_000).expect("create tantivy full");
     let mut vectors_full = Vec::new();
     apply_commit_batches_to_index(&conn_full, &mut tantivy_full, &mut vectors_full, &all_data);
     let count_full = (vectors_full.len() / 384) as u32;
-    write_vector_file_atomic(&vec_path_full, &vectors_full, 384, count_full).expect("write vec full");
-    conn_full.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);").expect("checkpoint full");
+    write_vector_file_atomic(&vec_path_full, &vectors_full, 384, count_full)
+        .expect("write vec full");
+    conn_full
+        .execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
+        .expect("checkpoint full");
 
     // Incremental Index: Phase 1 (1..4)
     let conn_incr = open_connection(&db_path_incr).expect("open db incr");
     initialize_schema(&conn_incr).expect("init schema incr");
-    let mut tantivy_incr = TantivyEngine::create_in_dir(&tantivy_path_incr, 15_000_000).expect("create tantivy incr");
+    let mut tantivy_incr =
+        TantivyEngine::create_in_dir(&tantivy_path_incr, 15_000_000).expect("create tantivy incr");
     let mut vectors_incr = Vec::new();
-    apply_commit_batches_to_index(&conn_incr, &mut tantivy_incr, &mut vectors_incr, &all_data[0..4]);
+    apply_commit_batches_to_index(
+        &conn_incr,
+        &mut tantivy_incr,
+        &mut vectors_incr,
+        &all_data[0..4],
+    );
 
     // Incremental Index: Phase 2 (5..6)
-    apply_commit_batches_to_index(&conn_incr, &mut tantivy_incr, &mut vectors_incr, &all_data[4..6]);
+    apply_commit_batches_to_index(
+        &conn_incr,
+        &mut tantivy_incr,
+        &mut vectors_incr,
+        &all_data[4..6],
+    );
     let count_incr = (vectors_incr.len() / 384) as u32;
-    write_vector_file_atomic(&vec_path_incr, &vectors_incr, 384, count_incr).expect("write vec incr");
-    conn_incr.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);").expect("checkpoint incr");
+    write_vector_file_atomic(&vec_path_incr, &vectors_incr, 384, count_incr)
+        .expect("write vec incr");
+    conn_incr
+        .execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
+        .expect("checkpoint incr");
 
     // Assert row counts match across tables
-    let count_commits_full: i64 = conn_full.query_row("SELECT COUNT(*) FROM commits;", [], |r| r.get(0)).unwrap();
-    let count_commits_incr: i64 = conn_incr.query_row("SELECT COUNT(*) FROM commits;", [], |r| r.get(0)).unwrap();
+    let count_commits_full: i64 = conn_full
+        .query_row("SELECT COUNT(*) FROM commits;", [], |r| r.get(0))
+        .unwrap();
+    let count_commits_incr: i64 = conn_incr
+        .query_row("SELECT COUNT(*) FROM commits;", [], |r| r.get(0))
+        .unwrap();
     assert_eq!(count_commits_full, count_commits_incr);
     assert_eq!(count_commits_full, 6);
 
-    let count_touches_full: i64 = conn_full.query_row("SELECT COUNT(*) FROM function_touches;", [], |r| r.get(0)).unwrap();
-    let count_touches_incr: i64 = conn_incr.query_row("SELECT COUNT(*) FROM function_touches;", [], |r| r.get(0)).unwrap();
+    let count_touches_full: i64 = conn_full
+        .query_row("SELECT COUNT(*) FROM function_touches;", [], |r| r.get(0))
+        .unwrap();
+    let count_touches_incr: i64 = conn_incr
+        .query_row("SELECT COUNT(*) FROM function_touches;", [], |r| r.get(0))
+        .unwrap();
     assert_eq!(count_touches_full, count_touches_incr);
     assert_eq!(count_touches_full, 6);
 
-    let count_emb_full: i64 = conn_full.query_row("SELECT COUNT(*) FROM embeddings;", [], |r| r.get(0)).unwrap();
-    let count_emb_incr: i64 = conn_incr.query_row("SELECT COUNT(*) FROM embeddings;", [], |r| r.get(0)).unwrap();
+    let count_emb_full: i64 = conn_full
+        .query_row("SELECT COUNT(*) FROM embeddings;", [], |r| r.get(0))
+        .unwrap();
+    let count_emb_incr: i64 = conn_incr
+        .query_row("SELECT COUNT(*) FROM embeddings;", [], |r| r.get(0))
+        .unwrap();
     assert_eq!(count_emb_full, count_emb_incr);
     assert_eq!(count_emb_full, 6);
 
     // Check all row contents in embeddings and function_touches
-    let mut stmt_emb_full = conn_full.prepare("SELECT touch_id, row_offset FROM embeddings ORDER BY touch_id ASC;").unwrap();
-    let rows_full: Vec<(i64, i64)> = stmt_emb_full.query_map([], |r| Ok((r.get(0)?, r.get(1)?))).unwrap().map(|r| r.unwrap()).collect();
+    let mut stmt_emb_full = conn_full
+        .prepare("SELECT touch_id, row_offset FROM embeddings ORDER BY touch_id ASC;")
+        .unwrap();
+    let rows_full: Vec<(i64, i64)> = stmt_emb_full
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+        .unwrap()
+        .map(|r| r.unwrap())
+        .collect();
 
-    let mut stmt_emb_incr = conn_incr.prepare("SELECT touch_id, row_offset FROM embeddings ORDER BY touch_id ASC;").unwrap();
-    let rows_incr: Vec<(i64, i64)> = stmt_emb_incr.query_map([], |r| Ok((r.get(0)?, r.get(1)?))).unwrap().map(|r| r.unwrap()).collect();
-    assert_eq!(rows_full, rows_incr, "Embeddings table mapping must be equivalent");
+    let mut stmt_emb_incr = conn_incr
+        .prepare("SELECT touch_id, row_offset FROM embeddings ORDER BY touch_id ASC;")
+        .unwrap();
+    let rows_incr: Vec<(i64, i64)> = stmt_emb_incr
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+        .unwrap()
+        .map(|r| r.unwrap())
+        .collect();
+    assert_eq!(
+        rows_full, rows_incr,
+        "Embeddings table mapping must be equivalent"
+    );
 
     // Check vector binary file equivalence
     let storage_full = MmapVectorStorage::open(&vec_path_full).expect("open storage full");
