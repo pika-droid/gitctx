@@ -25,4 +25,5 @@ __pycache__/
 /eval/cache/
 /models/
 .pytest_cache/
+**/.fastembed_cache/
 

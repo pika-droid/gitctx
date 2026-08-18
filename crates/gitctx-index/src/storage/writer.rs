@@ -1,10 +1,11 @@
 use crossbeam_channel::{bounded, Sender};
 use rusqlite::{params, Connection};
+use serde::{Deserialize, Serialize};
 use std::thread::{self, JoinHandle};
 
 use crate::storage::schema::initialize_schema;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CommitRecord {
     pub hash: String,
     pub author: String,
@@ -18,14 +19,14 @@ pub struct CommitRecord {
     pub deletions: u32,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FileRecord {
     pub id: Option<i64>,
     pub path: String,
     pub language: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LineageRecord {
     pub lineage_id: u64,
     pub current_path: String,
@@ -33,7 +34,7 @@ pub struct LineageRecord {
     pub language: String,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TouchRecord {
     pub touch_id: Option<i64>,
     pub lineage_id: u64,
@@ -51,13 +52,13 @@ pub struct TouchRecord {
     pub end_line: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EmbeddingRecord {
     pub touch_id: i64,
     pub row_offset: u32,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExplainCacheRecord {
     pub cache_key: String,
     pub model: String,
@@ -206,8 +207,8 @@ impl BackgroundWriter {
                                 t.fingerprint,
                                 t.chunk_text,
                                 t.parse_status,
-                                t.start_line as i64,
-                                t.end_line as i64,
+                                i64::try_from(t.start_line).unwrap_or(0),
+                                i64::try_from(t.end_line).unwrap_or(0),
                             ])
                             .map_err(|e| format!("Failed to insert touch for {}: {e}", t.qualified_name))?;
                         }

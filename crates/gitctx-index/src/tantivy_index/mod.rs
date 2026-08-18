@@ -5,5 +5,5 @@ pub mod tokenizer;
 
 pub use engine::TantivyEngine;
 pub use incremental::IncrementalTantivyWriter;
-pub use schema::TantivySchema;
+pub use schema::{TantivySchema, TantivyTouchDoc};
 pub use tokenizer::CodeTokenizer;

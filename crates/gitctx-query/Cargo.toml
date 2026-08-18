@@ -11,7 +11,14 @@ workspace = true
 [dependencies]
 gitctx-core.workspace = true
 gitctx-index.workspace = true
+rusqlite.workspace = true
+blake3.workspace = true
+regex.workspace = true
 thiserror.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
