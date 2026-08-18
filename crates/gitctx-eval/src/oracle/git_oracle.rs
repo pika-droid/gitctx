@@ -116,10 +116,7 @@ impl GitLogOracleComparator {
             return Ok(vec![]);
         }
         if !Self::is_safe_file_path(file_path) {
-            tracing::warn!(
-                "Skipping git log -L for unsafe file_path {:?}",
-                file_path
-            );
+            tracing::warn!("Skipping git log -L for unsafe file_path {:?}", file_path);
             return Ok(vec![]);
         }
 
