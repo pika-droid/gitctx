@@ -10,8 +10,8 @@
 - [x] **INVAR-01**: Rust workspace initialized (`gitctx-core`, `gitctx-index`, `gitctx-query`, `gitctx-cli`, `gitctx-mcp`, `gitctx-eval`, `xtask`) with CI enforcing `fmt`, `clippy -D warnings`, and fast unit tests.
 - [x] **INVAR-02**: Offline enforcement (Invariant I1) verified via network-isolated test harness.
 - [x] **INVAR-03**: Configuration hashing mechanism (`config_hash`) computed across schema, model, tokenizer, and params to reject mismatched indexes.
-- [ ] **INVAR-04**: Double-indexing determinism test (Invariant I2) asserting byte-identical SQLite/vector dumps and identical top-10 search results.
-- [ ] **INVAR-05**: Incremental vs. full index equivalence test (Invariant I3) asserting identical database states for matching commit ranges.
+- [x] **INVAR-04**: Double-indexing determinism test (Invariant I2) asserting byte-identical SQLite/vector dumps and identical top-10 search results.
+- [x] **INVAR-05**: Incremental vs. full index equivalence test (Invariant I3) asserting identical database states for matching commit ranges.
 
 ### Synthetic Fixtures (FIXT)
 
@@ -54,11 +54,11 @@
 
 - [x] **INDEX-01**: SQLite schema with WAL mode, single writer channel, atomic `.tmp` indexing, explicit topological order index, and `schema_version` validation.
 - [x] **INDEX-02**: Physical isolation of `explain_cache` table to guarantee no LLM text enters embedding inputs (Invariant I5).
-- [ ] **INDEX-03**: Code-aware Tantivy BM25 index with camelCase/snake_case tokenization and identifier preservation.
-- [ ] **INDEX-04**: Dense vector storage using `fastembed-rs` (MiniLM / code model) written to memory-mapped `f32` arrays with SIMD flat cosine scoring.
-- [ ] **INDEX-05**: Reciprocal Rank Fusion (RRF $k=60$) combining BM25 and dense scores with exact symbol match priority path.
-- [ ] **INDEX-06**: Deterministic chain assembly querying complete historical timelines by `lineage_id` in a single indexed query.
-- [ ] **INDEX-07**: Citation payload inclusion on all retrieved facts (`commit_hash`, `path`, `start_line`, `end_line`, `match_rule`, `match_confidence`) (Invariant I4).
+- [x] **INDEX-03**: Code-aware Tantivy BM25 index with camelCase/snake_case tokenization and identifier preservation.
+- [x] **INDEX-04**: Dense vector storage using `fastembed-rs` (MiniLM / code model) written to memory-mapped `f32` arrays with SIMD flat cosine scoring.
+- [x] **INDEX-05**: Reciprocal Rank Fusion (RRF $k=60$) combining BM25 and dense scores with exact symbol match priority path.
+- [x] **INDEX-06**: Deterministic chain assembly querying complete historical timelines by `lineage_id` in a single indexed query.
+- [x] **INDEX-07**: Citation payload inclusion on all retrieved facts (`commit_hash`, `path`, `start_line`, `end_line`, `match_rule`, `match_confidence`) (Invariant I4).
 
 ### Co-Change & Impact Analysis (GRAPH)
 
@@ -141,15 +141,15 @@
 | LINEAGE-04 | Phase 5 | Pending |
 | LINEAGE-05 | Phase 5 | Pending |
 | INVAR-03 | Phase 6 | Complete |
-| INVAR-04 | Phase 6 | Pending |
-| INVAR-05 | Phase 6 | Pending |
+| INVAR-04 | Phase 6 | Complete |
+| INVAR-05 | Phase 6 | Complete |
 | INDEX-01 | Phase 6 | Complete |
 | INDEX-02 | Phase 6 | Complete |
-| INDEX-03 | Phase 6 | Pending |
-| INDEX-04 | Phase 6 | Pending |
-| INDEX-05 | Phase 6 | Pending |
-| INDEX-06 | Phase 6 | Pending |
-| INDEX-07 | Phase 6 | Pending |
+| INDEX-03 | Phase 6 | Complete |
+| INDEX-04 | Phase 6 | Complete |
+| INDEX-05 | Phase 6 | Complete |
+| INDEX-06 | Phase 6 | Complete |
+| INDEX-07 | Phase 6 | Complete |
 | GRAPH-01 | Phase 7 | Pending |
 | GRAPH-02 | Phase 7 | Pending |
 | GRAPH-03 | Phase 7 | Pending |
