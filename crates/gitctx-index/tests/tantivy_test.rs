@@ -181,7 +181,7 @@ fn test_tantivy_multi_field_boosts() {
     assert!(results[2].1 > results[3].1);
 
     // Test atomic directory swap from .tmp to final target per D-07
-    engine
+    let swapped_engine = engine
         .commit_and_swap_to(&tantivy_final)
         .expect("atomic swap");
 
@@ -189,7 +189,6 @@ fn test_tantivy_multi_field_boosts() {
     assert!(tantivy_final.exists(), "final directory should exist");
 
     // Open index from final directory and verify search continues to work
-    let swapped_engine = TantivyEngine::open(&tantivy_final).expect("open swapped");
     let swapped_results = swapped_engine
         .search("authenticate", 10)
         .expect("search after swap");

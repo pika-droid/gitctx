@@ -22,7 +22,10 @@ pub struct TantivyEngine {
 
 impl TantivyEngine {
     /// Initialize Tantivy engine in a local directory (e.g. `.gitctx/tantivy.tmp/` or `.gitctx/tantivy/`).
-    pub fn create_in_dir<P: AsRef<Path>>(dir_path: P, memory_budget_bytes: usize) -> Result<Self, tantivy::TantivyError> {
+    pub fn create_in_dir<P: AsRef<Path>>(
+        dir_path: P,
+        memory_budget_bytes: usize,
+    ) -> Result<Self, tantivy::TantivyError> {
         let path = dir_path.as_ref().to_path_buf();
         fs::create_dir_all(&path).map_err(|e| tantivy::TantivyError::SystemError(e.to_string()))?;
 
@@ -152,23 +155,41 @@ impl TantivyEngine {
         }
     }
 
-    /// Commit pending changes, close writer, and atomically swap directory to `target_dir` per D-07.
-    pub fn commit_and_swap_to<P: AsRef<Path>>(&mut self, target_dir: P) -> std::io::Result<()> {
+    /// Flush and close writer, unmapping file handles so atomic swap can proceed cleanly.
+    pub fn flush_and_close(mut self) -> Result<Option<PathBuf>, tantivy::TantivyError> {
+        if let Some(mut writer) = self.writer.take() {
+            let _ = writer.commit();
+            let _ = writer.wait_merging_threads();
+        }
+        drop(self.reader);
+        drop(self.index);
+        Ok(self.index_path)
+    }
+
+    /// Commit pending changes, close reader/writer handles, atomically swap directory to `target_dir`,
+    /// and reopen the engine at the new location per D-07.
+    pub fn commit_and_swap_to<P: AsRef<Path>>(mut self, target_dir: P) -> Result<Self, tantivy::TantivyError> {
+        let src_path = self.index_path.take().ok_or_else(|| {
+            tantivy::TantivyError::SystemError("Cannot swap in-memory index".to_string())
+        })?;
+
         if let Some(mut writer) = self.writer.take() {
             let _ = writer.commit();
             let _ = writer.wait_merging_threads();
         }
 
-        if let Some(src_path) = &self.index_path {
-            let target = target_dir.as_ref();
-            if target.exists() {
-                fs::remove_dir_all(target)?;
-            }
-            fs::rename(src_path, target)?;
-            self.index_path = Some(target.to_path_buf());
-        }
+        drop(self.reader);
+        drop(self.index);
 
-        Ok(())
+        let target = target_dir.as_ref();
+        if target.exists() {
+            fs::remove_dir_all(target)
+                .map_err(|e| tantivy::TantivyError::SystemError(e.to_string()))?;
+        }
+        fs::rename(&src_path, target)
+            .map_err(|e| tantivy::TantivyError::SystemError(e.to_string()))?;
+
+        Self::open(target)
     }
 
     /// Search the Tantivy BM25 index with boosted fields per D-06 and INDEX-03.
