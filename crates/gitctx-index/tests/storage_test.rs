@@ -1,8 +1,10 @@
 use gitctx_core::config::IndexConfig;
+use gitctx_core::error::CoreError;
 use gitctx_index::storage::{
     open_connection, AtomicStorageManager, BackgroundWriter, CommitRecord, LineageRecord,
     StorageEngine, TouchRecord, CURRENT_SCHEMA_VERSION,
 };
+use std::fs;
 use tempfile::tempdir;
 
 #[test]
@@ -162,4 +164,114 @@ fn test_sqlite_storage_and_atomic_swap() {
     assert_eq!(retrieved[2].commit_hash, "c003");
     assert_eq!(retrieved[2].touch_id, Some(103));
     assert_eq!(retrieved[2].change_type, "modify");
+}
+
+#[test]
+fn test_config_hash_mismatch_refusal() {
+    let tmp_dir = tempdir().expect("Failed to create tempdir");
+    let mut manager = AtomicStorageManager::new(tmp_dir.path());
+
+    let original_config =
+        IndexConfig::new(CURRENT_SCHEMA_VERSION, "bge-small-en-v1.5", "code", 500, 1);
+
+    // Create database with original_config
+    {
+        let conn = open_connection(manager.tmp_db_path()).expect("Failed to open tmp db");
+        let writer = BackgroundWriter::new(conn, 10);
+        writer
+            .set_state("schema_version", original_config.schema_version.to_string())
+            .expect("Failed to set schema_version");
+        writer
+            .set_state("config_hash", original_config.compute_config_hash().as_str())
+            .expect("Failed to set config_hash");
+
+        let finished_conn = writer.finish().expect("Failed to finish writer");
+        AtomicStorageManager::checkpoint_and_close(finished_conn)
+            .expect("Failed to checkpoint and close");
+        manager.commit_swap().expect("Failed to commit swap");
+    }
+
+    // 1. Opening with identical config must succeed
+    assert!(StorageEngine::open(manager.db_path(), &original_config).is_ok());
+
+    // 2. Opening with modified model_id must fail fast with diagnostic
+    let altered_model_config =
+        IndexConfig::new(CURRENT_SCHEMA_VERSION, "all-MiniLM-L6-v2", "code", 500, 1);
+    match StorageEngine::open(manager.db_path(), &altered_model_config) {
+        Err(CoreError::ConfigMismatch { actual, .. }) => {
+            assert!(
+                actual.contains("Index schema version mismatch. Run 'gitctx index' to rebuild."),
+                "Error message missing rebuild diagnostic: {actual}"
+            );
+        }
+        other => panic!("Expected ConfigMismatch error, got: {:?}", other),
+    }
+
+    // 3. Opening with modified schema_version must fail fast with diagnostic
+    let altered_schema_config =
+        IndexConfig::new(CURRENT_SCHEMA_VERSION + 1, "bge-small-en-v1.5", "code", 500, 1);
+    match StorageEngine::open(manager.db_path(), &altered_schema_config) {
+        Err(CoreError::ConfigMismatch { actual, .. }) => {
+            assert!(
+                actual.contains("Index schema version mismatch. Run 'gitctx index' to rebuild."),
+                "Error message missing rebuild diagnostic: {actual}"
+            );
+        }
+        other => panic!("Expected ConfigMismatch error, got: {:?}", other),
+    }
+}
+
+#[test]
+fn test_atomic_replacement_and_crash_cleanup() {
+    let tmp_dir = tempdir().expect("Failed to create tempdir");
+
+    // Case 1: Aborted / crashed run cleans up .tmp files without affecting destination
+    {
+        let manager = AtomicStorageManager::new(tmp_dir.path());
+        fs::write(manager.tmp_db_path(), b"partial sqlite data").unwrap();
+        fs::write(manager.tmp_vectors_path(), b"partial vectors").unwrap();
+        fs::create_dir_all(manager.tmp_tantivy_dir()).unwrap();
+        fs::write(manager.tmp_tantivy_dir().join("meta.json"), b"{}").unwrap();
+
+        assert!(manager.tmp_db_path().exists());
+        assert!(manager.tmp_vectors_path().exists());
+        assert!(manager.tmp_tantivy_dir().exists());
+
+        // Manager drops without commit_swap -> drop cleanup triggers
+        drop(manager);
+    }
+
+    // Verify temp files removed
+    let manager = AtomicStorageManager::new(tmp_dir.path());
+    assert!(!manager.tmp_db_path().exists());
+    assert!(!manager.tmp_vectors_path().exists());
+    assert!(!manager.tmp_tantivy_dir().exists());
+    assert!(!manager.db_path().exists());
+
+    // Case 2: Successful swap replaces existing active files
+    {
+        // Create initial active files
+        fs::write(manager.db_path(), b"active v1").unwrap();
+        fs::write(manager.vectors_path(), b"vectors v1").unwrap();
+        fs::create_dir_all(manager.tantivy_dir()).unwrap();
+        fs::write(manager.tantivy_dir().join("meta.json"), b"v1").unwrap();
+
+        let mut swap_manager = AtomicStorageManager::new(tmp_dir.path());
+        fs::write(swap_manager.tmp_db_path(), b"active v2").unwrap();
+        fs::write(swap_manager.tmp_vectors_path(), b"vectors v2").unwrap();
+        fs::create_dir_all(swap_manager.tmp_tantivy_dir()).unwrap();
+        fs::write(swap_manager.tmp_tantivy_dir().join("meta.json"), b"v2").unwrap();
+
+        swap_manager.commit_swap().expect("Failed to commit swap");
+
+        assert_eq!(fs::read(swap_manager.db_path()).unwrap(), b"active v2");
+        assert_eq!(fs::read(swap_manager.vectors_path()).unwrap(), b"vectors v2");
+        assert_eq!(
+            fs::read(swap_manager.tantivy_dir().join("meta.json")).unwrap(),
+            b"v2"
+        );
+        assert!(!swap_manager.tmp_db_path().exists());
+        assert!(!swap_manager.tmp_vectors_path().exists());
+        assert!(!swap_manager.tmp_tantivy_dir().exists());
+    }
 }

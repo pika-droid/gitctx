@@ -21,6 +21,12 @@ pub struct StorageEngine {
     conn: Connection,
 }
 
+impl std::fmt::Debug for StorageEngine {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("StorageEngine").finish()
+    }
+}
+
 impl StorageEngine {
     /// Open a database connection at `path`, validating schema version and config hash.
     pub fn open<P: AsRef<Path>>(path: P, expected_config: &IndexConfig) -> Result<Self, CoreError> {
@@ -42,12 +48,20 @@ impl StorageEngine {
             .optional()
             .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
 
-        if let Some(v_str) = stored_schema_version {
-            let version_num: u32 = v_str.parse().unwrap_or(0);
-            if version_num != expected_config.schema_version {
+        match stored_schema_version {
+            Some(v_str) => {
+                let version_num: u32 = v_str.parse().unwrap_or(0);
+                if version_num != expected_config.schema_version {
+                    return Err(CoreError::ConfigMismatch {
+                        expected: format!("schema_version={}", expected_config.schema_version),
+                        actual: format!("schema_version={version_num}. Index schema version mismatch. Run 'gitctx index' to rebuild."),
+                    });
+                }
+            }
+            None => {
                 return Err(CoreError::ConfigMismatch {
                     expected: format!("schema_version={}", expected_config.schema_version),
-                    actual: format!("schema_version={version_num} (Index schema version mismatch. Run 'gitctx index' to rebuild.)"),
+                    actual: "missing schema_version. Index schema version mismatch. Run 'gitctx index' to rebuild.".to_string(),
                 });
             }
         }
@@ -63,11 +77,19 @@ impl StorageEngine {
             .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
 
         let expected_hash = expected_config.compute_config_hash();
-        if let Some(actual_hash) = stored_config_hash {
-            if actual_hash != expected_hash.as_str() {
+        match stored_config_hash {
+            Some(actual_hash) => {
+                if actual_hash != expected_hash.as_str() {
+                    return Err(CoreError::ConfigMismatch {
+                        expected: expected_hash.0,
+                        actual: format!("{actual_hash}. Index schema version mismatch. Run 'gitctx index' to rebuild."),
+                    });
+                }
+            }
+            None => {
                 return Err(CoreError::ConfigMismatch {
                     expected: expected_hash.0,
-                    actual: format!("{actual_hash} (Index schema version mismatch. Run 'gitctx index' to rebuild.)"),
+                    actual: "missing config_hash. Index schema version mismatch. Run 'gitctx index' to rebuild.".to_string(),
                 });
             }
         }
