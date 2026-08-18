@@ -103,8 +103,8 @@ impl StorageEngine {
     ///
     /// # Safety (logical)
     /// This bypasses `schema_version` and `config_hash` validation (INVAR-03).
-    /// Restricted to `#[cfg(test)]` to prevent accidental production use.
-    #[cfg(test)]
+    /// **WARNING: Restricted to testing use only. Do not use in production.**
+    #[doc(hidden)]
     pub fn open_raw<P: AsRef<Path>>(path: P) -> Result<Self, rusqlite::Error> {
         let conn = open_connection(path)?;
         initialize_schema(&conn)?;

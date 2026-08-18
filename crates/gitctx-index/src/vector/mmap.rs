@@ -82,6 +82,7 @@ impl MmapVectorStorage {
     /// debug assertion verifies pointer alignment before the cast. This guarantees the
     /// reinterpretation from `&[u8]` to `&[f32]` is sound on all architectures (including ARM/RISC-V).
     #[allow(unsafe_code)]
+    #[allow(clippy::cast_ptr_alignment)]
     pub fn all_vectors(&self) -> &[f32] {
         // Compile-time guarantee: header size is a multiple of f32 alignment (4 bytes).
         const _: () = assert!(
