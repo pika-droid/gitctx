@@ -77,5 +77,8 @@ tree-sitter-php = "0.23"
 rusqlite = { version = "0.32.1", features = ["bundled"] }
 crossbeam-channel = "0.5.16"
 tantivy = "0.22.0"
+fastembed = "=5.6.0"
+memmap2 = "0.9.5"
+rayon = "1.10.0"
 
 

@@ -17,6 +17,10 @@ tracing.workspace = true
 rusqlite.workspace = true
 crossbeam-channel.workspace = true
 tantivy.workspace = true
+fastembed.workspace = true
+memmap2.workspace = true
+rayon.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
+git2.workspace = true
