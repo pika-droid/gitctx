@@ -275,3 +275,85 @@ fn test_atomic_replacement_and_crash_cleanup() {
         assert!(!swap_manager.tmp_tantivy_dir().exists());
     }
 }
+
+#[test]
+fn test_explain_cache_isolation() {
+    let tmp_dir = tempdir().expect("Failed to create tempdir");
+    let db_path = tmp_dir.path().join("index.db");
+
+    let config = IndexConfig::new(CURRENT_SCHEMA_VERSION, "bge-small-en-v1.5", "code", 500, 1);
+    let mut engine = StorageEngine::open_raw(&db_path).expect("Failed to open raw storage");
+    engine.record_state(&config).expect("Failed to record state");
+
+    // 1. Insert code commit, lineage, and function touch
+    let conn = engine.connection_mut();
+    conn.execute(
+        "INSERT INTO commits (hash, author, email, authored_at, topo_order, branch, parent_hashes, message, insertions, deletions)
+         VALUES ('c100', 'Dev', 'dev@example.com', 1000, 1, 'main', '', 'feat: add calculate_total', 10, 0);",
+        [],
+    ).unwrap();
+
+    conn.execute(
+        "INSERT INTO function_lineage (lineage_id, current_path, current_qualified_name, language)
+         VALUES (99, 'src/math.rs', 'math::calculate_total', 'rust');",
+        [],
+    ).unwrap();
+
+    conn.execute(
+        "INSERT INTO function_touches (
+            touch_id, lineage_id, commit_hash, path, qualified_name, arity, change_type,
+            signature_before, signature_after, fingerprint, chunk_text, parse_status, start_line, end_line
+         ) VALUES (501, 99, 'c100', 'src/math.rs', 'math::calculate_total', 1, 'add',
+            NULL, 'fn calculate_total(items: &[Item]) -> u64', NULL, 'fn calculate_total(items: &[Item]) -> u64 { items.iter().map(|i| i.price).sum() }', 'ok', 1, 10);",
+        [],
+    ).unwrap();
+
+    // 2. Put LLM explanation into isolated explain_cache
+    let explain_cache = engine.explain_cache();
+    let cache_key = "hash_c100_math_calculate_total_v1";
+    let llm_model = "gpt-4o-mini";
+    let prompt_ver = "v1.2";
+    let llm_text = "This function sums item prices using iterator map. (LLM_SYNTHETIC_EXPLANATION_TOKEN_9988)";
+    let timestamp = 1700000000;
+
+    explain_cache
+        .put(cache_key, llm_model, prompt_ver, llm_text, timestamp)
+        .expect("Failed to put into explain_cache");
+
+    // 3. Verify explain_cache lookup
+    let cached = explain_cache
+        .get(cache_key)
+        .expect("Failed to get from explain_cache")
+        .expect("Expected cached explanation entry");
+
+    assert_eq!(cached.cache_key, cache_key);
+    assert_eq!(cached.model, llm_model);
+    assert_eq!(cached.prompt_version, prompt_ver);
+    assert_eq!(cached.text, llm_text);
+    assert_eq!(cached.created_at, timestamp);
+    assert_eq!(explain_cache.count().unwrap(), 1);
+
+    // 4. Verify non-existent key returns None
+    let missing = explain_cache.get("non_existent_key").unwrap();
+    assert!(missing.is_none());
+
+    // 5. Enforce Invariant I5: Verify touch extraction queries NEVER leak explain_cache text
+    let touches_by_lineage = engine.query_touches_by_lineage(99).unwrap();
+    assert_eq!(touches_by_lineage.len(), 1);
+    assert_eq!(touches_by_lineage[0].qualified_name, "math::calculate_total");
+    assert_eq!(
+        touches_by_lineage[0].chunk_text,
+        "fn calculate_total(items: &[Item]) -> u64 { items.iter().map(|i| i.price).sum() }"
+    );
+    assert!(
+        !touches_by_lineage[0].chunk_text.contains("LLM_SYNTHETIC_EXPLANATION_TOKEN"),
+        "Invariant I5 violation: LLM explanation leaked into touch chunk_text"
+    );
+
+    let touches_by_qualname = engine.query_touches_by_qualname("math::calculate_total").unwrap();
+    assert_eq!(touches_by_qualname.len(), 1);
+    assert!(
+        !touches_by_qualname[0].chunk_text.contains("LLM_SYNTHETIC_EXPLANATION_TOKEN"),
+        "Invariant I5 violation: LLM explanation leaked into touch chunk_text"
+    );
+}

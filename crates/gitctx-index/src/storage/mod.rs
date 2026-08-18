@@ -1,10 +1,12 @@
 pub mod atomic;
 pub mod connection;
+pub mod explain;
 pub mod schema;
 pub mod writer;
 
 pub use atomic::AtomicStorageManager;
 pub use connection::{apply_pragmas, open_connection, open_readonly_connection};
+pub use explain::ExplainCacheStore;
 pub use schema::{initialize_schema, CURRENT_SCHEMA_VERSION, SCHEMA_DDL};
 pub use writer::{
     BackgroundWriter, CommitRecord, EmbeddingRecord, ExplainCacheRecord, FileRecord, LineageRecord,
@@ -213,5 +215,10 @@ impl StorageEngine {
             touches.push(r?);
         }
         Ok(touches)
+    }
+
+    /// Access the physically isolated explain_cache store per D-04 and INDEX-02 (Invariant I5).
+    pub fn explain_cache(&self) -> ExplainCacheStore<'_> {
+        ExplainCacheStore::new(&self.conn)
     }
 }
