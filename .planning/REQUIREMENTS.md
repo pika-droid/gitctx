@@ -9,7 +9,7 @@
 
 - [x] **INVAR-01**: Rust workspace initialized (`gitctx-core`, `gitctx-index`, `gitctx-query`, `gitctx-cli`, `gitctx-mcp`, `gitctx-eval`, `xtask`) with CI enforcing `fmt`, `clippy -D warnings`, and fast unit tests.
 - [x] **INVAR-02**: Offline enforcement (Invariant I1) verified via network-isolated test harness.
-- [ ] **INVAR-03**: Configuration hashing mechanism (`config_hash`) computed across schema, model, tokenizer, and params to reject mismatched indexes.
+- [x] **INVAR-03**: Configuration hashing mechanism (`config_hash`) computed across schema, model, tokenizer, and params to reject mismatched indexes.
 - [ ] **INVAR-04**: Double-indexing determinism test (Invariant I2) asserting byte-identical SQLite/vector dumps and identical top-10 search results.
 - [ ] **INVAR-05**: Incremental vs. full index equivalence test (Invariant I3) asserting identical database states for matching commit ranges.
 
@@ -52,8 +52,8 @@
 
 ### Storage & Hybrid Retrieval (INDEX)
 
-- [ ] **INDEX-01**: SQLite schema with WAL mode, single writer channel, atomic `.tmp` indexing, explicit topological order index, and `schema_version` validation.
-- [ ] **INDEX-02**: Physical isolation of `explain_cache` table to guarantee no LLM text enters embedding inputs (Invariant I5).
+- [x] **INDEX-01**: SQLite schema with WAL mode, single writer channel, atomic `.tmp` indexing, explicit topological order index, and `schema_version` validation.
+- [x] **INDEX-02**: Physical isolation of `explain_cache` table to guarantee no LLM text enters embedding inputs (Invariant I5).
 - [ ] **INDEX-03**: Code-aware Tantivy BM25 index with camelCase/snake_case tokenization and identifier preservation.
 - [ ] **INDEX-04**: Dense vector storage using `fastembed-rs` (MiniLM / code model) written to memory-mapped `f32` arrays with SIMD flat cosine scoring.
 - [ ] **INDEX-05**: Reciprocal Rank Fusion (RRF $k=60$) combining BM25 and dense scores with exact symbol match priority path.
@@ -140,11 +140,11 @@
 | LINEAGE-03 | Phase 5 | Pending |
 | LINEAGE-04 | Phase 5 | Pending |
 | LINEAGE-05 | Phase 5 | Pending |
-| INVAR-03 | Phase 6 | Pending |
+| INVAR-03 | Phase 6 | Complete |
 | INVAR-04 | Phase 6 | Pending |
 | INVAR-05 | Phase 6 | Pending |
-| INDEX-01 | Phase 6 | Pending |
-| INDEX-02 | Phase 6 | Pending |
+| INDEX-01 | Phase 6 | Complete |
+| INDEX-02 | Phase 6 | Complete |
 | INDEX-03 | Phase 6 | Pending |
 | INDEX-04 | Phase 6 | Pending |
 | INDEX-05 | Phase 6 | Pending |
