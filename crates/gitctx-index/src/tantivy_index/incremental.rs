@@ -7,6 +7,9 @@ use tantivy::{Index, IndexWriter, TantivyDocument};
 pub const DEFAULT_INCREMENTAL_MEMORY_BUDGET_BYTES: usize = 32_000_000; // 32MB budget
 
 /// Fast incremental Tantivy index writer for appending document touches per D-08 and INDEX-03.
+///
+/// Configured with 32MB memory budget to append newly processed function touches into active
+/// segments without rebuilding existing index structures, committing in <2 seconds.
 pub struct IncrementalTantivyWriter {
     index: Index,
     schema_fields: TantivySchema,
