@@ -3,12 +3,12 @@
 //! Uses a fresh in-memory SQLite database with fixture commits and function touches
 //! to verify the full Phase 7 pipeline end-to-end.
 
+use gitctx_index::storage::StorageEngine;
 use gitctx_query::cochange::config::CoChangeConfig;
 use gitctx_query::cochange::extractor::CoChangeExtractor;
 use gitctx_query::cochange::graph::{CoChangeGraph, EntityType};
 use gitctx_query::cochange::impact::ImpactAnalyzer;
 use gitctx_query::cochange::metrics::MetricsComputer;
-use gitctx_index::storage::StorageEngine;
 
 /// Helper: create a fresh StorageEngine with schema initialized.
 fn fresh_engine(dir: &tempfile::TempDir) -> StorageEngine {
@@ -23,15 +23,55 @@ fn seed_fixture(engine: &StorageEngine) {
     // Insert 5 commits with varying file counts and authors
     let commits = vec![
         // Normal commit touching 2 files
-        ("aaa111", "alice@dev.com", 1_700_000_000_i64, 1_u32, "feat: add parser", 10_u32, 5_u32),
+        (
+            "aaa111",
+            "alice@dev.com",
+            1_700_000_000_i64,
+            1_u32,
+            "feat: add parser",
+            10_u32,
+            5_u32,
+        ),
         // Normal commit touching 2 files (same as commit 1 pair)
-        ("bbb222", "bob@dev.com", 1_700_100_000, 2, "refactor: clean up parser", 15, 3),
+        (
+            "bbb222",
+            "bob@dev.com",
+            1_700_100_000,
+            2,
+            "refactor: clean up parser",
+            15,
+            3,
+        ),
         // Normal commit touching 3 files
-        ("ccc333", "carol@dev.com", 1_700_200_000, 3, "feat: add formatter", 20, 8),
+        (
+            "ccc333",
+            "carol@dev.com",
+            1_700_200_000,
+            3,
+            "feat: add formatter",
+            20,
+            8,
+        ),
         // Bot commit — should be filtered
-        ("ddd444", "dependabot[bot]@users.noreply.github.com", 1_700_300_000, 4, "chore: bump deps", 5, 2),
+        (
+            "ddd444",
+            "dependabot[bot]@users.noreply.github.com",
+            1_700_300_000,
+            4,
+            "chore: bump deps",
+            5,
+            2,
+        ),
         // Fix commit touching a coupled entity within 7 days of commit 3
-        ("eee555", "alice@dev.com", 1_700_250_000, 5, "fix: null pointer in formatter", 3, 1),
+        (
+            "eee555",
+            "alice@dev.com",
+            1_700_250_000,
+            5,
+            "fix: null pointer in formatter",
+            3,
+            1,
+        ),
     ];
 
     for (hash, email, authored_at, topo, message, ins, del) in &commits {
@@ -61,23 +101,79 @@ fn seed_fixture(engine: &StorageEngine) {
     // Insert function touches
     // Commit aaa111: touches parser.rs and lexer.rs
     insert_touch(conn, 1, "aaa111", "src/parser.rs", "parser::parse", "added");
-    insert_touch(conn, 2, "aaa111", "src/lexer.rs", "lexer::tokenize", "added");
+    insert_touch(
+        conn,
+        2,
+        "aaa111",
+        "src/lexer.rs",
+        "lexer::tokenize",
+        "added",
+    );
 
     // Commit bbb222: touches parser.rs and lexer.rs (same pair again — increases support)
-    insert_touch(conn, 1, "bbb222", "src/parser.rs", "parser::parse", "modified");
-    insert_touch(conn, 2, "bbb222", "src/lexer.rs", "lexer::tokenize", "modified");
+    insert_touch(
+        conn,
+        1,
+        "bbb222",
+        "src/parser.rs",
+        "parser::parse",
+        "modified",
+    );
+    insert_touch(
+        conn,
+        2,
+        "bbb222",
+        "src/lexer.rs",
+        "lexer::tokenize",
+        "modified",
+    );
 
     // Commit ccc333: touches parser.rs, formatter.rs, and utils.rs
-    insert_touch(conn, 1, "ccc333", "src/parser.rs", "parser::parse", "modified");
-    insert_touch(conn, 3, "ccc333", "src/formatter.rs", "formatter::format", "added");
+    insert_touch(
+        conn,
+        1,
+        "ccc333",
+        "src/parser.rs",
+        "parser::parse",
+        "modified",
+    );
+    insert_touch(
+        conn,
+        3,
+        "ccc333",
+        "src/formatter.rs",
+        "formatter::format",
+        "added",
+    );
     insert_touch(conn, 4, "ccc333", "src/utils.rs", "utils::helper", "added");
 
     // Commit ddd444 (bot): touches parser.rs and utils.rs — should be filtered
-    insert_touch(conn, 1, "ddd444", "src/parser.rs", "parser::parse", "modified");
-    insert_touch(conn, 4, "ddd444", "src/utils.rs", "utils::helper", "modified");
+    insert_touch(
+        conn,
+        1,
+        "ddd444",
+        "src/parser.rs",
+        "parser::parse",
+        "modified",
+    );
+    insert_touch(
+        conn,
+        4,
+        "ddd444",
+        "src/utils.rs",
+        "utils::helper",
+        "modified",
+    );
 
     // Commit eee555 (fix): touches formatter.rs — follow-up fix after ccc333
-    insert_touch(conn, 3, "eee555", "src/formatter.rs", "formatter::format", "modified");
+    insert_touch(
+        conn,
+        3,
+        "eee555",
+        "src/formatter.rs",
+        "formatter::format",
+        "modified",
+    );
 }
 
 fn insert_touch(
@@ -116,9 +212,16 @@ fn test_commit_size_filtering() {
         conn.execute(
             "INSERT INTO function_lineage (lineage_id, current_path, current_qualified_name, language)
              VALUES (?1, ?2, ?3, 'rust')",
-            rusqlite::params![100 + i as i64, &path, format!("fn_{i}")],
+            rusqlite::params![i64::from(100 + i), &path, format!("fn_{i}")],
         ).unwrap();
-        insert_touch(conn, 100 + i as u64, "big111", &path, &format!("fn_{i}"), "added");
+        insert_touch(
+            conn,
+            100 + (i as u64),
+            "big111",
+            &path,
+            &format!("fn_{i}"),
+            "added",
+        );
     }
 
     // Insert a small commit touching 3 files
@@ -133,9 +236,16 @@ fn test_commit_size_filtering() {
         conn.execute(
             "INSERT INTO function_lineage (lineage_id, current_path, current_qualified_name, language)
              VALUES (?1, ?2, ?3, 'rust')",
-            rusqlite::params![200 + i as i64, &path, format!("sfn_{i}")],
+            rusqlite::params![i64::from(200 + i), &path, format!("sfn_{i}")],
         ).unwrap();
-        insert_touch(conn, 200 + i as u64, "sml222", &path, &format!("sfn_{i}"), "added");
+        insert_touch(
+            conn,
+            200 + i as u64,
+            "sml222",
+            &path,
+            &format!("sfn_{i}"),
+            "added",
+        );
     }
 
     let config = CoChangeConfig::with_reference_epoch(1_700_200_000);
@@ -144,7 +254,10 @@ fn test_commit_size_filtering() {
 
     assert_eq!(stats.total_commits, 2);
     assert_eq!(stats.size_filtered, 1, "30-file commit should be filtered");
-    assert_eq!(stats.qualifying_commits, 1, "Only the 3-file commit should qualify");
+    assert_eq!(
+        stats.qualifying_commits, 1,
+        "Only the 3-file commit should qualify"
+    );
     assert_eq!(file_pairs.len(), 3, "3 files produce C(3,2) = 3 pairs");
 }
 
@@ -158,7 +271,10 @@ fn test_bot_filtering() {
     let extractor = CoChangeExtractor::new(&engine, &config);
     let (_, _, stats) = extractor.extract().unwrap();
 
-    assert_eq!(stats.bot_filtered, 1, "Bot commit ddd444 should be filtered");
+    assert_eq!(
+        stats.bot_filtered, 1,
+        "Bot commit ddd444 should be filtered"
+    );
     // Total = 5 commits, 1 bot filtered, 0 size filtered = 4 qualifying
     assert_eq!(stats.qualifying_commits, 4);
 }
@@ -198,7 +314,10 @@ fn test_graph_construction() {
     let metrics = MetricsComputer::compute(&file_pairs, stats.qualifying_commits, &config);
     let graph = CoChangeGraph::from_metrics(&metrics, EntityType::File);
 
-    assert!(graph.node_count() >= 2, "Graph should have at least 2 nodes");
+    assert!(
+        graph.node_count() >= 2,
+        "Graph should have at least 2 nodes"
+    );
     assert!(graph.edge_count() >= 1, "Graph should have at least 1 edge");
     assert!(graph.contains("src/parser.rs"));
 
@@ -226,8 +345,14 @@ fn test_impact_scoring() {
 
     let result = analyzer.analyze("src/parser.rs", 10);
     assert_eq!(result.target, "src/parser.rs");
-    assert!(result.risk_score >= 0.0 && result.risk_score <= 1.0, "Risk score should be in [0, 1]");
-    assert!(!result.coupled_entities.is_empty(), "Should have coupled entities");
+    assert!(
+        result.risk_score >= 0.0 && result.risk_score <= 1.0,
+        "Risk score should be in [0, 1]"
+    );
+    assert!(
+        !result.coupled_entities.is_empty(),
+        "Should have coupled entities"
+    );
 }
 
 #[test]

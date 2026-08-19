@@ -21,7 +21,7 @@ fn test_code_maat_formulas_without_decay() {
     config.min_support = 1; // Analyze everything
 
     let mut pairs = Vec::new();
-    
+
     // Scenario:
     // A touches: 5 times total
     // B touches: 10 times total
@@ -59,15 +59,26 @@ fn test_code_maat_formulas_without_decay() {
     let metrics = MetricsComputer::compute(&pairs, 11, &config);
 
     // Find the A-B coupling
-    let m = metrics.iter().find(|m| m.entity_a == "A" && m.entity_b == "B").unwrap();
+    let m = metrics
+        .iter()
+        .find(|m| m.entity_a == "A" && m.entity_b == "B")
+        .unwrap();
 
     // Support: N(A ∩ B) = 4
     assert_eq!(m.support, 4);
     assert!((m.weighted_support - 4.0).abs() < 1e-10);
 
     // Code Maat Degree(A->B) = N(A ∩ B) / N(A) = 4 / 5 = 0.8
-    assert!((m.confidence_a_to_b - 0.8).abs() < 1e-10, "Expected P(B|A) = 0.8, got {}", m.confidence_a_to_b);
+    assert!(
+        (m.confidence_a_to_b - 0.8).abs() < 1e-10,
+        "Expected P(B|A) = 0.8, got {}",
+        m.confidence_a_to_b
+    );
 
     // Code Maat Degree(B->A) = N(A ∩ B) / N(B) = 4 / 10 = 0.4
-    assert!((m.confidence_b_to_a - 0.4).abs() < 1e-10, "Expected P(A|B) = 0.4, got {}", m.confidence_b_to_a);
+    assert!(
+        (m.confidence_b_to_a - 0.4).abs() < 1e-10,
+        "Expected P(A|B) = 0.4, got {}",
+        m.confidence_b_to_a
+    );
 }
