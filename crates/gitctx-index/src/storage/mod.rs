@@ -230,4 +230,103 @@ impl StorageEngine {
     pub fn explain_cache(&self) -> ExplainCacheStore<'_> {
         ExplainCacheStore::new(&self.conn)
     }
+
+    // --- Co-change analysis queries (Phase 7: GRAPH-01..05) ---
+
+    /// Query all commits with their distinct file-touch counts for commit-size filtering.
+    ///
+    /// Returns `(commit_hash, email, authored_at, file_count)` ordered by `topo_order ASC`.
+    pub fn query_commit_file_counts(&self) -> rusqlite::Result<Vec<(String, String, i64, u32)>> {
+        let mut stmt = self.conn.prepare_cached(
+            "SELECT c.hash, c.email, c.authored_at, COUNT(DISTINCT ft.path) as file_count
+            FROM commits c
+            JOIN function_touches ft ON c.hash = ft.commit_hash
+            GROUP BY c.hash
+            ORDER BY c.topo_order ASC;",
+        )?;
+
+        let rows = stmt.query_map([], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, i64>(2)?,
+                row.get::<_, u32>(3)?,
+            ))
+        })?;
+
+        let mut results = Vec::new();
+        for r in rows {
+            results.push(r?);
+        }
+        Ok(results)
+    }
+
+    /// Query distinct file paths touched by a specific commit.
+    pub fn query_commit_touched_paths(&self, commit_hash: &str) -> rusqlite::Result<Vec<String>> {
+        let mut stmt = self
+            .conn
+            .prepare_cached("SELECT DISTINCT path FROM function_touches WHERE commit_hash = ?1;")?;
+
+        let rows = stmt.query_map(params![commit_hash], |row| row.get::<_, String>(0))?;
+
+        let mut paths = Vec::new();
+        for r in rows {
+            paths.push(r?);
+        }
+        paths.sort();
+        Ok(paths)
+    }
+
+    /// Query distinct (lineage_id, qualified_name) pairs touched by a specific commit.
+    pub fn query_commit_touched_functions(
+        &self,
+        commit_hash: &str,
+    ) -> rusqlite::Result<Vec<(u64, String)>> {
+        let mut stmt = self.conn.prepare_cached(
+            "SELECT DISTINCT lineage_id, qualified_name
+            FROM function_touches
+            WHERE commit_hash = ?1;",
+        )?;
+
+        let rows = stmt.query_map(params![commit_hash], |row| {
+            Ok((row.get::<_, u64>(0)?, row.get::<_, String>(1)?))
+        })?;
+
+        let mut funcs = Vec::new();
+        for r in rows {
+            funcs.push(r?);
+        }
+        funcs.sort_by(|a, b| a.1.cmp(&b.1));
+        Ok(funcs)
+    }
+
+    /// Query commits that touched a specific file path, returning (hash, authored_at, message).
+    ///
+    /// Used by `ImpactAnalyzer` for follow-up fix counting (GRAPH-03).
+    pub fn query_commits_touching_path(
+        &self,
+        path: &str,
+    ) -> rusqlite::Result<Vec<(String, i64, String)>> {
+        let mut stmt = self.conn.prepare_cached(
+            "SELECT DISTINCT c.hash, c.authored_at, c.message
+            FROM commits c
+            JOIN function_touches ft ON c.hash = ft.commit_hash
+            WHERE ft.path = ?1
+            ORDER BY c.topo_order ASC;",
+        )?;
+
+        let rows = stmt.query_map(params![path], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, i64>(1)?,
+                row.get::<_, String>(2)?,
+            ))
+        })?;
+
+        let mut results = Vec::new();
+        for r in rows {
+            results.push(r?);
+        }
+        Ok(results)
+    }
 }

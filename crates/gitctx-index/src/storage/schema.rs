@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS function_touches (
 CREATE INDEX IF NOT EXISTS ix_touch_lineage ON function_touches(lineage_id, commit_hash);
 CREATE INDEX IF NOT EXISTS ix_touch_qualname ON function_touches(qualified_name);
 CREATE INDEX IF NOT EXISTS ix_touch_commit ON function_touches(commit_hash);
+CREATE INDEX IF NOT EXISTS ix_touch_path ON function_touches(path);
 
 CREATE TABLE IF NOT EXISTS embeddings (
     touch_id INTEGER PRIMARY KEY REFERENCES function_touches(touch_id),
