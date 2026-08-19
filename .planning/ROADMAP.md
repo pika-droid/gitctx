@@ -21,7 +21,7 @@ To avoid reinventing the wheel and ensure architectural alignment, all phases le
 - [x] **Phase 4: Rust Git Extraction & Tree-Sitter Historical Parser** - Build `libgit2` first-parent commit walker with rename detection, historical `tree-sitter` parser with graceful degradation, and template chunk renderer. (completed 2026-08-17)
 - [x] **Phase 5: Function Lineage Engine & Mutation Oracle** - Implement multi-tier MinHash lineage resolution across renames/moves, validated against synthetic mutation suite (M1-M10) and `git log -L`. (completed 2026-08-17)
 - [x] **Phase 6: Deterministic Storage & Hybrid Retrieval Engine** - SQLite database layer, Tantivy BM25, mmap f32 dense vectors, RRF fusion ($k=60$), exact symbol fast-path, and deterministic chain assembly. (completed 2026-08-18)
-- [ ] **Phase 7: Co-Change Graph & Impact Analysis Engine** - Commit-size filtering ($\le 25$), normalized co-change metrics (support, confidence, lift), time-decay weighting, and `impact` risk scoring against `code-maat`.
+- [x] **Phase 7: Co-Change Graph & Impact Analysis Engine** - Commit-size filtering ($\le 25$), normalized co-change metrics (support, confidence, lift), time-decay weighting, and `impact` risk scoring against `code-maat`. (completed 2026-08-19)
 - [ ] **Phase 8: CLI Interface & Human Output Formatter** - Build core CLI commands (`index`, `search`, `evolution`, `show`, `impact`, `doctor`) with `--json` envelopes and `--format table` terminal timelines.
 - [ ] **Phase 9: Model Context Protocol (MCP) Server Surface** - Stdio MCP server with compact/full token budgeting, JSON-RPC stdout isolation, stale-index detection, and `gitctx init` skill generators.
 - [ ] **Phase 10: Cross-Cutting Verification, Determinism & Performance Benchmarking** - Verify double-indexing byte-identity, incremental index equivalence, offline execution, and pass/fail performance budgets.
@@ -294,10 +294,10 @@ Phases execute sequentially in numeric order: 1 → 2 → 3 → 4 → 5 → 6 �
 | 1. Project Foundation, Invariants & Fixtures | 3/3 | Complete    | 2026-08-16 |
 | 2. Corpus Selection & Ground Truth | 3/3 | Complete    | 2026-08-16 |
 | 3. Retrieval Thesis Validation (Phase 0) | 2/2 | Complete    | 2026-08-17 |
-| 4. Rust Git Extraction & Parser | 0/3 | Not started | - |
-| 5. Function Lineage Engine | 0/3 | Not started | - |
-| 6. Storage & Hybrid Retrieval | 0/4 | Not started | - |
-| 7. Co-Change Graph & Impact | 0/2 | Not started | - |
+| 4. Rust Git Extraction & Parser | 3/3 | Complete    | 2026-08-18 |
+| 5. Function Lineage Engine | 3/3 | Complete    | 2026-08-18 |
+| 6. Storage & Hybrid Retrieval | 4/4 | Complete    | 2026-08-18 |
+| 7. Co-Change Graph & Impact | 2/2 | Complete    | 2026-08-19 |
 | 8. CLI Interface & Formatter | 0/2 | Not started | - |
 | 9. Model Context Protocol (MCP) | 0/2 | Not started | - |
 | 10. Verification & Benchmarking | 0/2 | Not started | - |
