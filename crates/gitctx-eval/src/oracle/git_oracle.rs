@@ -71,12 +71,55 @@ pub struct OracleComparisonReport {
 pub struct GitLogOracleComparator;
 
 impl GitLogOracleComparator {
+    /// Validate that a function name is safe for use in `git log -L :func:file`.
+    ///
+    /// Rejects names containing characters that could corrupt the `-L` argument parsing:
+    /// colons (which delimit the `-L` format), newlines, null bytes, or other control characters.
+    fn is_safe_func_name(name: &str) -> bool {
+        !name.is_empty()
+            && !name.contains(':')
+            && !name.contains('\n')
+            && !name.contains('\r')
+            && !name.contains('\0')
+            && name.chars().all(|c| !c.is_control())
+    }
+
+    /// Validate that a file path is safe for use in `git log -L :func:file`.
+    ///
+    /// Rejects paths containing newlines, null bytes, or control characters that could
+    /// corrupt git argument parsing. Colons are allowed in file paths (e.g. Windows drive letters
+    /// are stripped by the caller, and `:` can appear in some valid Unix paths).
+    fn is_safe_file_path(path: &str) -> bool {
+        !path.is_empty()
+            && !path.contains('\n')
+            && !path.contains('\r')
+            && !path.contains('\0')
+            && path.chars().all(|c| !c.is_control())
+    }
+
     /// Execute `git log -L :func:file` via git CLI on the given repository.
+    ///
+    /// Inputs are validated before shell execution to prevent argument corruption
+    /// from adversarial function names or file paths in corpus repositories.
     pub fn query_git_log_l(
         repo_path: impl AsRef<Path>,
         func_name: &str,
         file_path: &str,
     ) -> Result<Vec<String>> {
+        // Reject inputs that could corrupt the -L argument format
+        if !Self::is_safe_func_name(func_name) {
+            tracing::warn!(
+                "Skipping git log -L for unsafe func_name {:?} in {:?}",
+                func_name,
+                file_path
+            );
+            return Ok(vec![]);
+        }
+        if !Self::is_safe_file_path(file_path) {
+            tracing::warn!("Skipping git log -L for unsafe file_path {:?}", file_path);
+            return Ok(vec![]);
+        }
+
         let output = Command::new("git")
             .arg("-C")
             .arg(repo_path.as_ref())

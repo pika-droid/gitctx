@@ -76,9 +76,20 @@ impl MmapVectorStorage {
     }
 
     /// Return all stored float elements as a contiguous `&[f32]` slice.
+    ///
+    /// # Safety
+    /// The `VECTOR_HEADER_SIZE` is statically asserted to be 4-byte aligned, and a runtime
+    /// debug assertion verifies pointer alignment before the cast. This guarantees the
+    /// reinterpretation from `&[u8]` to `&[f32]` is sound on all architectures (including ARM/RISC-V).
     #[allow(unsafe_code)]
     #[allow(clippy::cast_ptr_alignment)]
     pub fn all_vectors(&self) -> &[f32] {
+        // Compile-time guarantee: header size is a multiple of f32 alignment (4 bytes).
+        const _: () = assert!(
+            VECTOR_HEADER_SIZE % std::mem::align_of::<f32>() == 0,
+            "VECTOR_HEADER_SIZE must be aligned to f32 (4 bytes)"
+        );
+
         let count = self.count();
         let dim = self.dimension();
         let total_elements = count * dim;
@@ -86,7 +97,13 @@ impl MmapVectorStorage {
             return &[];
         }
 
-        let payload_ptr = unsafe { self.mmap.as_ptr().add(VECTOR_HEADER_SIZE).cast::<f32>() };
+        let payload_ptr = unsafe { self.mmap.as_ptr().add(VECTOR_HEADER_SIZE) };
+        debug_assert_eq!(
+            payload_ptr as usize % std::mem::align_of::<f32>(),
+            0,
+            "mmap payload pointer is not 4-byte aligned for f32 access"
+        );
+        let payload_ptr = payload_ptr.cast::<f32>();
         unsafe { std::slice::from_raw_parts(payload_ptr, total_elements) }
     }
 

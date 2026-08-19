@@ -99,7 +99,12 @@ impl StorageEngine {
         Ok(Self { conn })
     }
 
-    /// Open an unvalidated connection for raw operations.
+    /// Open an unvalidated connection for raw test operations.
+    ///
+    /// # Safety (logical)
+    /// This bypasses `schema_version` and `config_hash` validation (INVAR-03).
+    /// **WARNING: Restricted to testing use only. Do not use in production.**
+    #[doc(hidden)]
     pub fn open_raw<P: AsRef<Path>>(path: P) -> Result<Self, rusqlite::Error> {
         let conn = open_connection(path)?;
         initialize_schema(&conn)?;
@@ -181,15 +186,16 @@ impl StorageEngine {
         Ok(touches)
     }
 
-    /// Query touches matching a qualified name.
+    /// Query touches matching a qualified name, ordered by topological commit order.
     pub fn query_touches_by_qualname(&self, qualname: &str) -> rusqlite::Result<Vec<TouchRecord>> {
         let mut stmt = self.conn.prepare_cached(
             "SELECT 
-                touch_id, lineage_id, commit_hash, path, qualified_name, arity, change_type,
-                signature_before, signature_after, fingerprint, chunk_text, parse_status, start_line, end_line
-            FROM function_touches
-            WHERE qualified_name = ?1
-            ORDER BY touch_id ASC;",
+                ft.touch_id, ft.lineage_id, ft.commit_hash, ft.path, ft.qualified_name, ft.arity, ft.change_type,
+                ft.signature_before, ft.signature_after, ft.fingerprint, ft.chunk_text, ft.parse_status, ft.start_line, ft.end_line
+            FROM function_touches ft
+            JOIN commits c ON ft.commit_hash = c.hash
+            WHERE ft.qualified_name = ?1
+            ORDER BY c.topo_order ASC, ft.touch_id ASC;",
         )?;
 
         let rows = stmt.query_map(params![qualname], |row| {
