@@ -1043,6 +1043,7 @@ dependencies = [
  "anyhow",
  "clap",
  "comfy-table",
+ "git2",
  "gitctx-core",
  "gitctx-index",
  "gitctx-query",

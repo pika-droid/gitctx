@@ -3,6 +3,8 @@ pub mod index;
 pub mod search;
 pub mod evolution;
 pub mod show;
+pub mod impact;
+pub mod blame;
 
 use clap::Subcommand;
 
@@ -30,7 +32,10 @@ pub enum Commands {
         hash: String,
     },
     /// Analyze risk and impact for recent commits
-    Impact,
+    Impact {
+        /// Entity to analyze impact for (optional)
+        target: Option<String>,
+    },
     /// View line-level attribution for a file
     Blame {
         /// File path to blame

@@ -56,21 +56,11 @@ fn run(cli: Cli) -> anyhow::Result<()> {
         Some(Commands::Show { hash }) => {
             commands::show::run(&hash, format)?;
         }
-        Some(Commands::Impact) => {
-            if format == Format::Json {
-                let env = ResponseEnvelope::success("Impact analysis results");
-                println!("{}", serde_json::to_string_pretty(&env)?);
-            } else {
-                println!("Analyzing risk and impact...");
-            }
+        Some(Commands::Impact { target }) => {
+            commands::impact::run(target.as_deref(), format)?;
         }
         Some(Commands::Blame { file_path }) => {
-            if format == Format::Json {
-                let env = ResponseEnvelope::success(format!("Blame for {file_path}"));
-                println!("{}", serde_json::to_string_pretty(&env)?);
-            } else {
-                println!("Viewing line-level attribution for: {file_path}");
-            }
+            commands::blame::run(&file_path, format)?;
         }
         Some(Commands::Doctor) => {
             commands::doctor::run(format)?;
