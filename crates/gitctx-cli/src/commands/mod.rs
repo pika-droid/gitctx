@@ -1,5 +1,8 @@
 pub mod doctor;
 pub mod index;
+pub mod search;
+pub mod evolution;
+pub mod show;
 
 use clap::Subcommand;
 

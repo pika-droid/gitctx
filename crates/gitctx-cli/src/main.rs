@@ -48,28 +48,13 @@ fn run(cli: Cli) -> anyhow::Result<()> {
             commands::index::run(&repo_path, format)?;
         }
         Some(Commands::Search { query }) => {
-            if format == Format::Json {
-                let env = ResponseEnvelope::success(format!("Search result for {query}"));
-                println!("{}", serde_json::to_string_pretty(&env)?);
-            } else {
-                println!("Querying repository for: {query}");
-            }
+            commands::search::run(&query, format)?;
         }
         Some(Commands::Evolution { identifier }) => {
-            if format == Format::Json {
-                let env = ResponseEnvelope::success(format!("Evolution of {identifier}"));
-                println!("{}", serde_json::to_string_pretty(&env)?);
-            } else {
-                println!("Tracking evolution of: {identifier}");
-            }
+            commands::evolution::run(&identifier, format)?;
         }
         Some(Commands::Show { hash }) => {
-            if format == Format::Json {
-                let env = ResponseEnvelope::success(format!("Details of {hash}"));
-                println!("{}", serde_json::to_string_pretty(&env)?);
-            } else {
-                println!("Showing details for commit: {hash}");
-            }
+            commands::show::run(&hash, format)?;
         }
         Some(Commands::Impact) => {
             if format == Format::Json {
