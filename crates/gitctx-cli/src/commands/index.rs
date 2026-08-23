@@ -10,7 +10,7 @@ use std::time::Instant;
 pub fn run(repo_path: &str, format: Format) -> anyhow::Result<()> {
     let start_time = Instant::now();
     let path = Path::new(repo_path);
-    
+
     // In a real scenario, this config would be loaded from a config file or CLI args
     let config = IndexConfig::new(
         CURRENT_SCHEMA_VERSION,
@@ -36,7 +36,7 @@ pub fn run(repo_path: &str, format: Format) -> anyhow::Result<()> {
         }));
         println!("{}", serde_json::to_string_pretty(&env)?);
     } else {
-        println!("Successfully indexed repository in {:?}", duration);
+        println!("Successfully indexed repository in {duration:?}");
     }
 
     Ok(())

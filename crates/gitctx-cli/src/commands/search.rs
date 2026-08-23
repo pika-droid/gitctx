@@ -17,45 +17,40 @@ pub fn run(query: &str, format: Format) -> Result<()> {
     let vectors_path = current_dir.join(".gitctx").join("vectors.bin");
 
     if !db_path.exists() {
-        anyhow::bail!("Index database not found at {}. Have you run 'gitctx index'?", db_path.display());
+        anyhow::bail!(
+            "Index database not found at {}. Have you run 'gitctx index'?",
+            db_path.display()
+        );
     }
 
-    let config = IndexConfig::new(
-        CURRENT_SCHEMA_VERSION,
-        "BGESmallENV15",
-        "code",
-        500,
-        1,
-    );
+    let config = IndexConfig::new(CURRENT_SCHEMA_VERSION, "BGESmallENV15", "code", 500, 1);
 
-    let storage = StorageEngine::open(&db_path, &config)
-        .context("Failed to open storage engine")?;
-        
+    let storage =
+        StorageEngine::open(&db_path, &config).context("Failed to open storage engine")?;
+
     let tantivy = TantivyEngine::open(&tantivy_path).ok();
     let vectors = MmapVectorStorage::open(&vectors_path).ok();
 
     if format == Format::Table {
-        println!("Querying repository for: {}", query);
+        println!("Querying repository for: {query}");
     }
 
     // Embed the query for dense vector search if vectors exist
     let query_vector = if vectors.is_some() {
-        let mut embedder = FastEmbedGenerator::new(None)
-            .context("Failed to initialize embedder")?;
-        let mut embeddings = embedder.embed_texts(&[query.to_string()], None)
+        let mut embedder =
+            FastEmbedGenerator::new(None).context("Failed to initialize embedder")?;
+        let mut embeddings = embedder
+            .embed_texts(&[query.to_string()], None)
             .context("Failed to embed query")?;
         embeddings.pop()
     } else {
         None
     };
 
-    let retriever = HybridRetriever::new(
-        storage.connection(),
-        tantivy.as_ref(),
-        vectors.as_ref(),
-    );
+    let retriever = HybridRetriever::new(storage.connection(), tantivy.as_ref(), vectors.as_ref());
 
-    let results = retriever.search(query, query_vector.as_deref(), 10)
+    let results = retriever
+        .search(query, query_vector.as_deref(), 10)
         .context("Search failed")?;
 
     let duration = start_time.elapsed();
@@ -68,24 +63,39 @@ pub fn run(query: &str, format: Format) -> Result<()> {
             "duration_ms": duration.as_millis(),
         }));
         println!("{}", serde_json::to_string_pretty(&env)?);
+    } else if results.is_empty() {
+        println!("No results found.");
     } else {
-        if results.is_empty() {
-            println!("No results found.");
-        } else {
-            for (i, result) in results.iter().enumerate() {
-                println!("\n[{}] Rank {} (Score: {:.4}, Citation: {})", i + 1, result.rank, result.score, result.citation.match_rule);
-                println!("File: {} @ {}:{}", result.path, result.citation.start_line, result.citation.end_line);
-                println!("Function: {}", result.qualified_name);
-                println!("Commit: {}", result.commit_hash);
-                if result.chunk_text.lines().count() > 5 {
-                    println!("{}", result.chunk_text.lines().take(5).collect::<Vec<_>>().join("\n"));
-                    println!("... (truncated)");
-                } else {
-                    println!("{}", result.chunk_text);
-                }
+        for (i, result) in results.iter().enumerate() {
+            println!(
+                "\n[{}] Rank {} (Score: {:.4}, Citation: {})",
+                i + 1,
+                result.rank,
+                result.score,
+                result.citation.match_rule
+            );
+            println!(
+                "File: {} @ {}:{}",
+                result.path, result.citation.start_line, result.citation.end_line
+            );
+            println!("Function: {}", result.qualified_name);
+            println!("Commit: {}", result.commit_hash);
+            if result.chunk_text.lines().count() > 5 {
+                println!(
+                    "{}",
+                    result
+                        .chunk_text
+                        .lines()
+                        .take(5)
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                );
+                println!("... (truncated)");
+            } else {
+                println!("{}", result.chunk_text);
             }
-            println!("\nFound {} results in {:?}", results.len(), duration);
         }
+        println!("\nFound {} results in {:?}", results.len(), duration);
     }
 
     Ok(())

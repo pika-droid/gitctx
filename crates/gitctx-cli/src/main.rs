@@ -24,7 +24,7 @@ struct Cli {
     format: Format,
 }
 
-#[derive(ValueEnum, Clone, Debug, PartialEq)]
+#[derive(ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Format {
     Json,
     Table,
@@ -32,7 +32,7 @@ pub enum Format {
 
 fn main() {
     let cli = Cli::parse();
-    
+
     if let Err(e) = run(cli) {
         // We handle errors nicely by checking if format is json, otherwise printing to stderr
         // The global format flag isn't easily accessible here if we just failed matching, but we'll try

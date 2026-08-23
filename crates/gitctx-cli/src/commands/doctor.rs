@@ -1,6 +1,6 @@
-use crate::Format;
 use crate::envelope::ResponseEnvelope;
 use crate::format::format_doctor;
+use crate::Format;
 
 pub fn run(format: Format) -> anyhow::Result<()> {
     // Basic diagnostic output
@@ -17,6 +17,6 @@ pub fn run(format: Format) -> anyhow::Result<()> {
     } else {
         format_doctor(true, true, true);
     }
-    
+
     Ok(())
 }

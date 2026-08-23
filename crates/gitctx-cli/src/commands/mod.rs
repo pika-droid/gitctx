@@ -1,10 +1,10 @@
+pub mod blame;
 pub mod doctor;
+pub mod evolution;
+pub mod impact;
 pub mod index;
 pub mod search;
-pub mod evolution;
 pub mod show;
-pub mod impact;
-pub mod blame;
 
 use clap::Subcommand;
 

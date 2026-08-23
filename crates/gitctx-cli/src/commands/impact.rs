@@ -15,41 +15,44 @@ pub fn run(target: Option<&str>, format: Format) -> Result<()> {
     let db_path = current_dir.join(".gitctx").join("index.db");
 
     if !db_path.exists() {
-        anyhow::bail!("Index database not found at {}. Have you run 'gitctx index'?", db_path.display());
+        anyhow::bail!(
+            "Index database not found at {}. Have you run 'gitctx index'?",
+            db_path.display()
+        );
     }
 
-    let config = IndexConfig::new(
-        CURRENT_SCHEMA_VERSION,
-        "BGESmallENV15",
-        "code",
-        500,
-        1,
-    );
+    let config = IndexConfig::new(CURRENT_SCHEMA_VERSION, "BGESmallENV15", "code", 500, 1);
 
-    let storage = StorageEngine::open(&db_path, &config)
-        .context("Failed to open storage engine")?;
+    let storage =
+        StorageEngine::open(&db_path, &config).context("Failed to open storage engine")?;
 
     if format == Format::Table {
         if let Some(t) = target {
-            println!("Analyzing risk and impact for: {}", t);
+            println!("Analyzing risk and impact for: {t}");
         } else {
             println!("Extracting co-change coupling graph for the repository...");
         }
     }
 
-    let now_epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs() as i64;
+    let secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let now_epoch = i64::try_from(secs).unwrap_or(i64::MAX);
     let cochange_config = CoChangeConfig::with_reference_epoch(now_epoch);
 
     let extractor = CoChangeExtractor::new(&storage, &cochange_config);
     let (file_pairs, func_pairs, stats) = extractor.extract().map_err(|e| anyhow::anyhow!(e))?;
 
-    let file_metrics = MetricsComputer::compute(&file_pairs, stats.qualifying_commits, &cochange_config);
-    let func_metrics = MetricsComputer::compute(&func_pairs, stats.qualifying_commits, &cochange_config);
+    let file_metrics =
+        MetricsComputer::compute(&file_pairs, stats.qualifying_commits, &cochange_config);
+    let func_metrics =
+        MetricsComputer::compute(&func_pairs, stats.qualifying_commits, &cochange_config);
 
     if let Some(t) = target {
         // Find if it's a file or function
         let is_file = t.contains('.') && !t.contains("::");
-        
+
         let graph = if is_file {
             CoChangeGraph::from_metrics(&file_metrics, EntityType::File)
         } else {
@@ -67,17 +70,19 @@ pub fn run(target: Option<&str>, format: Format) -> Result<()> {
             }));
             println!("{}", serde_json::to_string_pretty(&env)?);
         } else {
-            println!("\nImpact Analysis for {}", t);
+            println!("\nImpact Analysis for {t}");
             println!("Risk Score: {:.2}", impact.risk_score);
             println!("Follow-up Fixes: {}", impact.followup_fix_count);
-            
+
             if impact.coupled_entities.is_empty() {
                 println!("\nNo strongly coupled entities found.");
             } else {
                 println!("\nHighly Coupled Entities:");
                 for coupled in impact.coupled_entities {
-                    println!("  - {} (Confidence: {:.2}, Lift: {:.2}, Support: {})", 
-                        coupled.name, coupled.confidence, coupled.lift, coupled.support);
+                    println!(
+                        "  - {} (Confidence: {:.2}, Lift: {:.2}, Support: {})",
+                        coupled.name, coupled.confidence, coupled.lift, coupled.support
+                    );
                 }
             }
         }
@@ -94,19 +99,29 @@ pub fn run(target: Option<&str>, format: Format) -> Result<()> {
             println!("{}", serde_json::to_string_pretty(&env)?);
         } else {
             println!("\nCo-Change Extraction Stats:");
-            println!("  Commits: {} ({} qualifying)", stats.total_commits, stats.qualifying_commits);
-            println!("  Filtered: {} by size, {} by bots", stats.size_filtered, stats.bot_filtered);
-            
+            println!(
+                "  Commits: {} ({} qualifying)",
+                stats.total_commits, stats.qualifying_commits
+            );
+            println!(
+                "  Filtered: {} by size, {} by bots",
+                stats.size_filtered, stats.bot_filtered
+            );
+
             println!("\nTop 5 File Couplings:");
             for metric in file_metrics.iter().take(5) {
-                println!("  {} <-> {} (Support: {}, Lift: {:.2})", 
-                    metric.entity_a, metric.entity_b, metric.support, metric.lift);
+                println!(
+                    "  {} <-> {} (Support: {}, Lift: {:.2})",
+                    metric.entity_a, metric.entity_b, metric.support, metric.lift
+                );
             }
 
             println!("\nTop 5 Function Couplings:");
             for metric in func_metrics.iter().take(5) {
-                println!("  {} <-> {} (Support: {}, Lift: {:.2})", 
-                    metric.entity_a, metric.entity_b, metric.support, metric.lift);
+                println!(
+                    "  {} <-> {} (Support: {}, Lift: {:.2})",
+                    metric.entity_a, metric.entity_b, metric.support, metric.lift
+                );
             }
         }
     }
