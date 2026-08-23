@@ -32,16 +32,23 @@ impl IndexPipeline {
 
         // Setup output storage
         let mut storage_mgr = AtomicStorageManager::new(repo_path.join(".gitctx"));
+        std::fs::create_dir_all(storage_mgr.base_dir()).map_err(|e| {
+            CoreError::InvariantViolation(format!("Failed to create .gitctx dir: {e}"))
+        })?;
+        std::fs::create_dir_all(storage_mgr.tmp_tantivy_dir()).map_err(|e| {
+            CoreError::InvariantViolation(format!("Failed to create tmp tantivy dir: {e}"))
+        })?;
+
         let conn = crate::storage::open_connection(storage_mgr.tmp_db_path())
-            .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
+            .map_err(|e| CoreError::InvariantViolation(format!("Failed to open temp db: {e}")))?;
 
         let sqlite_writer = BackgroundWriter::new(conn, 100);
         sqlite_writer
             .set_state("schema_version", config.schema_version.to_string())
-            .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
+            .map_err(CoreError::InvariantViolation)?;
         sqlite_writer
             .set_state("config_hash", config.compute_config_hash().as_str())
-            .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
+            .map_err(CoreError::InvariantViolation)?;
 
         let mut tantivy_writer =
             IncrementalTantivyWriter::open_with_budget(storage_mgr.tmp_tantivy_dir(), 32_000_000)
@@ -135,7 +142,7 @@ impl IndexPipeline {
                         start_line: touch.start_line,
                         end_line: touch.end_line,
                     }])
-                    .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
+                    .map_err(CoreError::InvariantViolation)?;
 
                 // Write to Tantivy
                 let doc = TantivyTouchDoc {
@@ -153,7 +160,7 @@ impl IndexPipeline {
 
                 // Generate Embedding
                 let embeddings = embedder
-                    .embed_texts(&[sanitized_chunk.sanitized_text.clone()], None)
+                    .embed_texts(std::slice::from_ref(&sanitized_chunk.sanitized_text), None)
                     .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
 
                 if let Some(vec_f32) = embeddings.into_iter().next() {
@@ -164,7 +171,7 @@ impl IndexPipeline {
 
         sqlite_writer
             .push_commits(commit_records)
-            .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
+            .map_err(CoreError::InvariantViolation)?;
 
         // Also push lineages
         let mut lineages = Vec::new();
@@ -182,12 +189,12 @@ impl IndexPipeline {
         }
         sqlite_writer
             .push_lineages(lineages)
-            .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
+            .map_err(CoreError::InvariantViolation)?;
 
         // 4. Finalize writers
         let final_conn = sqlite_writer
             .finish()
-            .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
+            .map_err(CoreError::InvariantViolation)?;
         AtomicStorageManager::checkpoint_and_close(final_conn)
             .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
 

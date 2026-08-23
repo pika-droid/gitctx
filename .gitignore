@@ -16,6 +16,7 @@ Thumbs.db
 # Ephemeral test directories
 /scratch/
 /tests/temp/
+/.gitctx/
 
 # Python virtual environment and caches
 .venv/

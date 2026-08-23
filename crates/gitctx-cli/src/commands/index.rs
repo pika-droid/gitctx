@@ -1,6 +1,5 @@
 use crate::envelope::ResponseEnvelope;
 use crate::Format;
-use anyhow::Context;
 use gitctx_core::config::IndexConfig;
 use gitctx_index::pipeline::IndexPipeline;
 use gitctx_index::storage::CURRENT_SCHEMA_VERSION;
@@ -24,7 +23,9 @@ pub fn run(repo_path: &str, format: Format) -> anyhow::Result<()> {
         println!("Indexing repository at: {}", path.display());
     }
 
-    IndexPipeline::run(path, &config).context("Failed to run indexing pipeline")?;
+    if let Err(e) = IndexPipeline::run(path, &config) {
+        anyhow::bail!("Failed to run indexing pipeline: {e:?}");
+    }
 
     let duration = start_time.elapsed();
 
