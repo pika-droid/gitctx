@@ -38,6 +38,17 @@ jobs:
       - name: Run Clippy linter
         run: cargo clippy --workspace --all-targets -- -D warnings
 
+      - name: Build workspace tests
+        run: cargo test --workspace --no-run
+
+      - name: Locate and Set ORT_DYLIB_PATH
+        shell: bash
+        run: |
+          ORT_LIB=$(find target/debug/build -type f -name "*onnxruntime*" \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) | head -n 1)
+          if [ -n "$ORT_LIB" ]; then
+            echo "ORT_DYLIB_PATH=$PWD/$ORT_LIB" >> $GITHUB_ENV
+          fi
+
       - name: Run workspace tests
         run: cargo test --workspace
 
