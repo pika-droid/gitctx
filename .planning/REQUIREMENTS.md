@@ -62,11 +62,11 @@
 
 ### Co-Change & Impact Analysis (GRAPH)
 
-- [ ] **GRAPH-01**: Co-change extractor filtering out reformat commits touching $>25$ files and bot commits.
-- [ ] **GRAPH-02**: Normalized association metrics computation (support, confidence $P(B|A)$, lift) with exponential time-decay half-life weighting.
-- [ ] **GRAPH-03**: Operational fix classification linking commits to bug issues or revert pairs to compute `followup_fix_count`.
-- [ ] **GRAPH-04**: In-memory `petgraph` multigraph constructed lazily from SQLite for temporal traversals.
-- [ ] **GRAPH-05**: `impact` command evaluating risk, coupled files, historical fix frequency, and top authors against `code-maat` baseline.
+- [x] **GRAPH-01**: Co-change extractor filtering out reformat commits touching $>25$ files and bot commits.
+- [x] **GRAPH-02**: Normalized association metrics computation (support, confidence $P(B|A)$, lift) with exponential time-decay half-life weighting.
+- [x] **GRAPH-03**: Operational fix classification linking commits to bug issues or revert pairs to compute `followup_fix_count`.
+- [x] **GRAPH-04**: In-memory `petgraph` multigraph constructed lazily from SQLite for temporal traversals.
+- [x] **GRAPH-05**: `impact` command evaluating risk, coupled files, historical fix frequency, and top authors against `code-maat` baseline.
 
 ### CLI & Formatter (CLI)
 
@@ -150,11 +150,11 @@
 | INDEX-05 | Phase 6 | Complete |
 | INDEX-06 | Phase 6 | Complete |
 | INDEX-07 | Phase 6 | Complete |
-| GRAPH-01 | Phase 7 | Pending |
-| GRAPH-02 | Phase 7 | Pending |
-| GRAPH-03 | Phase 7 | Pending |
-| GRAPH-04 | Phase 7 | Pending |
-| GRAPH-05 | Phase 7 | Pending |
+| GRAPH-01 | Phase 7 | Complete |
+| GRAPH-02 | Phase 7 | Complete |
+| GRAPH-03 | Phase 7 | Complete |
+| GRAPH-04 | Phase 7 | Complete |
+| GRAPH-05 | Phase 7 | Complete |
 | CLI-01 | Phase 8 | Pending |
 | CLI-02 | Phase 8 | Pending |
 | CLI-03 | Phase 8 | Pending |
@@ -177,4 +177,4 @@
 
 ---
 *Requirements defined: 2026-08-16*
-*Last updated: 2026-08-16 after initial definition*
+*Last updated: 2026-08-21 after Phase 7 verification*

@@ -186,12 +186,11 @@ Plans:
   4. In-memory `petgraph` multigraph supports efficient temporal and structural traversals.
   5. `gitctx impact` output benchmarked against established `code-maat` tool baseline across temporal holdout splits.
 
-**Plans**: 2 plans
+**Plans**: 1/1 plans executed
 
 Plans:
 
-- [ ] 07-01: Co-change extraction engine with commit-size filtering, time-decay weighting, and normalized association metrics.
-- [ ] 07-02: `petgraph` in-memory graph construction, `impact` risk scoring, and `code-maat` baseline validation.
+- [x] 07-01: Co-change extraction engine, time-decay weighting, petgraph in-memory graph, impact risk scoring, and code-maat validation.
 
 ### Phase 8: CLI Interface & Human Output Formatter
 
