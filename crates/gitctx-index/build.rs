@@ -130,7 +130,7 @@ fn extract_from_tgz(
         let path_str = path.to_string_lossy();
         let filename = path.file_name().unwrap_or_default().to_string_lossy();
         
-        let is_match = if !entry.header().entry_type().is_regular() {
+        let is_match = if !entry.header().entry_type().is_file() {
             false
         } else if target_lib == "libonnxruntime.dylib" {
             filename.starts_with("libonnxruntime.") && filename.ends_with(".dylib") && !path_str.contains("dSYM")
