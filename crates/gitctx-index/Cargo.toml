@@ -20,7 +20,7 @@ tantivy.workspace = true
 fastembed.workspace = true
 memmap2.workspace = true
 rayon.workspace = true
+git2.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
-git2.workspace = true

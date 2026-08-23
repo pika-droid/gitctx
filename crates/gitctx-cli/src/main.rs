@@ -45,12 +45,7 @@ fn run(cli: Cli) -> anyhow::Result<()> {
     let format = cli.format;
     match cli.command {
         Some(Commands::Index { repo_path }) => {
-            if format == Format::Json {
-                let env = ResponseEnvelope::success(format!("Indexed repo at {repo_path}"));
-                println!("{}", serde_json::to_string_pretty(&env)?);
-            } else {
-                println!("Indexing repository at: {repo_path}");
-            }
+            commands::index::run(&repo_path, format)?;
         }
         Some(Commands::Search { query }) => {
             if format == Format::Json {
