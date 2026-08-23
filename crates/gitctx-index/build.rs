@@ -10,7 +10,7 @@ fn main() {
     println!("cargo:rerun-if-env-changed=ORT_DYLIB_PATH");
 
     if let Err(e) = setup_onnxruntime() {
-        println!("cargo:warning=gitctx-index build.rs could not auto-provision ONNX Runtime: {e}");
+        panic!("gitctx-index build.rs could not auto-provision ONNX Runtime: {e}");
     }
 }
 
@@ -49,12 +49,25 @@ fn setup_onnxruntime() -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir_all(&cache_dir)?;
     let cached_lib = cache_dir.join(lib_filename);
 
-    if !cached_lib.exists() {
+    let mut needs_extract = true;
+    if cached_lib.exists() {
+        if let Ok(metadata) = fs::metadata(&cached_lib) {
+            // A valid ONNX runtime binary is several MBs. If it's tiny (like a 0-byte symlink artifact), re-extract.
+            if metadata.len() > 1024 * 1024 {
+                needs_extract = false;
+            } else {
+                let _ = fs::remove_file(&cached_lib);
+            }
+        }
+    }
+
+    if needs_extract {
         let archive_path = cache_dir.join(&filename);
         if !archive_path.exists() {
             let resp = ureq::get(&url)
                 .timeout(std::time::Duration::from_secs(60))
-                .call()?;
+                .call()
+                .map_err(|e| format!("ureq network error: {e}"))?;
             let mut reader = resp.into_reader();
             let mut out = File::create(&archive_path)?;
             std::io::copy(&mut reader, &mut out)?;
