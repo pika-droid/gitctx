@@ -129,11 +129,13 @@ fn extract_from_tgz(
         let path = entry.path()?;
         let path_str = path.to_string_lossy();
         let filename = path.file_name().unwrap_or_default().to_string_lossy();
-        
+
         let is_match = if !entry.header().entry_type().is_file() {
             false
         } else if target_lib == "libonnxruntime.dylib" {
-            filename.starts_with("libonnxruntime.") && filename.ends_with(".dylib") && !path_str.contains("dSYM")
+            filename.starts_with("libonnxruntime.")
+                && filename.ends_with(".dylib")
+                && !path_str.contains("dSYM")
         } else if target_lib == "libonnxruntime.so" {
             filename.starts_with("libonnxruntime.so")
         } else {
