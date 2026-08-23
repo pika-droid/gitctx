@@ -186,6 +186,10 @@ fn test_vector_simd_scoring_and_incremental() {
 }
 
 #[test]
+#[cfg_attr(
+    target_os = "macos",
+    ignore = "onnxruntime 1.22.x crashes during process teardown on macOS"
+)]
 fn test_fastembed_batch_embedding_and_status_filtering() {
     let mut generator = match FastEmbedGenerator::new(None) {
         Ok(g) => g,
