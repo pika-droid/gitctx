@@ -41,10 +41,15 @@ jobs:
       - name: Build workspace tests
         run: cargo test --workspace --no-run
 
-      - name: Locate and Set ORT_DYLIB_PATH
+      - name: Locate and Set ONNX Runtime for Tests
         shell: bash
         run: |
-          ORT_LIB=$(find target/debug/build -type f -name "*onnxruntime*" \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) | head -n 1)
+          # Copy the ONNX runtime binaries directly into the deps directory where test executables run
+          mkdir -p target/debug/deps
+          find target/debug/build -type f -name "*onnxruntime*" \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) -exec cp {} target/debug/deps/ \;
+          
+          # Also set ORT_DYLIB_PATH as an explicit fallback for the ort crate
+          ORT_LIB=$(find target/debug/deps -type f -name "*onnxruntime*" \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) | head -n 1)
           if [ -n "$ORT_LIB" ]; then
             echo "ORT_DYLIB_PATH=$PWD/$ORT_LIB" >> $GITHUB_ENV
           fi
