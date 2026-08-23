@@ -78,7 +78,7 @@ rusqlite = { version = "0.32.1", features = ["bundled"] }
 crossbeam-channel = "0.5.16"
 tantivy = "0.22.0"
 fastembed = "=5.6.0"
-ort = { version = "2.0.0-rc.10", features = ["load-dynamic", "download-binaries", "copy-dylibs"] }
+ort = { version = "=2.0.0-rc.10", features = ["download-binaries", "copy-dylibs"] }
 memmap2 = "0.9.5"
 rayon = "1.10.0"
 petgraph = "0.7"

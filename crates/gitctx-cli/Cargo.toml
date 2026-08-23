@@ -25,3 +25,4 @@ serde_json.workspace = true
 comfy-table = "=7.1.1"
 rusqlite.workspace = true
 git2.workspace = true
+ort.workspace = true

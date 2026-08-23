@@ -62,14 +62,12 @@ impl IndexPipeline {
         let mut vector_data = Vec::new();
         let mut touch_counter: i64 = 0;
 
-        let mut commit_records = Vec::new();
-
         // 1. Walk commits
         for commit_res in walker {
             let commit_info = commit_res?;
             let commit_id = commit_info.commit_id.clone();
 
-            commit_records.push(CommitRecord {
+            let commit_record = CommitRecord {
                 hash: commit_info.commit_id.to_string(),
                 author: commit_info.author_name.clone(),
                 email: commit_info.author_email.clone(),
@@ -85,7 +83,11 @@ impl IndexPipeline {
                 message: commit_info.message.clone(),
                 insertions: 0, // Should be extracted from diff if needed
                 deletions: 0,
-            });
+            };
+
+            sqlite_writer
+                .push_commits(vec![commit_record])
+                .map_err(CoreError::InvariantViolation)?;
 
             // 2. Resolve Lineages for this commit
             let parent_oid = commit_info
@@ -103,6 +105,16 @@ impl IndexPipeline {
             for touch in resolved_commit.touches {
                 touch_counter += 1;
                 let touch_id = touch_counter;
+
+                // Ensure lineage exists in SQLite first
+                sqlite_writer
+                    .push_lineages(vec![LineageRecord {
+                        lineage_id: touch.lineage_id.as_u64(),
+                        current_path: touch.path.clone(),
+                        current_qualified_name: touch.qualname.clone(),
+                        language: "rust".to_string(),
+                    }])
+                    .map_err(CoreError::InvariantViolation)?;
 
                 // Format pseudo-document
                 let template_ctx = FunctionTemplateContext {
@@ -168,28 +180,6 @@ impl IndexPipeline {
                 }
             }
         }
-
-        sqlite_writer
-            .push_commits(commit_records)
-            .map_err(CoreError::InvariantViolation)?;
-
-        // Also push lineages
-        let mut lineages = Vec::new();
-        for (path, syms) in resolver.active_symbols() {
-            for sym in syms {
-                if let Some(lid) = sym.lineage_id {
-                    lineages.push(LineageRecord {
-                        lineage_id: lid.as_u64(),
-                        current_path: path.clone(),
-                        current_qualified_name: sym.qualname.clone(),
-                        language: "rust".to_string(), // Simplify
-                    });
-                }
-            }
-        }
-        sqlite_writer
-            .push_lineages(lineages)
-            .map_err(CoreError::InvariantViolation)?;
 
         // 4. Finalize writers
         let final_conn = sqlite_writer
