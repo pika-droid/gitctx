@@ -128,7 +128,19 @@ fn extract_from_tgz(
         let mut entry = entry?;
         let path = entry.path()?;
         let path_str = path.to_string_lossy();
-        if path_str.ends_with(target_lib) {
+        let filename = path.file_name().unwrap_or_default().to_string_lossy();
+        
+        let is_match = if !entry.header().entry_type().is_regular() {
+            false
+        } else if target_lib == "libonnxruntime.dylib" {
+            filename.starts_with("libonnxruntime.") && filename.ends_with(".dylib") && !path_str.contains("dSYM")
+        } else if target_lib == "libonnxruntime.so" {
+            filename.starts_with("libonnxruntime.so")
+        } else {
+            path_str.ends_with(target_lib)
+        };
+
+        if is_match {
             let mut content = Vec::new();
             entry.read_to_end(&mut content)?;
             fs::write(output, content)?;
