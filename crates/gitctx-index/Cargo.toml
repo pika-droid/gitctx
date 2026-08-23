@@ -25,3 +25,10 @@ git2.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
+
+[build-dependencies]
+ureq = "2.12.1"
+flate2 = "1.0"
+tar = "0.4.46"
+zip = { version = "2.2", default-features = false, features = ["deflate"] }
+

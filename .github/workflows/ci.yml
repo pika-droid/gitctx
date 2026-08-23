@@ -38,21 +38,6 @@ jobs:
       - name: Run Clippy linter
         run: cargo clippy --workspace --all-targets -- -D warnings
 
-      - name: Build workspace tests
-        run: cargo test --workspace --no-run
-
-      - name: Locate and Set ONNX Runtime for Tests
-        shell: bash
-        run: |
-          mkdir -p target/debug/deps
-          # copy-dylibs puts the binary in target/debug/ directly
-          cp target/debug/*onnxruntime* target/debug/deps/ 2>/dev/null || true
-          
-          ORT_LIB=$(find target/debug -maxdepth 1 -type f -name "*onnxruntime*" | head -n 1)
-          if [ -n "$ORT_LIB" ]; then
-            echo "ORT_DYLIB_PATH=$PWD/$ORT_LIB" >> $GITHUB_ENV
-          fi
-
       - name: Run workspace tests
         run: cargo test --workspace
 

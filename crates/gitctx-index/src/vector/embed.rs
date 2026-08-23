@@ -1,10 +1,100 @@
 use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
 use gitctx_core::error::CoreError;
 use gitctx_core::model::ParseStatus;
+use std::path::PathBuf;
+use std::sync::Once;
 
 pub const DEFAULT_EMBEDDING_MODEL: EmbeddingModel = EmbeddingModel::BGESmallENV15;
 pub const DEFAULT_EMBEDDING_DIMENSION: usize = 384;
 pub const DEFAULT_BATCH_SIZE: usize = 128;
+
+static ORT_INIT_ONCE: Once = Once::new();
+
+fn try_find_onnxruntime_dylib() -> Option<PathBuf> {
+    #[cfg(target_os = "windows")]
+    let lib_name = "onnxruntime.dll";
+    #[cfg(target_os = "macos")]
+    let lib_name = "libonnxruntime.dylib";
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    let lib_name = "libonnxruntime.so";
+
+    // 1. Explicit env var
+    if let Ok(path_str) = std::env::var("ORT_DYLIB_PATH") {
+        let p = PathBuf::from(path_str);
+        if p.exists() {
+            return Some(p);
+        }
+    }
+
+    // 2. Next to executable or in deps folder
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(parent) = exe.parent() {
+            let direct = parent.join(lib_name);
+            if direct.exists() {
+                return Some(direct);
+            }
+            let deps = parent.join("deps").join(lib_name);
+            if deps.exists() {
+                return Some(deps);
+            }
+            if let Some(grandparent) = parent.parent() {
+                let gp = grandparent.join(lib_name);
+                if gp.exists() {
+                    return Some(gp);
+                }
+                let gp_deps = grandparent.join("deps").join(lib_name);
+                if gp_deps.exists() {
+                    return Some(gp_deps);
+                }
+            }
+        }
+    }
+
+    // 3. Current working directory or target directory
+    if let Ok(cwd) = std::env::current_dir() {
+        let candidates = [
+            cwd.join(lib_name),
+            cwd.join("target").join("debug").join(lib_name),
+            cwd.join("target").join("debug").join("deps").join(lib_name),
+            cwd.join("target").join("release").join(lib_name),
+            cwd.join("target")
+                .join("release")
+                .join("deps")
+                .join(lib_name),
+        ];
+        for candidate in candidates {
+            if candidate.exists() {
+                return Some(candidate);
+            }
+        }
+    }
+
+    // 4. Cache directory from build script
+    let temp = std::env::temp_dir();
+    if let Ok(entries) = std::fs::read_dir(&temp) {
+        for entry in entries.flatten() {
+            let name = entry.file_name();
+            let name_str = name.to_string_lossy();
+            if name_str.starts_with("gitctx-ort-") {
+                let candidate = entry.path().join(lib_name);
+                if candidate.exists() {
+                    return Some(candidate);
+                }
+            }
+        }
+    }
+
+    None
+}
+
+/// Ensure ONNX Runtime dynamic library is initialized before any FastEmbed call.
+fn ensure_ort_initialized() {
+    ORT_INIT_ONCE.call_once(|| {
+        if let Some(dylib_path) = try_find_onnxruntime_dylib() {
+            let _ = ort::init_from(dylib_path.to_string_lossy()).commit();
+        }
+    });
+}
 
 /// Input item for batch embedding.
 #[derive(Debug, Clone)]
@@ -30,11 +120,28 @@ pub struct FastEmbedGenerator {
 impl FastEmbedGenerator {
     /// Initialize with default or specified embedding model.
     pub fn new(model: Option<EmbeddingModel>) -> Result<Self, CoreError> {
+        ensure_ort_initialized();
+
         let model_type = model.unwrap_or(DEFAULT_EMBEDDING_MODEL);
         let options = InitOptions::new(model_type).with_show_download_progress(false);
-        let model = TextEmbedding::try_new(options).map_err(|e| {
-            CoreError::InvariantViolation(format!("Failed to initialize FastEmbed model: {e}"))
-        })?;
+
+        let model_res = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            TextEmbedding::try_new(options)
+        }));
+
+        let model = match model_res {
+            Ok(Ok(m)) => m,
+            Ok(Err(e)) => {
+                return Err(CoreError::InvariantViolation(format!(
+                    "Failed to initialize FastEmbed model: {e}"
+                )));
+            }
+            Err(_) => {
+                return Err(CoreError::InvariantViolation(
+                    "Panic occurred while initializing ONNX Runtime / FastEmbed model".to_string(),
+                ));
+            }
+        };
 
         Ok(Self {
             model,
