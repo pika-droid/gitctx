@@ -3,7 +3,7 @@ use std::fs::{self, File};
 use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
 
-const ORT_VERSION: &str = "1.22.0";
+const ORT_VERSION: &str = "1.20.1";
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
