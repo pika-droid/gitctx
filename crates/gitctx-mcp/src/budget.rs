@@ -17,8 +17,6 @@ pub enum BudgetMode {
     Full,
 }
 
-
-
 impl BudgetMode {
     /// Parse from optional string, defaulting to Compact.
     pub fn from_str_opt(s: Option<&str>) -> Self {
