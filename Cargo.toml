@@ -77,7 +77,7 @@ tree-sitter-php = "0.23"
 rusqlite = { version = "0.32.1", features = ["bundled"] }
 crossbeam-channel = "0.5.16"
 tantivy = "0.22.0"
-fastembed = "=5.6.0"
+fastembed = { version = "=5.6.0", default-features = false, features = ["ort-load-dynamic", "hf-hub-native-tls"] }
 ort = { version = "=2.0.0-rc.10", features = ["load-dynamic"] }
 memmap2 = "0.9.5"
 rayon = "1.10.0"

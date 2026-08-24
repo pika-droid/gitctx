@@ -65,6 +65,9 @@ fn run(cli: Cli) -> anyhow::Result<()> {
         Some(Commands::Doctor) => {
             commands::doctor::run(format)?;
         }
+        Some(Commands::Init) => {
+            commands::init::run(format)?;
+        }
         None => {
             if format == Format::Json {
                 let env = ResponseEnvelope::success("gitctx CLI initialized");
