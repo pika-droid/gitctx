@@ -172,7 +172,7 @@ impl ToolContext {
         let conn = self.storage.connection();
         let indexed_head: Option<String> = conn
             .query_row(
-                "SELECT value FROM meta WHERE key = 'head_at_index';",
+                "SELECT value FROM index_state WHERE key = 'head_at_index';",
                 [],
                 |row| row.get(0),
             )

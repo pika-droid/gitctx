@@ -1,6 +1,7 @@
 use gitctx_core::config::IndexConfig;
-use gitctx_index::pipeline::IndexPipeline;
-use gitctx_index::storage::CURRENT_SCHEMA_VERSION;
+use gitctx_index::storage::{initialize_schema, open_connection, CURRENT_SCHEMA_VERSION};
+use gitctx_index::tantivy_index::schema::TantivyTouchDoc;
+use gitctx_index::tantivy_index::TantivyEngine;
 use serde_json::Value;
 
 use std::fs;
@@ -50,9 +51,72 @@ fn setup_repo() -> TempDir {
         .output()
         .expect("git commit failed");
 
-    // Index repository directly in-process
+    let repo = git2::Repository::open(path).expect("open git repo");
+    let head_commit = repo
+        .head()
+        .expect("head")
+        .target()
+        .expect("target")
+        .to_string();
+
+    // Set up .gitctx structure directly without ONNX runtime in test process
+    let gitctx_dir = path.join(".gitctx");
+    fs::create_dir_all(&gitctx_dir).expect("create .gitctx dir");
+    let tantivy_dir = gitctx_dir.join("tantivy");
+    fs::create_dir_all(&tantivy_dir).expect("create tantivy dir");
+
+    let db_path = gitctx_dir.join("index.db");
+    let conn = open_connection(&db_path).expect("open index db");
+    initialize_schema(&conn).expect("initialize schema");
+
     let config = IndexConfig::new(CURRENT_SCHEMA_VERSION, "BGESmallENV15", "code", 500, 1);
-    IndexPipeline::run(path, &config).expect("IndexPipeline::run failed");
+    conn.execute(
+        "INSERT INTO index_state (key, value) VALUES ('schema_version', ?1), ('config_hash', ?2), ('head_at_index', ?3)",
+        rusqlite::params![
+            CURRENT_SCHEMA_VERSION.to_string(),
+            config.compute_config_hash().as_str(),
+            head_commit
+        ],
+    )
+    .expect("insert index_state");
+
+    conn.execute(
+        "INSERT INTO commits (hash, author, email, authored_at, topo_order, branch, parent_hashes, message, insertions, deletions)
+         VALUES (?1, 'Test User', 'test@example.com', 1700000000, 1, 'main', '', 'Initial commit', 3, 0)",
+        rusqlite::params![head_commit],
+    )
+    .expect("insert commit");
+
+    conn.execute(
+        "INSERT INTO function_lineage (lineage_id, current_path, current_qualified_name, language)
+         VALUES (1, 'src/main.rs', 'main', 'rust')",
+        [],
+    )
+    .expect("insert lineage");
+
+    conn.execute(
+        "INSERT INTO function_touches (touch_id, lineage_id, commit_hash, path, qualified_name, arity, change_type, signature_before, signature_after, fingerprint, chunk_text, parse_status, start_line, end_line)
+         VALUES (1, 1, ?1, 'src/main.rs', 'main', 0, 'add', NULL, 'fn main()', NULL, 'fn main() {\n    println!(\"Hello, world!\");\n}', 'ok', 1, 3)",
+        rusqlite::params![head_commit],
+    )
+    .expect("insert touch");
+
+    drop(conn);
+
+    let mut tantivy =
+        TantivyEngine::create_in_dir(&tantivy_dir, 15_000_000).expect("create tantivy");
+    tantivy
+        .add_touch(&TantivyTouchDoc {
+            touch_id: 1,
+            lineage_id: 1,
+            commit_hash: head_commit,
+            qualified_name: "main".to_string(),
+            path: "src/main.rs".to_string(),
+            commit_message: "Initial commit".to_string(),
+            chunk_text: "fn main() {\n    println!(\"Hello, world!\");\n}".to_string(),
+        })
+        .expect("add touch doc");
+    tantivy.commit().expect("tantivy commit");
 
     temp_dir
 }
