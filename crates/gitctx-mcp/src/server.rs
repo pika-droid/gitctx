@@ -13,6 +13,7 @@ const SERVER_VERSION: &str = env!("CARGO_PKG_VERSION");
 const PROTOCOL_VERSION: &str = "2024-11-05";
 
 /// Run the stdio MCP server loop.
+#[allow(clippy::needless_pass_by_value)]
 pub fn run_server(ctx: ToolContext) {
     let stdin = io::stdin();
     let stdout = io::stdout();

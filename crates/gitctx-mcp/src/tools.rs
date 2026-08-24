@@ -207,7 +207,10 @@ impl ToolContext {
             .and_then(|v| v.as_str())
             .ok_or("Missing required parameter: query")?;
         let mode = BudgetMode::from_str_opt(params.get("mode").and_then(|v| v.as_str()));
-        let limit = params.get("limit").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
+        let limit = params
+            .get("limit")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(10) as usize;
 
         // Embed query for dense vector search
         let query_vector = if self.vectors.is_some() {
@@ -309,7 +312,10 @@ impl ToolContext {
             .and_then(|v| v.as_str())
             .ok_or("Missing required parameter: target")?;
         let _mode = BudgetMode::from_str_opt(params.get("mode").and_then(|v| v.as_str()));
-        let limit = params.get("limit").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
+        let limit = params
+            .get("limit")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(10) as usize;
 
         let secs = SystemTime::now()
             .duration_since(UNIX_EPOCH)

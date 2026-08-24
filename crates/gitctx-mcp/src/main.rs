@@ -37,13 +37,12 @@ fn main() {
                 "[gitctx-mcp] server will start but tools may fail until 'gitctx index' is run"
             );
             // Try to start anyway — tools will return appropriate errors
-            match ToolContext::open(&cwd) {
-                Ok(ctx) => ctx,
-                Err(_) => {
-                    // Cannot open at all — run a stub server that returns errors for tools
-                    eprintln!("[gitctx-mcp] fatal: cannot initialize. Ensure 'gitctx index' has been run in this directory.");
-                    std::process::exit(1);
-                }
+            if let Ok(ctx) = ToolContext::open(&cwd) {
+                ctx
+            } else {
+                // Cannot open at all — run a stub server that returns errors for tools
+                eprintln!("[gitctx-mcp] fatal: cannot initialize. Ensure 'gitctx index' has been run in this directory.");
+                std::process::exit(1);
             }
         }
     };

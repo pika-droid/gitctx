@@ -12,7 +12,7 @@ fn get_binary_path(name: &str) -> std::path::PathBuf {
         path.pop(); // remove deps
     }
     let exe_name = if cfg!(windows) {
-        format!("{}.exe", name)
+        format!("{name}.exe")
     } else {
         name.to_string()
     };
@@ -30,12 +30,12 @@ fn setup_repo() -> TempDir {
         .output()
         .expect("git init failed");
     Command::new("git")
-        .args(&["config", "user.name", "Test User"])
+        .args(["config", "user.name", "Test User"])
         .current_dir(path)
         .output()
         .expect("git config failed");
     Command::new("git")
-        .args(&["config", "user.email", "test@example.com"])
+        .args(["config", "user.email", "test@example.com"])
         .current_dir(path)
         .output()
         .expect("git config failed");
@@ -51,12 +51,12 @@ fn setup_repo() -> TempDir {
 
     // Commit
     Command::new("git")
-        .args(&["add", "."])
+        .args(["add", "."])
         .current_dir(path)
         .output()
         .expect("git add failed");
     Command::new("git")
-        .args(&["commit", "-m", "Initial commit"])
+        .args(["commit", "-m", "Initial commit"])
         .current_dir(path)
         .output()
         .expect("git commit failed");
@@ -169,11 +169,12 @@ fn test_mcp_inspector() {
     let inner_resp: Value = serde_json::from_str(content).expect("Invalid inner JSON");
 
     assert!(
-        inner_resp["results"].as_array().unwrap().len() >= 1,
+        !inner_resp["results"].as_array().unwrap().is_empty(),
         "Should find at least 1 result for 'main'"
     );
 
     // Cleanup
     drop(stdin);
     let _ = mcp_process.kill();
+    let _ = mcp_process.wait();
 }
