@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 //! JSON-RPC 2.0 protocol types for MCP communication per MCP-03.
 //!
 //! Implements the minimal JSON-RPC 2.0 surface needed for Model Context Protocol:
