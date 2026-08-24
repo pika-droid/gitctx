@@ -4,8 +4,8 @@
 //!   end_line, match_rule, match_confidence, qualified_name. No chunk_text.
 //! - `full`: includes complete chunk_text/diff content. Requires explicit `mode: "full"`.
 
-use gitctx_query::retrieval::RetrievedFact;
 use gitctx_query::chain::{LineageChain, LineageChainNode};
+use gitctx_query::retrieval::RetrievedFact;
 use serde::{Deserialize, Serialize};
 
 /// Budget mode for token-aware MCP responses.

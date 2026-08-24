@@ -207,10 +207,7 @@ impl ToolContext {
             .and_then(|v| v.as_str())
             .ok_or("Missing required parameter: query")?;
         let mode = BudgetMode::from_str_opt(params.get("mode").and_then(|v| v.as_str()));
-        let limit = params
-            .get("limit")
-            .and_then(|v| v.as_u64())
-            .unwrap_or(10) as usize;
+        let limit = params.get("limit").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
 
         // Embed query for dense vector search
         let query_vector = if self.vectors.is_some() {
@@ -312,10 +309,7 @@ impl ToolContext {
             .and_then(|v| v.as_str())
             .ok_or("Missing required parameter: target")?;
         let _mode = BudgetMode::from_str_opt(params.get("mode").and_then(|v| v.as_str()));
-        let limit = params
-            .get("limit")
-            .and_then(|v| v.as_u64())
-            .unwrap_or(10) as usize;
+        let limit = params.get("limit").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
 
         let secs = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -333,18 +327,12 @@ impl ToolContext {
         let is_file = target.contains('.') && !target.contains("::");
 
         let (metrics, entity_type) = if is_file {
-            let m = MetricsComputer::compute(
-                &file_pairs,
-                stats.qualifying_commits,
-                &cochange_config,
-            );
+            let m =
+                MetricsComputer::compute(&file_pairs, stats.qualifying_commits, &cochange_config);
             (m, EntityType::File)
         } else {
-            let m = MetricsComputer::compute(
-                &func_pairs,
-                stats.qualifying_commits,
-                &cochange_config,
-            );
+            let m =
+                MetricsComputer::compute(&func_pairs, stats.qualifying_commits, &cochange_config);
             (m, EntityType::Function)
         };
 
@@ -387,7 +375,8 @@ impl ToolContext {
         let conn = self.storage.connection();
 
         // Check if this is a file path or a function name
-        let is_file = identifier.contains('/') || identifier.contains('\\') || identifier.contains('.');
+        let is_file =
+            identifier.contains('/') || identifier.contains('\\') || identifier.contains('.');
 
         let authors: Vec<(String, i64)> = if is_file {
             // Query authors by file path

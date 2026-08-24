@@ -33,7 +33,9 @@ fn main() {
         }
         Err(e) => {
             eprintln!("[gitctx-mcp] warning: {e}");
-            eprintln!("[gitctx-mcp] server will start but tools may fail until 'gitctx index' is run");
+            eprintln!(
+                "[gitctx-mcp] server will start but tools may fail until 'gitctx index' is run"
+            );
             // Try to start anyway — tools will return appropriate errors
             match ToolContext::open(&cwd) {
                 Ok(ctx) => ctx,

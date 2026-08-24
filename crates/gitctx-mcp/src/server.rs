@@ -3,9 +3,7 @@
 //! Reads JSON-RPC 2.0 messages from stdin line-by-line, dispatches to the appropriate
 //! MCP handler, and writes responses to stdout. All logging goes to stderr.
 
-use crate::protocol::{
-    JsonRpcRequest, JsonRpcResponse, INVALID_PARAMS, METHOD_NOT_FOUND,
-};
+use crate::protocol::{JsonRpcRequest, JsonRpcResponse, INVALID_PARAMS, METHOD_NOT_FOUND};
 use crate::tools::{self, ToolContext};
 use std::io::{self, BufRead, Write};
 
