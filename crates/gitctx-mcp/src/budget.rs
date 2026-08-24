@@ -9,18 +9,15 @@ use gitctx_query::retrieval::RetrievedFact;
 use serde::{Deserialize, Serialize};
 
 /// Budget mode for token-aware MCP responses.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum BudgetMode {
+    #[default]
     Compact,
     Full,
 }
 
-impl Default for BudgetMode {
-    fn default() -> Self {
-        Self::Compact
-    }
-}
+
 
 impl BudgetMode {
     /// Parse from optional string, defaulting to Compact.
