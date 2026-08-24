@@ -1,23 +1,12 @@
+use gitctx_core::config::IndexConfig;
+use gitctx_index::pipeline::IndexPipeline;
+use gitctx_index::storage::CURRENT_SCHEMA_VERSION;
 use serde_json::Value;
 
 use std::fs;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 use tempfile::TempDir;
-
-fn get_binary_path(name: &str) -> std::path::PathBuf {
-    let mut path = std::env::current_exe().expect("current exe");
-    path.pop(); // remove test exe name
-    if path.ends_with("deps") {
-        path.pop(); // remove deps
-    }
-    let exe_name = if cfg!(windows) {
-        format!("{name}.exe")
-    } else {
-        name.to_string()
-    };
-    path.join(exe_name)
-}
 
 fn setup_repo() -> TempDir {
     let temp_dir = TempDir::new().expect("failed to create temp dir");
@@ -61,18 +50,9 @@ fn setup_repo() -> TempDir {
         .output()
         .expect("git commit failed");
 
-    let gitctx_bin = get_binary_path("gitctx");
-    let index_output = Command::new(&gitctx_bin)
-        .arg("index")
-        .current_dir(path)
-        .output()
-        .expect("gitctx index failed to execute");
-
-    assert!(
-        index_output.status.success(),
-        "gitctx index failed: {}",
-        String::from_utf8_lossy(&index_output.stderr)
-    );
+    // Index repository directly in-process
+    let config = IndexConfig::new(CURRENT_SCHEMA_VERSION, "BGESmallENV15", "code", 500, 1);
+    IndexPipeline::run(path, &config).expect("IndexPipeline::run failed");
 
     temp_dir
 }
@@ -80,9 +60,9 @@ fn setup_repo() -> TempDir {
 #[test]
 fn test_mcp_inspector() {
     let repo_dir = setup_repo();
-    let mcp_bin = get_binary_path("gitctx-mcp");
+    let mcp_bin = env!("CARGO_BIN_EXE_gitctx-mcp");
 
-    let mut mcp_process = Command::new(&mcp_bin)
+    let mut mcp_process = Command::new(mcp_bin)
         .current_dir(repo_dir.path())
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
