@@ -70,10 +70,10 @@
 
 ### CLI & Formatter (CLI)
 
-- [ ] **CLI-01**: Core CLI commands: `gitctx index`, `search`, `evolution`, `show`, `impact`, `blame`, `doctor`.
-- [ ] **CLI-02**: Structured `--json` output envelopes with schema version, config hash, warnings, and result citations.
-- [ ] **CLI-03**: Rich `--format table` terminal rendering with chronological evolution timelines, diff stats, pager integration, and `NO_COLOR` support.
-- [ ] **CLI-04**: `gitctx doctor` diagnostic tool checking index freshness, config hashes, vector consistency, and parse status distributions.
+- [x] **CLI-01**: Core CLI commands: `gitctx index`, `search`, `evolution`, `show`, `impact`, `blame`, `doctor`.
+- [x] **CLI-02**: Structured `--json` output envelopes with schema version, config hash, warnings, and result citations.
+- [x] **CLI-03**: Rich `--format table` terminal rendering with chronological evolution timelines, diff stats, pager integration, and `NO_COLOR` support.
+- [x] **CLI-04**: `gitctx doctor` diagnostic tool checking index freshness, config hashes, vector consistency, and parse status distributions.
 
 ### MCP Server (MCP)
 
@@ -155,10 +155,10 @@
 | GRAPH-03 | Phase 7 | Complete |
 | GRAPH-04 | Phase 7 | Complete |
 | GRAPH-05 | Phase 7 | Complete |
-| CLI-01 | Phase 8 | Pending |
-| CLI-02 | Phase 8 | Pending |
-| CLI-03 | Phase 8 | Pending |
-| CLI-04 | Phase 8 | Pending |
+| CLI-01 | Phase 8 | Complete |
+| CLI-02 | Phase 8 | Complete |
+| CLI-03 | Phase 8 | Complete |
+| CLI-04 | Phase 8 | Complete |
 | MCP-01 | Phase 9 | Pending |
 | MCP-02 | Phase 9 | Pending |
 | MCP-03 | Phase 9 | Pending |
@@ -177,4 +177,4 @@
 
 ---
 *Requirements defined: 2026-08-16*
-*Last updated: 2026-08-21 after Phase 7 verification*
+*Last updated: 2026-08-25 after Phase 8 verification*

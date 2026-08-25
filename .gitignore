@@ -1,6 +1,10 @@
 # Rust build artifacts
 /target/
 **/*.rs.bk
+*.dll
+*.so
+*.dylib
+*.dSYM
 
 # Reference repos (allow README.md)
 /reference_repos/*

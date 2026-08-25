@@ -1,4 +1,5 @@
 use crate::envelope::ResponseEnvelope;
+use crate::format::format_show;
 use crate::Format;
 use anyhow::{Context, Result};
 use gitctx_core::config::IndexConfig;
@@ -105,25 +106,15 @@ pub fn run(hash: &str, format: Format) -> Result<()> {
         }));
         println!("{}", serde_json::to_string_pretty(&env)?);
     } else {
-        println!("Commit:  {full_hash}");
-        println!("Author:  {author} <{email}>");
-        println!("Date:    {authored_at}");
-        if !parents.is_empty() {
-            println!("Parents: {parents}");
-        }
-        println!("\n    {}", message.replace('\n', "\n    "));
-
-        println!("\nFunctions Touched ({}):", touches.len());
-        for (path, qual, change, start, end) in touches {
-            println!(
-                "  [{}] {} ({} @ {}:{})",
-                change.to_uppercase(),
-                qual,
-                path,
-                start,
-                end
-            );
-        }
+        format_show(
+            &full_hash,
+            &author,
+            &email,
+            authored_at,
+            &message,
+            &parents,
+            &touches,
+        );
     }
 
     Ok(())

@@ -8,6 +8,10 @@ license.workspace = true
 [lints]
 workspace = true
 
+[lib]
+name = "gitctx_cli"
+path = "src/lib.rs"
+
 [[bin]]
 name = "gitctx"
 path = "src/main.rs"

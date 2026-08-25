@@ -1,4 +1,5 @@
 use crate::envelope::ResponseEnvelope;
+use crate::format::format_evolution;
 use crate::Format;
 use anyhow::{Context, Result};
 use gitctx_core::config::IndexConfig;
@@ -24,10 +25,6 @@ pub fn run(identifier: &str, format: Format) -> Result<()> {
 
     let storage =
         StorageEngine::open(&db_path, &config).context("Failed to open storage engine")?;
-
-    if format == Format::Table {
-        println!("Tracking evolution of: {identifier}");
-    }
 
     // Lookup lineage_id from identifier
     let conn = storage.connection();
@@ -72,27 +69,7 @@ pub fn run(identifier: &str, format: Format) -> Result<()> {
         }));
         println!("{}", serde_json::to_string_pretty(&env)?);
     } else {
-        println!(
-            "Evolution for {} ({} touches):",
-            chain.current_qualified_name,
-            chain.nodes.len()
-        );
-        for node in &chain.nodes {
-            println!(
-                "\nCommit {} by {} on {}",
-                node.touch.commit_hash, node.commit_author, node.commit_authored_at
-            );
-            println!(
-                "Message: {}",
-                node.commit_message.lines().next().unwrap_or("")
-            );
-            println!(
-                "Path: {} @ {}:{}",
-                node.touch.path, node.touch.start_line, node.touch.end_line
-            );
-            println!("Change Type: {}", node.touch.change_type);
-        }
-        println!("\nFound evolution in {duration:?}");
+        format_evolution(&chain);
     }
 
     Ok(())
