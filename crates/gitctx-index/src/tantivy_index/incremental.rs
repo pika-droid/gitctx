@@ -37,7 +37,7 @@ impl IncrementalTantivyWriter {
             .tokenizers()
             .register(CODE_TOKENIZER_NAME, CodeTokenizer);
 
-        let writer = index.writer(memory_budget_bytes)?;
+        let writer = index.writer_with_num_threads(1, memory_budget_bytes)?;
 
         Ok(Self {
             index,
