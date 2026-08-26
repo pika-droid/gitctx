@@ -1,4 +1,5 @@
 use crate::envelope::ResponseEnvelope;
+use crate::format::format_search;
 use crate::Format;
 use anyhow::{Context, Result};
 use gitctx_core::config::IndexConfig;
@@ -31,10 +32,6 @@ pub fn run(query: &str, format: Format) -> Result<()> {
     let tantivy = TantivyEngine::open(&tantivy_path).ok();
     let vectors = MmapVectorStorage::open(&vectors_path).ok();
 
-    if format == Format::Table {
-        println!("Querying repository for: {query}");
-    }
-
     // Embed the query for dense vector search if vectors exist
     let query_vector = if vectors.is_some() {
         let mut embedder =
@@ -63,39 +60,8 @@ pub fn run(query: &str, format: Format) -> Result<()> {
             "duration_ms": duration.as_millis(),
         }));
         println!("{}", serde_json::to_string_pretty(&env)?);
-    } else if results.is_empty() {
-        println!("No results found.");
     } else {
-        for (i, result) in results.iter().enumerate() {
-            println!(
-                "\n[{}] Rank {} (Score: {:.4}, Citation: {})",
-                i + 1,
-                result.rank,
-                result.score,
-                result.citation.match_rule
-            );
-            println!(
-                "File: {} @ {}:{}",
-                result.path, result.citation.start_line, result.citation.end_line
-            );
-            println!("Function: {}", result.qualified_name);
-            println!("Commit: {}", result.commit_hash);
-            if result.chunk_text.lines().count() > 5 {
-                println!(
-                    "{}",
-                    result
-                        .chunk_text
-                        .lines()
-                        .take(5)
-                        .collect::<Vec<_>>()
-                        .join("\n")
-                );
-                println!("... (truncated)");
-            } else {
-                println!("{}", result.chunk_text);
-            }
-        }
-        println!("\nFound {} results in {:?}", results.len(), duration);
+        format_search(query, &results, duration);
     }
 
     Ok(())
