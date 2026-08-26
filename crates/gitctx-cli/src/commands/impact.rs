@@ -1,4 +1,5 @@
 use crate::envelope::ResponseEnvelope;
+use crate::format::{format_impact_global, format_impact_single};
 use crate::Format;
 use anyhow::{Context, Result};
 use gitctx_core::config::IndexConfig;
@@ -25,14 +26,6 @@ pub fn run(target: Option<&str>, format: Format) -> Result<()> {
 
     let storage =
         StorageEngine::open(&db_path, &config).context("Failed to open storage engine")?;
-
-    if format == Format::Table {
-        if let Some(t) = target {
-            println!("Analyzing risk and impact for: {t}");
-        } else {
-            println!("Extracting co-change coupling graph for the repository...");
-        }
-    }
 
     let secs = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -70,21 +63,7 @@ pub fn run(target: Option<&str>, format: Format) -> Result<()> {
             }));
             println!("{}", serde_json::to_string_pretty(&env)?);
         } else {
-            println!("\nImpact Analysis for {t}");
-            println!("Risk Score: {:.2}", impact.risk_score);
-            println!("Follow-up Fixes: {}", impact.followup_fix_count);
-
-            if impact.coupled_entities.is_empty() {
-                println!("\nNo strongly coupled entities found.");
-            } else {
-                println!("\nHighly Coupled Entities:");
-                for coupled in impact.coupled_entities {
-                    println!(
-                        "  - {} (Confidence: {:.2}, Lift: {:.2}, Support: {})",
-                        coupled.name, coupled.confidence, coupled.lift, coupled.support
-                    );
-                }
-            }
+            format_impact_single(t, &impact);
         }
     } else {
         // Global analysis
@@ -98,31 +77,7 @@ pub fn run(target: Option<&str>, format: Format) -> Result<()> {
             }));
             println!("{}", serde_json::to_string_pretty(&env)?);
         } else {
-            println!("\nCo-Change Extraction Stats:");
-            println!(
-                "  Commits: {} ({} qualifying)",
-                stats.total_commits, stats.qualifying_commits
-            );
-            println!(
-                "  Filtered: {} by size, {} by bots",
-                stats.size_filtered, stats.bot_filtered
-            );
-
-            println!("\nTop 5 File Couplings:");
-            for metric in file_metrics.iter().take(5) {
-                println!(
-                    "  {} <-> {} (Support: {}, Lift: {:.2})",
-                    metric.entity_a, metric.entity_b, metric.support, metric.lift
-                );
-            }
-
-            println!("\nTop 5 Function Couplings:");
-            for metric in func_metrics.iter().take(5) {
-                println!(
-                    "  {} <-> {} (Support: {}, Lift: {:.2})",
-                    metric.entity_a, metric.entity_b, metric.support, metric.lift
-                );
-            }
+            format_impact_global(&stats, &file_metrics, &func_metrics);
         }
     }
 
