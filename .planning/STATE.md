@@ -56,7 +56,7 @@ Progress: [██████████] 100% (Phase 11 — Milestone v1.0)
 | 8. CLI Interface & Formatter | 2/2 | 2 | - |
 | 9. Model Context Protocol (MCP) | 2/2 | 2 | - |
 | 10. Verification & Benchmarking | 2/2 | 2 | - |
-| 11. Evaluation Report & Defense | 0/2 | - | - |
+| 11. Evaluation Report & Defense | 2/2 | 2 | - |
 
 **Recent Trend:**
 
