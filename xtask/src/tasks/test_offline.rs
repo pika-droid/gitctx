@@ -27,25 +27,48 @@ pub fn run_test_offline() -> Result<()> {
         .context("Offline test execution failed under Tier 1 proxy blockade")?;
     println!("--> [Tier 1] PASS: All tests passed with network proxy blackholed.\n");
 
-    // Tier 2: Linux OS-level network namespace isolation (`unshare -n`)
+    // Tier 2: Linux OS-level network namespace isolation (`unshare -r -n`)
     if cfg!(target_os = "linux") {
         println!(
-            "--> [Tier 2] Linux detected: Attempting unshare -n network namespace isolation..."
+            "--> [Tier 2] Linux detected: Attempting unshare -r -n network namespace isolation..."
         );
         let unshare_check = Command::new("unshare")
-            .args(["-n", "cargo", "test", "--workspace"])
+            .args(["-r", "-n", "cargo", "test", "--workspace"])
             .current_dir(&root)
             .status();
 
         match unshare_check {
             Ok(status) if status.success() => {
-                println!("--> [Tier 2] PASS: unshare -n network isolation verified.\n");
+                println!("--> [Tier 2] PASS: unshare -r -n network isolation verified.\n");
             }
             Ok(status) => {
-                bail!(
-                    "Tier 2 unshare -n test failed with exit code: {:?}",
+                println!(
+                    "--> [Tier 2] unshare -r -n exited with {:?}, attempting fallback with sudo...",
                     status.code()
                 );
+                let sudo_status = Command::new("sudo")
+                    .args(["-n", "unshare", "-n", "cargo", "test", "--workspace"])
+                    .current_dir(&root)
+                    .status();
+
+                match sudo_status {
+                    Ok(s) if s.success() => {
+                        println!("--> [Tier 2] PASS: sudo unshare -n network isolation verified.\n");
+                    }
+                    Ok(s) => {
+                        bail!(
+                            "Tier 2 unshare network namespace test failed (unshare -r -n exit: {:?}, sudo unshare -n exit: {:?})",
+                            status.code(),
+                            s.code()
+                        );
+                    }
+                    Err(e) => {
+                        bail!(
+                            "Tier 2 unshare -r -n test failed with exit code: {:?} (sudo fallback failed: {e})",
+                            status.code()
+                        );
+                    }
+                }
             }
             Err(e) => {
                 println!("--> [Tier 2] NOTICE: unshare not available in current environment ({e}). Validated in CI.\n");
@@ -53,7 +76,7 @@ pub fn run_test_offline() -> Result<()> {
         }
     } else {
         println!("--> [Tier 2] OS is {} (non-Linux).", std::env::consts::OS);
-        println!("    OS-level network namespace isolation (unshare -n) is enforced automatically in Linux CI.");
+        println!("    OS-level network namespace isolation (unshare -r -n) is enforced automatically in Linux CI.");
         println!("--> [Tier 2] SKIPPED (platform-dependent, validated in Linux CI).\n");
     }
 
