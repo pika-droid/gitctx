@@ -3,6 +3,7 @@ pub mod doctor;
 pub mod evolution;
 pub mod impact;
 pub mod index;
+pub mod init;
 pub mod search;
 pub mod show;
 
@@ -43,4 +44,6 @@ pub enum Commands {
     },
     /// Run diagnostic checks on the index and environment
     Doctor,
+    /// Initialize gitctx agent configuration (AGENTS.md, skills)
+    Init,
 }
