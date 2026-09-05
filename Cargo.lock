@@ -952,6 +952,7 @@ dependencies = [
  "gitctx-core",
  "gitctx-index",
  "gitctx-query",
+ "rusqlite",
  "serde",
  "serde_json",
  "sha2",

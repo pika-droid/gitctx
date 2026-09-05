@@ -1,4 +1,5 @@
 pub mod audit_harvester;
+pub mod bench;
 pub mod clone_corpus;
 pub mod clone_references;
 pub mod download_models;

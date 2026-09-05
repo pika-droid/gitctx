@@ -43,3 +43,6 @@ jobs:
 
       - name: Run xtask lint verification
         run: cargo run -p xtask -- lint
+
+      - name: Run invariant verification suite
+        run: cargo run -p xtask -- test-invariants

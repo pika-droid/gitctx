@@ -126,6 +126,8 @@ enum Commands {
         #[arg(long)]
         repo: PathBuf,
     },
+    /// Run performance benchmark suite
+    Bench,
 }
 
 #[derive(Subcommand, Debug)]
@@ -223,5 +225,6 @@ fn main() -> anyhow::Result<()> {
         Commands::EvalLineage { format } => tasks::eval::run_eval_bench_lineage(format.as_deref()),
         Commands::TuneLineage { out } => tasks::eval::run_eval_tune_thresholds(out.as_deref()),
         Commands::EvalOracle { repo } => tasks::eval::run_eval_oracle(&repo),
+        Commands::Bench => tasks::bench::run_bench(),
     }
 }
