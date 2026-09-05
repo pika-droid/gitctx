@@ -7,6 +7,7 @@ use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use gitctx_eval::mutator::{LineageGroundTruthManifest, MutationEngine};
 use gitctx_eval::oracle::{GitLogOracleComparator, MutationBenchmarkRunner, ThresholdTuner};
+use gitctx_eval::report;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
@@ -63,6 +64,17 @@ enum Commands {
         #[arg(long)]
         repo: PathBuf,
     },
+
+    /// Generate comprehensive evaluation report (eval/REPORT.md)
+    Report {
+        /// Directory containing eval artifacts (default: eval/)
+        #[arg(long, default_value = "eval")]
+        eval_dir: PathBuf,
+
+        /// Output path for the report (default: eval/REPORT.md)
+        #[arg(long, default_value = "eval/REPORT.md")]
+        output: PathBuf,
+    },
 }
 
 fn main() -> Result<()> {
@@ -77,6 +89,7 @@ fn main() -> Result<()> {
         Commands::BenchLineage { format } => run_bench_lineage(&format),
         Commands::TuneThresholds { out } => run_tune_thresholds(&out),
         Commands::EvalOracle { repo } => run_eval_oracle(&repo),
+        Commands::Report { eval_dir, output } => run_report(&eval_dir, &output),
     }
 }
 
@@ -238,5 +251,28 @@ fn run_inspect_manifest(path: &std::path::Path) -> Result<()> {
     }
     println!("{:-<90}\n", "");
 
+    Ok(())
+}
+
+fn run_report(eval_dir: &std::path::Path, output_path: &std::path::Path) -> Result<()> {
+    println!("\n=== GitCtx Comprehensive Evaluation Report Generator ===");
+    println!("Eval directory: {}", eval_dir.display());
+    println!("Output: {}", output_path.display());
+
+    let report_content =
+        report::generate_report(eval_dir).context("Failed to generate evaluation report")?;
+
+    // Ensure parent directory exists
+    if let Some(parent) = output_path.parent() {
+        std::fs::create_dir_all(parent)
+            .with_context(|| format!("Failed to create output directory: {}", parent.display()))?;
+    }
+
+    std::fs::write(output_path, &report_content)
+        .with_context(|| format!("Failed to write report to {}", output_path.display()))?;
+
+    println!("\nSuccessfully generated: {}", output_path.display());
+    println!("Report size: {} bytes", report_content.len());
+    println!("{:-<90}\n", "");
     Ok(())
 }

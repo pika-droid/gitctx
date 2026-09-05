@@ -162,6 +162,15 @@ enum EvalSubcommands {
         #[arg(long)]
         repo: PathBuf,
     },
+    /// Generate comprehensive evaluation report (eval/REPORT.md)
+    Report {
+        /// Directory containing eval artifacts (default: eval/)
+        #[arg(long)]
+        eval_dir: Option<PathBuf>,
+        /// Output path for the report (default: eval/REPORT.md)
+        #[arg(long)]
+        output: Option<PathBuf>,
+    },
 }
 
 fn main() -> anyhow::Result<()> {
@@ -194,6 +203,9 @@ fn main() -> anyhow::Result<()> {
                 tasks::eval::run_eval_tune_thresholds(sub_out.as_deref())
             }
             Some(EvalSubcommands::EvalOracle { repo }) => tasks::eval::run_eval_oracle(&repo),
+            Some(EvalSubcommands::Report { eval_dir, output }) => {
+                tasks::eval::run_eval_report(eval_dir.as_deref(), output.as_deref())
+            }
             None => tasks::eval::run_eval_mutate(class.as_deref(), chain_depth, out.as_deref()),
         },
         Commands::DownloadModels { model, dest } => {

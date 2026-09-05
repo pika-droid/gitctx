@@ -81,3 +81,27 @@ pub fn run_eval_oracle(repo_path: &Path) -> Result<()> {
 
     Ok(())
 }
+
+/// Generates the comprehensive evaluation report (Phase 11, Plan 11-01).
+pub fn run_eval_report(eval_dir: Option<&Path>, output: Option<&Path>) -> Result<()> {
+    let root = crate::util::project_root();
+
+    let mut cmd = Command::new("cargo");
+    cmd.current_dir(&root);
+    cmd.args(["run", "-p", "gitctx-eval", "--", "report"]);
+
+    if let Some(dir) = eval_dir {
+        cmd.arg("--eval-dir");
+        cmd.arg(dir);
+    }
+
+    if let Some(out) = output {
+        cmd.arg("--output");
+        cmd.arg(out);
+    }
+
+    crate::util::run_cmd(&mut cmd, "gitctx-eval report")
+        .context("Failed running evaluation report generator")?;
+
+    Ok(())
+}
