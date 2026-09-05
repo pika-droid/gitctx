@@ -24,7 +24,7 @@ To avoid reinventing the wheel and ensure architectural alignment, all phases le
 - [x] **Phase 7: Co-Change Graph & Impact Analysis Engine** - Commit-size filtering ($\le 25$), normalized co-change metrics (support, confidence, lift), time-decay weighting, and `impact` risk scoring against `code-maat`. (completed 2026-08-19)
 - [x] **Phase 8: CLI Interface & Human Output Formatter** - Build core CLI commands (`index`, `search`, `evolution`, `show`, `impact`, `doctor`) with `--json` envelopes and `--format table` terminal timelines. (completed 2026-08-23)
 - [x] **Phase 9: Model Context Protocol (MCP) Server Surface** - Stdio MCP server with compact/full token budgeting, JSON-RPC stdout isolation, stale-index detection, and `gitctx init` skill generators. (completed 2026-08-24)
-- [ ] **Phase 10: Cross-Cutting Verification, Determinism & Performance Benchmarking** - Verify double-indexing byte-identity, incremental index equivalence, offline execution, and pass/fail performance budgets.
+- [x] **Phase 10: Cross-Cutting Verification, Determinism & Performance Benchmarking** - Verify double-indexing byte-identity, incremental index equivalence, offline execution, and pass/fail performance budgets. (completed 2026-09-05)
 - [ ] **Phase 11: Comprehensive Evaluation Report, Failure Taxonomy & Defense Artifacts** - Generate `eval/REPORT.md` via `cargo xtask eval`, classify misses using pre-registered failure taxonomy, and compile README with architecture diagrams.
 - [ ] **Phase 12: Current-State Extensions (Deferred / Slip-Absorber)** - Secondary language grammars, temporal call graph edges, symbol lookup commands, and optional `--explain` cache.
 
