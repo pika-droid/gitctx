@@ -30,7 +30,7 @@ pub fn run_test_invariants() -> Result<()> {
 
     // Check 1: Invariant I1 - Zero Network Egress (Offline Execution)
     {
-        println!("[1/5] Running Invariant I1 Check (Zero Network Egress)...");
+        println!("[1/8] Running Invariant I1 Check (Zero Network Egress)...");
         let start = Instant::now();
         let result = crate::tasks::test_offline::run_test_offline();
         let duration = start.elapsed().as_millis();
@@ -50,7 +50,7 @@ pub fn run_test_invariants() -> Result<()> {
 
     // Check 2: Invariant I2 - Synthetic Fixture Determinism
     {
-        println!("[2/5] Running Invariant I2 Check (Fixture Deterministic Hashes)...");
+        println!("[2/8] Running Invariant I2 Check (Fixture Deterministic Hashes)...");
         let start = Instant::now();
         let mut cmd = Command::new("cargo");
         cmd.current_dir(&root);
@@ -80,7 +80,7 @@ pub fn run_test_invariants() -> Result<()> {
 
     // Check 3: Invariant I3 - Mutation Oracle & Ground Truth Manifest
     {
-        println!("[3/5] Running Invariant I3 Check (Mutation Engine M1-M10 & Manifests)...");
+        println!("[3/8] Running Invariant I3 Check (Mutation Engine M1-M10 & Manifests)...");
         let start = Instant::now();
         let mut cmd = Command::new("cargo");
         cmd.current_dir(&root);
@@ -103,7 +103,7 @@ pub fn run_test_invariants() -> Result<()> {
 
     // Check 4: Invariant I4 - Configuration Hash BLAKE3 Determinism
     {
-        println!("[4/5] Running Invariant I4 Check (Config Hash BLAKE3 Determinism)...");
+        println!("[4/8] Running Invariant I4 Check (Config Hash BLAKE3 Determinism)...");
         let start = Instant::now();
         let mut cmd = Command::new("cargo");
         cmd.current_dir(&root);
@@ -126,7 +126,7 @@ pub fn run_test_invariants() -> Result<()> {
 
     // Check 5: Invariant I6 - Pinned Evaluation Corpus SHA Enforcement
     {
-        println!("[5/6] Running Invariant I6 Check (Pinned Corpus SHA Verification)...");
+        println!("[5/8] Running Invariant I6 Check (Pinned Corpus SHA Verification)...");
         let start = Instant::now();
         let mut cmd = Command::new("cargo");
         cmd.current_dir(&root);
@@ -149,7 +149,7 @@ pub fn run_test_invariants() -> Result<()> {
 
     // Check 6: Ground Truth Cryptographic Manifest Verification (D-08, D-15)
     {
-        println!("[6/6] Running Ground Truth Cryptographic Integrity Check...");
+        println!("[6/8] Running Ground Truth Cryptographic Integrity Check...");
         let start = Instant::now();
         let result = crate::tasks::verify_ground_truth::run_verify_ground_truth();
         let duration = start.elapsed().as_millis();
@@ -161,6 +161,66 @@ pub fn run_test_invariants() -> Result<()> {
             id: "GT",
             name: "Ground Truth Cryptographic Integrity",
             target: "xtask verify-ground-truth",
+            passed,
+            duration_ms: duration,
+            error_msg: err,
+        });
+    }
+
+    // Check 7: E2E Invariant I2 - Double-Indexing Byte-Identity (Storage Layer)
+    {
+        println!("[7/8] Running E2E Invariant I2 (Double-Indexing Determinism)...");
+        let start = Instant::now();
+        let mut cmd = Command::new("cargo");
+        cmd.current_dir(&root);
+        cmd.args([
+            "test",
+            "-p",
+            "gitctx-eval",
+            "--test",
+            "e2e_determinism_test",
+            "test_e2e_i2_double_indexing_byte_identity",
+        ]);
+        let result = crate::util::run_cmd(&mut cmd, "e2e I2 double-indexing determinism");
+        let duration = start.elapsed().as_millis();
+        let (passed, err) = match result {
+            Ok(()) => (true, None),
+            Err(e) => (false, Some(e.to_string())),
+        };
+        checks.push(InvariantCheck {
+            id: "I2e",
+            name: "E2E Double-Indexing Byte Identity (Phase 10)",
+            target: "e2e_determinism_test",
+            passed,
+            duration_ms: duration,
+            error_msg: err,
+        });
+    }
+
+    // Check 8: E2E Invariant I3 - Incremental Equivalence (Storage Layer)
+    {
+        println!("[8/8] Running E2E Invariant I3 (Incremental Equivalence)...");
+        let start = Instant::now();
+        let mut cmd = Command::new("cargo");
+        cmd.current_dir(&root);
+        cmd.args([
+            "test",
+            "-p",
+            "gitctx-eval",
+            "--test",
+            "e2e_determinism_test",
+            "test_e2e_i3_incremental_equivalence",
+        ]);
+        let result = crate::util::run_cmd(&mut cmd, "e2e I3 incremental equivalence");
+        let duration = start.elapsed().as_millis();
+        let (passed, err) = match result {
+            Ok(()) => (true, None),
+            Err(e) => (false, Some(e.to_string())),
+        };
+        checks.push(InvariantCheck {
+            id: "I3e",
+            name: "E2E Incremental vs Full Equivalence (Phase 10)",
+            target: "e2e_determinism_test",
             passed,
             duration_ms: duration,
             error_msg: err,
