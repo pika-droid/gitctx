@@ -9,6 +9,7 @@ pub mod corpus;
 pub mod manifest;
 pub mod mutator;
 pub mod oracle;
+pub mod report;
 
 pub use corpus::*;
 pub use fixtures::mkrepo::RepoBuilder;

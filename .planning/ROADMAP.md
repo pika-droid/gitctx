@@ -25,7 +25,7 @@ To avoid reinventing the wheel and ensure architectural alignment, all phases le
 - [x] **Phase 8: CLI Interface & Human Output Formatter** - Build core CLI commands (`index`, `search`, `evolution`, `show`, `impact`, `doctor`) with `--json` envelopes and `--format table` terminal timelines. (completed 2026-08-23)
 - [x] **Phase 9: Model Context Protocol (MCP) Server Surface** - Stdio MCP server with compact/full token budgeting, JSON-RPC stdout isolation, stale-index detection, and `gitctx init` skill generators. (completed 2026-08-24)
 - [x] **Phase 10: Cross-Cutting Verification, Determinism & Performance Benchmarking** - Verify double-indexing byte-identity, incremental index equivalence, offline execution, and pass/fail performance budgets. (completed 2026-09-05)
-- [ ] **Phase 11: Comprehensive Evaluation Report, Failure Taxonomy & Defense Artifacts** - Generate `eval/REPORT.md` via `cargo xtask eval`, classify misses using pre-registered failure taxonomy, and compile README with architecture diagrams.
+- [x] **Phase 11: Comprehensive Evaluation Report, Failure Taxonomy & Defense Artifacts** - Generate `eval/REPORT.md` via `cargo xtask eval`, classify misses using pre-registered failure taxonomy, and compile README with architecture diagrams. (completed 2026-09-05)
 - [ ] **Phase 12: Current-State Extensions (Deferred / Slip-Absorber)** - Secondary language grammars, temporal call graph edges, symbol lookup commands, and optional `--explain` cache.
 
 ## Phase Details
@@ -267,8 +267,8 @@ Plans:
 
 Plans:
 
-- [ ] 11-01: `cargo xtask eval` report generator producing `eval/REPORT.md` with ablation tables, bootstrap CIs, and failure taxonomy breakdown.
-- [ ] 11-02: Project README, architectural documentation, defense slides/diagrams, and reproducibility walkthrough.
+- [x] 11-01: `cargo xtask eval` report generator producing `eval/REPORT.md` with ablation tables, bootstrap CIs, and failure taxonomy breakdown.
+- [x] 11-02: Project README, architectural documentation, defense slides/diagrams, and reproducibility walkthrough.
 
 ### Phase 12: Current-State Extensions (Deferred / Slip-Absorber)
 
@@ -300,5 +300,5 @@ Phases execute sequentially in numeric order: 1 → 2 → 3 → 4 → 5 → 6 �
 | 8. CLI Interface & Formatter | 2/2 | Complete    | 2026-08-25 |
 | 9. Model Context Protocol (MCP) | 2/2 | Complete    | 2026-08-24 |
 | 10. Verification & Benchmarking | 2/2 | Complete    | 2026-09-05 |
-| 11. Evaluation Report & Defense | 0/2 | Not started | - |
+| 11. Evaluation Report & Defense | 2/2 | Complete    | 2026-09-05 |
 | 12. Current-State Extensions (Deferred) | 0/0 | Deferred | - |
