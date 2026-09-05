@@ -53,7 +53,9 @@ pub fn run_test_offline() -> Result<()> {
 
                 match sudo_status {
                     Ok(s) if s.success() => {
-                        println!("--> [Tier 2] PASS: sudo unshare -n network isolation verified.\n");
+                        println!(
+                            "--> [Tier 2] PASS: sudo unshare -n network isolation verified.\n"
+                        );
                     }
                     Ok(s) => {
                         bail!(
