@@ -263,12 +263,20 @@ Plans:
   2. Pre-registered failure taxonomy categorizes all retrieval misses into explicit failure buckets.
   3. Complete README published with positioning statement, architecture diagrams, asciinema walkthrough demo, and non-goals section.
 
-**Plans**: 2 plans
+**Plans**: 2/2 plans executed
 
 Plans:
 
-- [x] 11-01: `cargo xtask eval` report generator producing `eval/REPORT.md` with ablation tables, bootstrap CIs, and failure taxonomy breakdown.
-- [x] 11-02: Project README, architectural documentation, defense slides/diagrams, and reproducibility walkthrough.
+- [x] 11-01-PLAN.md
+- [x] 11-02-PLAN.md
+
+**Wave 1**
+
+- [x] 11-01: `cargo xtask eval report` generator (`crates/gitctx-eval/src/report.rs`), 10-category failure taxonomy, and `eval/REPORT.md` synthesis.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 11-02: Project `README.md` authoring (architecture diagrams, quickstart, MCP guide, system invariants, non-goals), defense documentation, and planning closure.
 
 ### Phase 12: Current-State Extensions (Deferred / Slip-Absorber)
 
