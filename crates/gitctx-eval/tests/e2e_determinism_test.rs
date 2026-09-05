@@ -270,9 +270,9 @@ fn test_e2e_i2_double_indexing_byte_identity() {
 
     // 3. Assert identical search rankings
     let storage_a =
-        MmapVectorStorage::open(&dir_a.path().join("vectors.bin")).expect("open storage A");
+        MmapVectorStorage::open(dir_a.path().join("vectors.bin")).expect("open storage A");
     let storage_b =
-        MmapVectorStorage::open(&dir_b.path().join("vectors.bin")).expect("open storage B");
+        MmapVectorStorage::open(dir_b.path().join("vectors.bin")).expect("open storage B");
     let query_vec = storage_a.get_vector(0).unwrap().to_vec();
 
     let scores_a = search_cosine_top_k(&query_vec, &storage_a, 5);
@@ -284,9 +284,9 @@ fn test_e2e_i2_double_indexing_byte_identity() {
 
     // 4. Assert identical Tantivy BM25 rankings
     let tantivy_a =
-        TantivyEngine::open(&dir_a.path().join("tantivy")).expect("open tantivy A");
+        TantivyEngine::open(dir_a.path().join("tantivy")).expect("open tantivy A");
     let tantivy_b =
-        TantivyEngine::open(&dir_b.path().join("tantivy")).expect("open tantivy B");
+        TantivyEngine::open(dir_b.path().join("tantivy")).expect("open tantivy B");
     let bm25_a = tantivy_a.search("handle_request", 5).expect("bm25 A");
     let bm25_b = tantivy_b.search("handle_request", 5).expect("bm25 B");
     assert_eq!(
@@ -351,9 +351,9 @@ fn test_e2e_i3_incremental_equivalence() {
 
     // 3. Assert row counts
     let conn_full =
-        open_readonly_connection(&dir_full.path().join("index.db")).expect("open full db");
+        open_readonly_connection(dir_full.path().join("index.db")).expect("open full db");
     let conn_incr =
-        open_readonly_connection(&dir_incr.path().join("index.db")).expect("open incr db");
+        open_readonly_connection(dir_incr.path().join("index.db")).expect("open incr db");
 
     let tables = ["commits", "function_lineage", "function_touches", "embeddings"];
     for table in &tables {
@@ -395,9 +395,9 @@ fn test_e2e_i3_incremental_equivalence() {
 
     // 5. Assert identical dense search results
     let storage_full =
-        MmapVectorStorage::open(&dir_full.path().join("vectors.bin")).expect("open storage full");
+        MmapVectorStorage::open(dir_full.path().join("vectors.bin")).expect("open storage full");
     let storage_incr =
-        MmapVectorStorage::open(&dir_incr.path().join("vectors.bin")).expect("open storage incr");
+        MmapVectorStorage::open(dir_incr.path().join("vectors.bin")).expect("open storage incr");
     assert_eq!(storage_full.count(), storage_incr.count());
     assert_eq!(storage_full.all_vectors(), storage_incr.all_vectors());
 }

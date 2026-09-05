@@ -245,12 +245,12 @@ Plans:
   3. Cold index on 10k commits finishes in $<10$ minutes; incremental commit indexing finishes in $<2$ seconds.
   4. Search latency p95 is $<300$ ms and MCP round-trip is $<500$ ms.
 
-**Plans**: 2 plans
+**Plans**: 2/2 plans executed
 
 Plans:
 
-- [ ] 10-01: End-to-end invariant validation suite (double-indexing determinism, incremental equivalence, network denial).
-- [ ] 10-02: Automated performance benchmark harness executing against stated latency, memory, and database size budgets.
+- [x] 10-01: End-to-end invariant validation suite (double-indexing determinism, incremental equivalence, network denial).
+- [x] 10-02: Automated performance benchmark harness executing against stated latency, memory, and database size budgets.
 
 ### Phase 11: Comprehensive Evaluation Report, Failure Taxonomy & Defense Artifacts
 
@@ -298,7 +298,7 @@ Phases execute sequentially in numeric order: 1 → 2 → 3 → 4 → 5 → 6 �
 | 6. Storage & Hybrid Retrieval | 4/4 | Complete    | 2026-08-18 |
 | 7. Co-Change Graph & Impact | 1/1 | Complete    | 2026-08-19 |
 | 8. CLI Interface & Formatter | 2/2 | Complete    | 2026-08-25 |
-| 9. Model Context Protocol (MCP) | 0/2 | Not started | - |
-| 10. Verification & Benchmarking | 0/2 | Not started | - |
+| 9. Model Context Protocol (MCP) | 2/2 | Complete    | 2026-08-24 |
+| 10. Verification & Benchmarking | 2/2 | Complete    | 2026-09-05 |
 | 11. Evaluation Report & Defense | 0/2 | Not started | - |
 | 12. Current-State Extensions (Deferred) | 0/0 | Deferred | - |

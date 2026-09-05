@@ -3,7 +3,7 @@
 //! Validates execution latency budgets for indexing, search, and MCP operations.
 //! Budgets are run as "dry-run" functional tests in CI and verified locally for timing.
 
-use anyhow::{bail, Context, Result};
+use anyhow::{bail, Result};
 use std::process::Command;
 use std::time::Instant;
 
