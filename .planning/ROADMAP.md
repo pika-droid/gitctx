@@ -22,7 +22,7 @@ To avoid reinventing the wheel and ensure architectural alignment, all phases le
 - [x] **Phase 5: Function Lineage Engine & Mutation Oracle** - Implement multi-tier MinHash lineage resolution across renames/moves, validated against synthetic mutation suite (M1-M10) and `git log -L`. (completed 2026-08-17)
 - [x] **Phase 6: Deterministic Storage & Hybrid Retrieval Engine** - SQLite database layer, Tantivy BM25, mmap f32 dense vectors, RRF fusion ($k=60$), exact symbol fast-path, and deterministic chain assembly. (completed 2026-08-18)
 - [x] **Phase 7: Co-Change Graph & Impact Analysis Engine** - Commit-size filtering ($\le 25$), normalized co-change metrics (support, confidence, lift), time-decay weighting, and `impact` risk scoring against `code-maat`. (completed 2026-08-19)
-- [ ] **Phase 8: CLI Interface & Human Output Formatter** - Build core CLI commands (`index`, `search`, `evolution`, `show`, `impact`, `doctor`) with `--json` envelopes and `--format table` terminal timelines.
+- [x] **Phase 8: CLI Interface & Human Output Formatter** - Build core CLI commands (`index`, `search`, `evolution`, `show`, `impact`, `doctor`) with `--json` envelopes and `--format table` terminal timelines. (completed 2026-08-23)
 - [ ] **Phase 9: Model Context Protocol (MCP) Server Surface** - Stdio MCP server with compact/full token budgeting, JSON-RPC stdout isolation, stale-index detection, and `gitctx init` skill generators.
 - [ ] **Phase 10: Cross-Cutting Verification, Determinism & Performance Benchmarking** - Verify double-indexing byte-identity, incremental index equivalence, offline execution, and pass/fail performance budgets.
 - [ ] **Phase 11: Comprehensive Evaluation Report, Failure Taxonomy & Defense Artifacts** - Generate `eval/REPORT.md` via `cargo xtask eval`, classify misses using pre-registered failure taxonomy, and compile README with architecture diagrams.
@@ -205,12 +205,12 @@ Plans:
   3. Table formatter produces clean chronological evolution timelines, diff summaries, and respects TTY/`NO_COLOR`/pager settings.
   4. `gitctx doctor` successfully diagnoses index health, schema version, config hash match, and parse status distributions.
 
-**Plans**: 2 plans
+**Plans**: 2/2 plans executed
 
 Plans:
 
-- [ ] 08-01: CLI command parser (`gitctx-cli`), argument validation, and structured `--json` envelope formatting.
-- [ ] 08-02: Human-readable terminal formatters (`--format table`, timelines, diffs) and `gitctx doctor` diagnostic tool.
+- [x] 08-01: CLI command parser (`gitctx-cli`), argument validation, and structured `--json` envelope formatting.
+- [x] 08-02: Human-readable terminal formatters (`--format table`, timelines, diffs) and `gitctx doctor` diagnostic tool.
 
 ### Phase 9: Model Context Protocol (MCP) Server Surface
 
@@ -297,7 +297,7 @@ Phases execute sequentially in numeric order: 1 → 2 → 3 → 4 → 5 → 6 �
 | 5. Function Lineage Engine | 3/3 | Complete    | 2026-08-18 |
 | 6. Storage & Hybrid Retrieval | 4/4 | Complete    | 2026-08-18 |
 | 7. Co-Change Graph & Impact | 1/1 | Complete    | 2026-08-19 |
-| 8. CLI Interface & Formatter | 0/2 | Not started | - |
+| 8. CLI Interface & Formatter | 2/2 | Complete    | 2026-08-25 |
 | 9. Model Context Protocol (MCP) | 0/2 | Not started | - |
 | 10. Verification & Benchmarking | 0/2 | Not started | - |
 | 11. Evaluation Report & Defense | 0/2 | Not started | - |
