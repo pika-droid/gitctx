@@ -21,7 +21,9 @@ pub fn run_bench() -> Result<()> {
     let overall_start = Instant::now();
 
     println!("\n==========================================================================================");
-    println!("                         GITCTX PERFORMANCE BENCHMARK SUITE                              ");
+    println!(
+        "                         GITCTX PERFORMANCE BENCHMARK SUITE                              "
+    );
     println!("==========================================================================================\n");
 
     let mut results = Vec::new();
@@ -148,7 +150,9 @@ pub fn run_bench() -> Result<()> {
 
     // Print Structured Summary Report Table
     println!("\n==========================================================================================");
-    println!("                            PERFORMANCE BENCHMARK REPORT                                 ");
+    println!(
+        "                            PERFORMANCE BENCHMARK REPORT                                 "
+    );
     println!("==========================================================================================");
 
     println!(

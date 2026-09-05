@@ -16,8 +16,8 @@
 //! Phase 10 (Plan 10-01): Cross-Cutting Verification, Determinism & Performance Benchmarking.
 
 use gitctx_index::storage::{
-    initialize_schema, open_connection, open_readonly_connection, CommitRecord,
-    LineageRecord, TouchRecord,
+    initialize_schema, open_connection, open_readonly_connection, CommitRecord, LineageRecord,
+    TouchRecord,
 };
 use gitctx_index::tantivy_index::engine::TantivyEngine;
 use gitctx_index::tantivy_index::schema::TantivyTouchDoc;
@@ -86,11 +86,7 @@ fn generate_batches(num_commits: usize) -> Vec<SyntheticBatch> {
             },
             signature_after: Some("fn handle_request(req: &Request) -> Response".to_string()),
             fingerprint: Some(vec![c as u8; 32]),
-            chunk_text: format!(
-                "fn handle_request_{}() {{ let x = {}; }}",
-                c,
-                c * 100
-            ),
+            chunk_text: format!("fn handle_request_{}() {{ let x = {}; }}", c, c * 100),
             parse_status: "ok".to_string(),
             start_line: 1,
             end_line: 25,
@@ -283,10 +279,8 @@ fn test_e2e_i2_double_indexing_byte_identity() {
     );
 
     // 4. Assert identical Tantivy BM25 rankings
-    let tantivy_a =
-        TantivyEngine::open(dir_a.path().join("tantivy")).expect("open tantivy A");
-    let tantivy_b =
-        TantivyEngine::open(dir_b.path().join("tantivy")).expect("open tantivy B");
+    let tantivy_a = TantivyEngine::open(dir_a.path().join("tantivy")).expect("open tantivy A");
+    let tantivy_b = TantivyEngine::open(dir_b.path().join("tantivy")).expect("open tantivy B");
     let bm25_a = tantivy_a.search("handle_request", 5).expect("bm25 A");
     let bm25_b = tantivy_b.search("handle_request", 5).expect("bm25 B");
     assert_eq!(
@@ -355,7 +349,12 @@ fn test_e2e_i3_incremental_equivalence() {
     let conn_incr =
         open_readonly_connection(dir_incr.path().join("index.db")).expect("open incr db");
 
-    let tables = ["commits", "function_lineage", "function_touches", "embeddings"];
+    let tables = [
+        "commits",
+        "function_lineage",
+        "function_touches",
+        "embeddings",
+    ];
     for table in &tables {
         let count_full: i64 = conn_full
             .query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |r| r.get(0))
