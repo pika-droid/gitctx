@@ -13,9 +13,10 @@ members = [
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.85"
+rust-version = "1.85.0"
 authors = ["gitctx contributors"]
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/pika-droid/gitctx"
 
 [workspace.lints.rust]
 warnings = "deny"
@@ -82,5 +83,10 @@ ort = { version = "=2.0.0-rc.10", features = ["load-dynamic"] }
 memmap2 = "0.9.5"
 rayon = "1.10.0"
 petgraph = "0.7"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
 
 

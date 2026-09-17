@@ -64,6 +64,8 @@ enum Commands {
         #[arg(long)]
         dest: Option<PathBuf>,
     },
+    /// Download cross-platform ONNX Runtime shared library
+    DownloadOrtRuntime,
     /// Clone or update pinned evaluation corpus into `eval/corpus/` per Invariant I6
     CloneCorpus {
         /// Optional path to corpus.lock.toml file
@@ -211,6 +213,7 @@ fn main() -> anyhow::Result<()> {
         Commands::DownloadModels { model, dest } => {
             tasks::download_models::run_download_models(model.as_deref(), dest.as_deref())
         }
+        Commands::DownloadOrtRuntime => tasks::download_models::run_download_ort_runtime(),
         Commands::CloneCorpus {
             lockfile,
             target_dir,

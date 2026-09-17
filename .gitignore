@@ -1,10 +1,13 @@
 # Rust build artifacts
 /target/
 **/*.rs.bk
+# ONNX Runtime shared libraries (downloaded per-platform via xtask)
 *.dll
 *.so
 *.dylib
 *.dSYM
+# ONNX Runtime download cache
+/.ort/
 
 # Reference repos (allow README.md)
 /reference_repos/*
