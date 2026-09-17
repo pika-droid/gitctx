@@ -65,8 +65,8 @@ pub fn run_download_ort_runtime() -> Result<()> {
     let arch = std::env::consts::ARCH;
 
     let (os_name, ext, lib_name) = match os {
-        "linux" => ("linux", "tgz", "libonnxruntime.so.1.20.1"),
-        "macos" => ("osx-universal2", "tgz", "libonnxruntime.1.20.1.dylib"),
+        "linux" => ("linux", "tgz", "libonnxruntime.so.1.22.0"),
+        "macos" => ("osx-universal2", "tgz", "libonnxruntime.1.22.0.dylib"),
         "windows" => ("win", "zip", "onnxruntime.dll"),
         _ => anyhow::bail!("Unsupported OS for ORT download: {os}"),
     };
@@ -85,7 +85,7 @@ pub fn run_download_ort_runtime() -> Result<()> {
     };
 
     let url = format!(
-        "https://github.com/microsoft/onnxruntime/releases/download/v1.20.1/onnxruntime-{os_arch}-1.20.1.{ext}"
+        "https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-{os_arch}-1.22.0.{ext}"
     );
 
     let dest_lib = target_dir.join(lib_name);
@@ -132,7 +132,7 @@ pub fn run_download_ort_runtime() -> Result<()> {
 
             // Move dll to target_dir root
             let extracted_dll = target_dir
-                .join(format!("onnxruntime-{os_arch}-1.20.1"))
+                .join(format!("onnxruntime-{os_arch}-1.22.0"))
                 .join("lib")
                 .join("onnxruntime.dll");
             if extracted_dll.exists() {
@@ -146,14 +146,14 @@ pub fn run_download_ort_runtime() -> Result<()> {
                     "-C",
                     &target_dir.to_string_lossy(),
                     "--strip-components=2",
-                    &format!("onnxruntime-{os_arch}-1.20.1/lib/{lib_name}"),
+                    &format!("onnxruntime-{os_arch}-1.22.0/lib/{lib_name}"),
                 ])
                 .status()?;
         }
 
         // Clean up
         let _ = std::fs::remove_file(archive_path);
-        let _ = std::fs::remove_dir_all(target_dir.join(format!("onnxruntime-{os_arch}-1.20.1")));
+        let _ = std::fs::remove_dir_all(target_dir.join(format!("onnxruntime-{os_arch}-1.22.0")));
     }
 
     println!("ORT_DYLIB_PATH={}", dest_lib.display());
