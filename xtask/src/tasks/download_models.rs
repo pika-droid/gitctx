@@ -68,7 +68,7 @@ pub fn run_download_ort_runtime() -> Result<()> {
         "linux" => ("linux", "tgz", "libonnxruntime.so.1.20.1"),
         "macos" => ("osx-universal2", "tgz", "libonnxruntime.1.20.1.dylib"),
         "windows" => ("win", "zip", "onnxruntime.dll"),
-        _ => anyhow::bail!("Unsupported OS for ORT download: {}", os),
+        _ => anyhow::bail!("Unsupported OS for ORT download: {os}"),
     };
 
     let arch_str = match arch {
