@@ -73,7 +73,13 @@ pub fn run_download_ort_runtime() -> Result<()> {
 
     let arch_str = match arch {
         "x86_64" => "x64",
-        "aarch64" => "aarch64",
+        "aarch64" => {
+            if os == "windows" {
+                "arm64"
+            } else {
+                "aarch64"
+            }
+        }
         _ if os == "macos" => "universal2", // macOS uses universal binary
         _ => anyhow::bail!("Unsupported architecture: {arch}"),
     };
@@ -101,7 +107,7 @@ pub fn run_download_ort_runtime() -> Result<()> {
                 .args([
                     "-Command",
                     &format!(
-                        "Invoke-WebRequest -Uri '{}' -OutFile '{}'",
+                        "Invoke-WebRequest -UseBasicParsing -Uri '{}' -OutFile '{}'",
                         url,
                         archive_path.display()
                     ),

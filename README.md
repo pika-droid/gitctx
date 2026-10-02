@@ -71,7 +71,7 @@ graph TB
 ### Prerequisites
 
 - **Rust toolchain** (1.85+): Install via [rustup](https://rustup.rs/)
-- **ONNX Runtime** (1.20.x): Required by the `fastembed` dense embedding engine. Download automatically:
+- **ONNX Runtime** (1.22.0): Required by the `fastembed` dense embedding engine. Download automatically:
 
 ```bash
 # Download the correct ONNX Runtime shared library for your OS
@@ -79,7 +79,7 @@ cargo xtask download-ort-runtime
 
 # The command prints the ORT_DYLIB_PATH — set it in your shell profile:
 # Linux/macOS:
-export ORT_DYLIB_PATH="$(pwd)/.ort/libonnxruntime.so.1.20.1"  # adjust for your OS
+export ORT_DYLIB_PATH="$(pwd)/.ort/libonnxruntime.so.1.22.0"  # adjust for your OS
 
 # Windows (PowerShell):
 $env:ORT_DYLIB_PATH = "$PWD\.ort\onnxruntime.dll"
