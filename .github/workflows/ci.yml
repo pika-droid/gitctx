@@ -38,6 +38,9 @@ jobs:
       - name: Run Clippy linter
         run: cargo clippy --workspace --all-targets -- -D warnings
 
+      - name: Download ONNX Runtime
+        run: cargo run -p xtask -- download-ort-runtime
+
       - name: Run workspace tests
         run: cargo test --workspace
 

@@ -54,3 +54,122 @@ pub fn run_download_models(model_id: Option<&str>, dest_dir: Option<&Path>) -> R
     println!("Model download initialization completed successfully.\n");
     Ok(())
 }
+
+/// Download cross-platform ONNX Runtime shared library.
+pub fn run_download_ort_runtime() -> Result<()> {
+    let root = crate::util::project_root();
+    let target_dir = root.join(".ort");
+    std::fs::create_dir_all(&target_dir)?;
+
+    let os = std::env::consts::OS;
+    let arch = std::env::consts::ARCH;
+
+    let (os_name, ext, lib_name) = match os {
+        "linux" => ("linux", "tgz", "libonnxruntime.so.1.22.0"),
+        "macos" => ("osx-universal2", "tgz", "libonnxruntime.1.22.0.dylib"),
+        "windows" => ("win", "zip", "onnxruntime.dll"),
+        _ => anyhow::bail!("Unsupported OS for ORT download: {os}"),
+    };
+
+    let arch_str = match arch {
+        "x86_64" => "x64",
+        "aarch64" => {
+            if os == "windows" {
+                "arm64"
+            } else {
+                "aarch64"
+            }
+        }
+        _ if os == "macos" => "universal2", // macOS uses universal binary
+        _ => anyhow::bail!("Unsupported architecture: {arch}"),
+    };
+
+    let os_arch = if os == "macos" {
+        "osx-universal2".to_string()
+    } else {
+        format!("{os_name}-{arch_str}")
+    };
+
+    let url = format!(
+        "https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-{os_arch}-1.22.0.{ext}"
+    );
+
+    let dest_lib = target_dir.join(lib_name);
+
+    if dest_lib.exists() {
+        println!("ONNX Runtime already exists at {}", dest_lib.display());
+    } else {
+        println!("Downloading ONNX Runtime from {url}...");
+        let archive_path = target_dir.join(format!("ort.{ext}"));
+
+        let status = if cfg!(target_os = "windows") {
+            std::process::Command::new("powershell")
+                .args([
+                    "-Command",
+                    &format!(
+                        "Invoke-WebRequest -UseBasicParsing -Uri '{}' -OutFile '{}'",
+                        url,
+                        archive_path.display()
+                    ),
+                ])
+                .status()?
+        } else {
+            std::process::Command::new("curl")
+                .args(["-sSL", &url, "-o", &archive_path.to_string_lossy()])
+                .status()?
+        };
+
+        if !status.success() {
+            anyhow::bail!("Failed to download ONNX Runtime");
+        }
+
+        println!("Extracting...");
+        if ext == "zip" {
+            std::process::Command::new("powershell")
+                .args([
+                    "-Command",
+                    &format!(
+                        "Expand-Archive -Path '{}' -DestinationPath '{}' -Force",
+                        archive_path.display(),
+                        target_dir.display()
+                    ),
+                ])
+                .status()?;
+
+            // Move dll to target_dir root
+            let extracted_dll = target_dir
+                .join(format!("onnxruntime-{os_arch}-1.22.0"))
+                .join("lib")
+                .join("onnxruntime.dll");
+            if extracted_dll.exists() {
+                std::fs::copy(&extracted_dll, &dest_lib)?;
+            }
+        } else {
+            std::process::Command::new("tar")
+                .args([
+                    "-xzf",
+                    &archive_path.to_string_lossy(),
+                    "-C",
+                    &target_dir.to_string_lossy(),
+                    "--strip-components=2",
+                    &format!("onnxruntime-{os_arch}-1.22.0/lib/{lib_name}"),
+                ])
+                .status()?;
+        }
+
+        // Clean up
+        let _ = std::fs::remove_file(archive_path);
+        let _ = std::fs::remove_dir_all(target_dir.join(format!("onnxruntime-{os_arch}-1.22.0")));
+    }
+
+    println!("ORT_DYLIB_PATH={}", dest_lib.display());
+
+    if let Ok(github_env) = std::env::var("GITHUB_ENV") {
+        use std::io::Write;
+        let mut file = std::fs::OpenOptions::new().append(true).open(github_env)?;
+        writeln!(file, "ORT_DYLIB_PATH={}", dest_lib.display())?;
+        println!("Wrote ORT_DYLIB_PATH to $GITHUB_ENV");
+    }
+
+    Ok(())
+}

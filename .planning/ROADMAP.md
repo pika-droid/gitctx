@@ -26,7 +26,7 @@ To avoid reinventing the wheel and ensure architectural alignment, all phases le
 - [x] **Phase 9: Model Context Protocol (MCP) Server Surface** - Stdio MCP server with compact/full token budgeting, JSON-RPC stdout isolation, stale-index detection, and `gitctx init` skill generators. (completed 2026-08-24)
 - [x] **Phase 10: Cross-Cutting Verification, Determinism & Performance Benchmarking** - Verify double-indexing byte-identity, incremental index equivalence, offline execution, and pass/fail performance budgets. (completed 2026-09-05)
 - [x] **Phase 11: Comprehensive Evaluation Report, Failure Taxonomy & Defense Artifacts** - Generate `eval/REPORT.md` via `cargo xtask eval`, classify misses using pre-registered failure taxonomy, and compile README with architecture diagrams. (completed 2026-09-05)
-- [ ] **Phase 12: Current-State Extensions (Deferred / Slip-Absorber)** - Secondary language grammars, temporal call graph edges, symbol lookup commands, and optional `--explain` cache.
+- [x] **Phase 12: Production Readiness & Real-World Usage Hardening** - Cross-platform ONNX Runtime download xtask, .gitignore cleanup, README install/troubleshooting docs, CI badge. (completed 2026-09-17)
 
 ## Phase Details
 
@@ -278,18 +278,27 @@ Plans:
 
 - [x] 11-02: Project `README.md` authoring (architecture diagrams, quickstart, MCP guide, system invariants, non-goals), defense documentation, and planning closure.
 
-### Phase 12: Current-State Extensions (Deferred / Slip-Absorber)
+### Phase 12: Production Readiness & Real-World Usage Hardening
 
-**Goal**: Optional v2 extensions: temporal call graph edges, symbol lookup commands, and cached LLM explanation layer.
+**Goal**: Make gitctx production-ready for real-world usage: cross-platform ONNX Runtime download xtask, .gitignore cleanup, README with install/troubleshooting docs, CI badge. All CI stages must pass on all OS targets.
 **Depends on**: Phase 11
-**Requirements**: V2-CALLS, V2-SYMBOLS, V2-MMAP, V2-EXPLAIN, V2-WATCH, V2-NPX
+**Requirements**: Production readiness (derived from V2-NPX scope; remaining V2 requirements deferred to v2 milestone)
 **Success Criteria** (what must be TRUE):
 
-  1. Temporal call graph edges recorded with intra-file / same-package resolution precision reported.
-  2. `symbols find` and `symbols callers` CLI/MCP tools operational.
-  3. Opt-in `--explain` generates cached summaries in physically isolated `explain_cache`.
+  1. `cargo xtask download-ort-runtime` downloads the correct ONNX Runtime shared library for Linux, macOS, and Windows.
+  2. `.gitignore` excludes all platform ONNX Runtime binaries and the `.ort/` download cache.
+  3. README includes CI badge, Installation section with prerequisites, and Troubleshooting table.
+  4. All CI stages pass: `cargo fmt`, `cargo clippy -D warnings`, `cargo test --workspace`, `cargo xtask lint`, `cargo xtask test-invariants`.
 
-**Plans**: TBD
+**Plans**: 1/1 plans executed
+
+Plans:
+
+- [x] 12-01-PLAN.md
+
+**Wave 1**
+
+- [x] 12-01: Cross-platform ONNX Runtime download xtask, .gitignore cleanup, README polish (CI badge, installation, troubleshooting), planning closure.
 
 ## Progress
 
@@ -309,4 +318,4 @@ Phases execute sequentially in numeric order: 1 → 2 → 3 → 4 → 5 → 6 �
 | 9. Model Context Protocol (MCP) | 2/2 | Complete    | 2026-08-24 |
 | 10. Verification & Benchmarking | 2/2 | Complete    | 2026-09-05 |
 | 11. Evaluation Report & Defense | 2/2 | Complete    | 2026-09-05 |
-| 12. Current-State Extensions (Deferred) | 0/0 | Deferred | - |
+| 12. Production Readiness | 1/1 | Complete    | 2026-09-17 |

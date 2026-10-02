@@ -1,5 +1,7 @@
 # gitctx — Git History Intelligence
 
+[![CI](https://github.com/pika-droid/gitctx/actions/workflows/ci.yml/badge.svg)](https://github.com/pika-droid/gitctx/actions/workflows/ci.yml)
+
 > **Deterministic, citation-backed Git history facts for LLMs and developers.** Zero network dependencies. Zero LLM calls. Pure offline indexing and retrieval.
 
 `gitctx` is a local-first Rust tool that transforms Git history into a searchable, structured knowledge base. It tracks **why** code changed, **who** changed it, and **what** the historical coupling risks are — with complete function-level lineage tracking across renames and file moves.
@@ -64,15 +66,39 @@ graph TB
 
 ---
 
-## Quick Start
+## Installation
 
-### Install
+### Prerequisites
+
+- **Rust toolchain** (1.85+): Install via [rustup](https://rustup.rs/)
+- **ONNX Runtime** (1.22.0): Required by the `fastembed` dense embedding engine. Download automatically:
 
 ```bash
-# Clone and build
+# Download the correct ONNX Runtime shared library for your OS
+cargo xtask download-ort-runtime
+
+# The command prints the ORT_DYLIB_PATH — set it in your shell profile:
+# Linux/macOS:
+export ORT_DYLIB_PATH="$(pwd)/.ort/libonnxruntime.so.1.22.0"  # adjust for your OS
+
+# Windows (PowerShell):
+$env:ORT_DYLIB_PATH = "$PWD\.ort\onnxruntime.dll"
+```
+
+### Build from Source
+
+```bash
 git clone https://github.com/pika-droid/gitctx.git
 cd gitctx
+
+# Download ONNX Runtime for your platform
+cargo xtask download-ort-runtime
+
+# Build release binaries (produces `gitctx` and `gitctx-mcp`)
 cargo build --release
+
+# Verify installation
+./target/release/gitctx --version
 ```
 
 ### Index a Repository
@@ -291,6 +317,19 @@ cargo xtask clone-references
 # Generate test fixtures
 cargo xtask fixtures
 ```
+
+---
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| `ORT_DYLIB_PATH` not set / ONNX Runtime not found | Run `cargo xtask download-ort-runtime` and set the `ORT_DYLIB_PATH` env var in your shell profile |
+| `Index database not found` | Run `gitctx index .` in your repository root first |
+| `Index is stale` (MCP warning) | Re-run `gitctx index .` to pick up new commits since last indexing |
+| `Config hash mismatch` | Delete `.gitctx/` and re-index — the index config has changed |
+| `parse_status = 'degraded'` on some files | Expected — tree-sitter couldn't parse those historical blobs (syntax errors, unsupported language). Function-level data falls back to file-level chunks |
+| Slow first index | Cold indexing downloads the embedding model (~133 MB) on first run. Subsequent runs use the local cache |
 
 ---
 

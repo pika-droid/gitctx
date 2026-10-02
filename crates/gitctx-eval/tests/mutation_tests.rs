@@ -22,11 +22,11 @@ fn test_m1_m10_classes() {
 
         // Verify LineageLink populated correctly
         assert_eq!(link.mutation_class, class);
-        assert!(!link.commit_sha.is_empty());
-        assert!(!link.source.path.is_empty());
-        assert!(!link.source.qualname.is_empty());
-        assert!(!link.target.path.is_empty());
-        assert!(!link.target.qualname.is_empty());
+        assert_ne!(link.commit_sha, "");
+        assert_ne!(link.source.path, "");
+        assert_ne!(link.source.qualname, "");
+        assert_ne!(link.target.path, "");
+        assert_ne!(link.target.qualname, "");
         assert!(link.confidence_expected >= 0.0 && link.confidence_expected <= 1.0);
 
         // Verify commit OID matches HEAD
