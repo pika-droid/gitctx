@@ -81,9 +81,9 @@ fn test_corpus_lockfile_deserialization() {
     let mut size_tiers = std::collections::HashSet::new();
 
     for entry in &lock.corpus {
-        assert!(!entry.id.is_empty(), "id must not be empty");
-        assert!(!entry.owner.is_empty(), "owner must not be empty");
-        assert!(!entry.repo.is_empty(), "repo must not be empty");
+        assert_ne!(entry.id, "", "id must not be empty");
+        assert_ne!(entry.owner, "", "owner must not be empty");
+        assert_ne!(entry.repo, "", "repo must not be empty");
         assert!(
             entry.url.starts_with("https://github.com/"),
             "url must be valid GitHub HTTPS url: {}",

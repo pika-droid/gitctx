@@ -20,8 +20,10 @@ repository = "https://github.com/pika-droid/gitctx"
 
 [workspace.lints.rust]
 warnings = "deny"
+unknown_lints = "allow"
 
 [workspace.lints.clippy]
+assert_is_empty = "allow"
 all = { level = "deny", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
 module_name_repetitions = "allow"

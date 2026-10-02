@@ -35,8 +35,8 @@ fn test_ground_truth_manifest_integrity() {
     for f in &report.files {
         assert!(f.verified);
         assert!(f.count > 0);
-        assert!(!f.blake3.is_empty());
-        assert!(!f.sha256.is_empty());
+        assert_ne!(f.blake3, "");
+        assert_ne!(f.sha256, "");
     }
 }
 

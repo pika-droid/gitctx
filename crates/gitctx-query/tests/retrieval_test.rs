@@ -404,10 +404,10 @@ fn test_citation_payload_completeness() {
     seed_test_database(&conn);
     let chain = ChainAssembler::assemble_lineage_chain(&conn, 1).expect("Assemble chain");
     for node in chain.nodes {
-        assert!(!node.citation.commit_hash.is_empty());
-        assert!(!node.citation.path.is_empty());
+        assert_ne!(node.citation.commit_hash, "");
+        assert_ne!(node.citation.path, "");
         assert!(node.citation.end_line >= node.citation.start_line);
-        assert!(!node.citation.match_rule.is_empty());
+        assert_ne!(node.citation.match_rule, "");
         assert!(node.citation.match_confidence >= 0.0 && node.citation.match_confidence <= 1.0);
     }
 }
