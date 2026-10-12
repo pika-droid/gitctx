@@ -49,6 +49,36 @@ enum Commands {
         #[arg(long)]
         allow_missing: bool,
     },
+    /// Run test suite using nextest if available, or cargo test
+    Test {
+        /// Force using standard cargo test instead of nextest
+        #[arg(long)]
+        cargo_test: bool,
+        /// Optional test name filter
+        #[arg(long)]
+        filter: Option<String>,
+    },
+    /// Run code coverage using cargo-llvm-cov
+    Coverage {
+        /// Generate HTML report in target/llvm-cov/html
+        #[arg(long)]
+        html: bool,
+        /// Generate LCOV report at lcov.info
+        #[arg(long)]
+        lcov: bool,
+        /// Treat missing tool as warning rather than hard failure
+        #[arg(long)]
+        allow_missing: bool,
+    },
+    /// Run Miri undefined-behavior verification on core algorithms
+    Miri {
+        /// Specific package to check (default: gitctx-core)
+        #[arg(long)]
+        package: Option<String>,
+        /// Treat missing tool as warning rather than hard failure
+        #[arg(long)]
+        allow_missing: bool,
+    },
     /// Clone or update vetted reference repositories into `reference_repos/`
     CloneReferences {
         /// Optional specific reference repository name to clone
@@ -213,6 +243,19 @@ fn main() -> anyhow::Result<()> {
             package,
             allow_missing,
         } => tasks::semver::run_semver(baseline_rev.as_deref(), package.as_deref(), allow_missing),
+        Commands::Test {
+            cargo_test,
+            filter,
+        } => tasks::test::run_test(cargo_test, filter.as_deref()),
+        Commands::Coverage {
+            html,
+            lcov,
+            allow_missing,
+        } => tasks::coverage::run_coverage(html, lcov, allow_missing),
+        Commands::Miri {
+            package,
+            allow_missing,
+        } => tasks::miri::run_miri(package.as_deref(), allow_missing),
         Commands::CloneReferences { repo } => {
             tasks::clone_references::run_clone_references(repo.as_deref())
         }
