@@ -3,50 +3,50 @@
 # Schema Version: 1
 
 version = 1
-locked_at = "2026-08-16T16:01:04Z"
-profiler_script_sha = "6e1e754f1c664a9ede2c3e35199e1fdf82b88db7"
+locked_at = "2026-10-12T17:14:36Z"
+profiler_script_sha = "ab5400ff9b9a48ae67beb999e688b169a52847df"
 
 [[corpus]]
 id = "gin"
 owner = "gin-gonic"
 repo = "gin"
 url = "https://github.com/gin-gonic/gin.git"
-sha = "e9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0"
+sha = "0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646"
 language = "go"
 size_tier = "small"
-commit_count = 1950
-first_parent_count = 1800
-traceable_issues = 180
-merge_fraction = 0.12
-bot_fraction = 0.03
-harvest_date = "2026-08-16"
-
-[[corpus]]
-id = "requests"
-owner = "psf"
-repo = "requests"
-url = "https://github.com/psf/requests.git"
-sha = "2c2138e811487b13020014022b391f659f7795b8"
-language = "python"
-size_tier = "medium"
-commit_count = 6200
-first_parent_count = 5800
-traceable_issues = 420
-merge_fraction = 0.18
-bot_fraction = 0.04
-harvest_date = "2026-08-16"
+commit_count = 2023
+first_parent_count = 1314
+traceable_issues = 1159
+merge_fraction = 0.1068
+bot_fraction = 0.0618
+harvest_date = "2026-10-12"
 
 [[corpus]]
 id = "tokio"
 owner = "tokio-rs"
 repo = "tokio"
 url = "https://github.com/tokio-rs/tokio.git"
-sha = "7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b"
+sha = "e279adbfcd8831412c3f19edf2e16d28345f0f95"
 language = "rust"
+size_tier = "medium"
+commit_count = 4783
+first_parent_count = 4182
+traceable_issues = 4299
+merge_fraction = 0.0387
+bot_fraction = 0.0013
+harvest_date = "2026-10-12"
+
+[[corpus]]
+id = "requests"
+owner = "psf"
+repo = "requests"
+url = "https://github.com/psf/requests.git"
+sha = "611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60"
+language = "python"
 size_tier = "large"
-commit_count = 28500
-first_parent_count = 26000
-traceable_issues = 850
-merge_fraction = 0.1
-bot_fraction = 0.03
-harvest_date = "2026-08-16"
+commit_count = 6495
+first_parent_count = 2669
+traceable_issues = 333
+merge_fraction = 0.2482
+bot_fraction = 0.01
+harvest_date = "2026-10-12"

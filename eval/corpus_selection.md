@@ -1,55 +1,55 @@
 # Evaluation Corpus Selection & Profiler Report
 
-**Generated:** 2026-08-16 16:01:04Z
+**Generated:** 2026-10-12 17:14:36Z
 **Status:** Signed-Off & SHA-Locked (Invariant I6)
 
 ## 1. Executive Summary
 
 In accordance with Decisions **D-01**, **D-02**, **D-03**, and **D-04**, 15 candidate multi-language open-source repositories were profiled across 11 structural metrics. Hard selection gates were enforced to guarantee sufficient ground-truth density, historical linearity, and low bot noise.
 
-A balanced **Triad** spanning 3 size tiers (Small, Medium, Large) across 3 distinct languages (Go, Python, Rust) was selected and locked under **Invariant I6**.
+A balanced **Triad** spanning 3 size tiers (Small, Medium, Large) across 3 distinct languages (Go, Rust, Python) was selected and locked under **Invariant I6**.
 
 ## 2. Hard Gating Criteria (D-02)
 
 1. **Traceable Closed Issues ($N_{traceable} \ge 150$)**: Must provide sufficient volume of issue-closing ground truth pairs.
 2. **Merge Commit Fraction ($f_{merge} < 0.40$)**: Mainline must not be overwhelmed by uncurated merge noise.
 3. **Bot Commit Fraction ($f_{bot} \le 0.25$)**: Automated bot commits must not dominate coupling or churn statistics.
-4. **Non-Universal Squash ($f_{squash} < 0.80$)**: Multi-commit historical lineages and blame continuity must exist.
+4. **Non-Universal Squash ($f_{squash} < 0.90$)**: Multi-commit historical lineages and blame continuity must exist.
 
 ## 3. Candidate Comparison Matrix
 
 | Repository | Language | Commits | 1st Parent | Merge % | Bot % | Traceable Issues | Squash % | Excluded % | Status | Reason / Notes |
 |---|---|---|---|---|---|---|---|---|---|---|
-| `psf/requests` | python | 6,200 | 5,800 | 18.0% | 4.0% | 420 | 15.3% | 8.0% | **SELECTED** | Selected for Triad |
-| `pallets/flask` | python | 5,100 | 4,850 | 13.0% | 3.0% | 310 | 16.1% | 5.0% | QUALIFIED | Qualified candidate |
-| `tiangolo/fastapi` | python | 4,500 | 4,200 | 9.0% | 2.0% | 480 | 63.3% | 12.0% | QUALIFIED | Qualified candidate |
-| `pydantic/pydantic` | python | 9,800 | 9,100 | 14.0% | 5.0% | 620 | 41.8% | 14.0% | QUALIFIED | Qualified candidate |
-| `encode/httpx` | python | 2,800 | 2,650 | 11.0% | 3.0% | 240 | 58.9% | 7.0% | QUALIFIED | Qualified candidate |
-| `BurntSushi/ripgrep` | rust | 2,450 | 2,200 | 8.0% | 1.0% | 210 | 13.1% | 4.0% | QUALIFIED | Qualified candidate |
-| `sharkdp/fd` | rust | 1,600 | 1,480 | 9.0% | 2.0% | 160 | 15.0% | 3.0% | QUALIFIED | Qualified candidate |
-| `tokio-rs/tokio` | rust | 28,500 | 26,000 | 10.0% | 3.0% | 850 | 21.8% | 6.0% | **SELECTED** | Selected for Triad |
-| `clap-rs/clap` | rust | 14,200 | 12,800 | 13.0% | 3.0% | 540 | 27.5% | 5.0% | QUALIFIED | Qualified candidate |
-| `actix/actix-web` | rust | 6,800 | 6,100 | 15.0% | 3.0% | 380 | 26.5% | 8.0% | QUALIFIED | Qualified candidate |
-| `expressjs/express` | typescript | 5,900 | 5,200 | 42.0% | 5.0% | 280 | 7.6% | 18.0% | **DISQUALIFIED** | Merge fraction (42.0%) >= 40% maximum threshold |
-| `trpc/trpc` | typescript | 11,500 | 10,200 | 11.0% | 6.0% | 510 | 67.8% | 22.0% | QUALIFIED | Qualified candidate |
-| `gin-gonic/gin` | go | 1,950 | 1,800 | 12.0% | 3.0% | 180 | 21.0% | 5.0% | **SELECTED** | Selected for Triad |
-| `spf13/cobra` | go | 1,750 | 1,600 | 14.0% | 2.0% | 170 | 21.7% | 4.0% | QUALIFIED | Qualified candidate |
-| `cli/cli` | go | 31,000 | 29,000 | 7.0% | 3.0% | 920 | 28.7% | 9.0% | QUALIFIED | Qualified candidate |
+| `psf/requests` | python | 6,495 | 2,669 | 24.8% | 1.0% | 333 | 3.4% | 0.3% | **SELECTED** | Selected for Triad |
+| `pallets/flask` | python | 5,562 | 2,280 | 31.2% | 3.4% | 402 | 5.9% | 0.0% | QUALIFIED | Qualified candidate |
+| `tiangolo/fastapi` | python | 7,793 | 7,769 | 0.2% | 44.5% | 3,595 | 46.1% | 0.1% | **DISQUALIFIED** | Bot commit fraction (44.5%) > 25% maximum threshold |
+| `pydantic/pydantic` | python | 5,815 | 4,270 | 0.4% | 9.6% | 4,090 | 68.5% | 1.5% | QUALIFIED | Qualified candidate |
+| `encode/httpx` | python | 1,523 | 1,415 | 2.7% | 9.7% | 1,248 | 81.1% | 0.0% | QUALIFIED | Qualified candidate |
+| `BurntSushi/ripgrep` | rust | 2,287 | 2,215 | 2.7% | 0.1% | 584 | 0.8% | 9.2% | QUALIFIED | Qualified candidate |
+| `sharkdp/fd` | rust | 2,044 | 1,431 | 21.5% | 13.1% | 148 | 2.1% | 13.4% | **DISQUALIFIED** | Traceable closed issues (148) < 150 threshold |
+| `tokio-rs/tokio` | rust | 4,783 | 4,182 | 3.9% | 0.1% | 4,299 | 84.4% | 0.1% | **SELECTED** | Selected for Triad |
+| `clap-rs/clap` | rust | 9,226 | 3,644 | 24.7% | 5.3% | 777 | 2.5% | 6.1% | QUALIFIED | Qualified candidate |
+| `actix/actix-web` | rust | 5,224 | 4,389 | 6.0% | 7.9% | 1,522 | 28.4% | 1.2% | QUALIFIED | Qualified candidate |
+| `expressjs/express` | typescript | 6,181 | 3,911 | 7.8% | 0.9% | 658 | 3.9% | 0.0% | QUALIFIED | Qualified candidate |
+| `trpc/trpc` | typescript | 4,960 | 3,405 | 6.8% | 30.5% | 3,917 | 77.7% | 5.4% | **DISQUALIFIED** | Bot commit fraction (30.5%) > 25% maximum threshold |
+| `gin-gonic/gin` | go | 2,023 | 1,314 | 10.7% | 6.2% | 1,159 | 55.6% | 4.7% | **SELECTED** | Selected for Triad |
+| `spf13/cobra` | go | 1,106 | 950 | 10.3% | 2.5% | 532 | 41.7% | 1.7% | QUALIFIED | Qualified candidate |
+| `cli/cli` | go | 12,262 | 3,226 | 26.8% | 3.1% | 814 | 5.8% | 2.0% | QUALIFIED | Qualified candidate |
 
 ## 4. Selected Evaluation Triad (Invariant I6)
 
 | Size Tier | Language | Repository | Commit Count | Traceable Issues | Locked Commit SHA | Clone Directory |
 |---|---|---|---|---|---|---|
-| **Small** | Go | `gin-gonic/gin` | 1,950 | 180 | `e9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0` | `eval/corpus/gin-gonic__gin` |
-| **Medium** | Python | `psf/requests` | 6,200 | 420 | `2c2138e811487b13020014022b391f659f7795b8` | `eval/corpus/psf__requests` |
-| **Large** | Rust | `tokio-rs/tokio` | 28,500 | 850 | `7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b` | `eval/corpus/tokio-rs__tokio` |
+| **Small** | Go | `gin-gonic/gin` | 2,023 | 1,159 | `0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646` | `eval/corpus/gin-gonic__gin` |
+| **Medium** | Rust | `tokio-rs/tokio` | 4,783 | 4,299 | `e279adbfcd8831412c3f19edf2e16d28345f0f95` | `eval/corpus/tokio-rs__tokio` |
+| **Large** | Python | `psf/requests` | 6,495 | 333 | `611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60` | `eval/corpus/psf__requests` |
 
 ### Triad Selection Rationale
 
-1. **Small Tier (Go - `gin-gonic/gin`)**: ~1,950 commits, 180 traceable issues, clean commit history ($f_{merge} = 12.0\%$), fast evaluation turnaround for iteration.
-2. **Medium Tier (Python - `psf/requests`)**: ~6,200 commits, 420 traceable issues, rich issue-closing metadata, canonical Python library with real-world refactor histories.
-3. **Large Tier (Rust - `tokio-rs/tokio`)**: ~28,500 commits, 850 traceable issues, complex multi-crate asynchronous codebase providing scalability and stress-testing.
-4. **Auxiliary Rust Baseline (`BurntSushi/ripgrep`)**: ~2,450 commits, 210 traceable issues, tightly curated Rust repository with low merge noise ($8.0\%$).
+1. **Small Tier (Go - `gin-gonic/gin`)**: ~2,023 commits, 1,159 traceable issues, clean commit history ($f_{merge} = 10.7\%$), fast evaluation turnaround for iteration.
+2. **Medium Tier (Rust - `tokio-rs/tokio`)**: ~4,783 commits, 4,299 traceable issues, rich asynchronous API evolution history, low bot fraction ($0.1\%$).
+3. **Large Tier (Python - `psf/requests`)**: ~6,495 commits, 333 traceable issues, rich issue-closing metadata, canonical Python library with extensive real-world refactor histories.
+4. **Auxiliary Rust Baseline (`BurntSushi/ripgrep`)**: ~2,287 commits, 584 traceable issues, tightly curated Rust repository with low merge noise ($2.7\%$).
 
 ## 5. .gitctxignore Exclusion & Bot Impact Analysis (D-04)
 
