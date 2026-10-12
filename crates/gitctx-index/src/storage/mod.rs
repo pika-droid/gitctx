@@ -18,6 +18,9 @@ use gitctx_core::error::CoreError;
 use rusqlite::{params, Connection, OptionalExtension};
 use std::path::Path;
 
+/// Raw event row returned by `query_cochange_touch_events`.
+pub type CoChangeRawEvent = (String, String, i64, String, String);
+
 /// High-level SQLite Storage Engine for gitctx.
 pub struct StorageEngine {
     conn: Connection,
@@ -329,4 +332,203 @@ impl StorageEngine {
         }
         Ok(results)
     }
+
+    /// Single bulk scan joining function_touches and commits for co-change extraction.
+    /// Returns tuples of `(commit_hash, email, authored_at, path, qualified_name)` ordered by `c.topo_order ASC`.
+    pub fn query_cochange_touch_events(&self) -> rusqlite::Result<Vec<CoChangeRawEvent>> {
+        let mut stmt = self.conn.prepare_cached(
+            "SELECT ft.commit_hash, c.email, c.authored_at, ft.path, ft.qualified_name
+            FROM function_touches ft
+            JOIN commits c ON ft.commit_hash = c.hash
+            ORDER BY c.topo_order ASC;",
+        )?;
+
+        let rows = stmt.query_map([], |row| {
+            Ok((
+                row.get(0)?,
+                row.get(1)?,
+                row.get(2)?,
+                row.get(3)?,
+                row.get(4)?,
+            ))
+        })?;
+
+        let mut results = Vec::new();
+        for r in rows {
+            results.push(r?);
+        }
+        Ok(results)
+    }
+
+    /// Query commits that touched a specific function qualified name, returning (hash, authored_at, message).
+    pub fn query_commits_touching_function(
+        &self,
+        qualname: &str,
+    ) -> rusqlite::Result<Vec<(String, i64, String)>> {
+        let mut stmt = self.conn.prepare_cached(
+            "SELECT DISTINCT c.hash, c.authored_at, c.message
+            FROM commits c
+            JOIN function_touches ft ON c.hash = ft.commit_hash
+            WHERE ft.qualified_name = ?1
+            ORDER BY c.topo_order ASC;",
+        )?;
+
+        let rows = stmt.query_map(params![qualname], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, i64>(1)?,
+                row.get::<_, String>(2)?,
+            ))
+        })?;
+
+        let mut results = Vec::new();
+        for r in rows {
+            results.push(r?);
+        }
+        Ok(results)
+    }
+
+    /// Query precomputed file-level cochange metrics for a target file.
+    pub fn query_cochange_file_metrics_for(
+        &self,
+        target: &str,
+        limit: usize,
+    ) -> rusqlite::Result<Vec<CoChangeMetricRow>> {
+        let mut stmt = self.conn.prepare_cached(
+            "SELECT entity_a, entity_b, support, weighted_support, confidence_a_to_b, confidence_b_to_a, lift
+            FROM cochange_file_metrics
+            WHERE entity_a = ?1 OR entity_b = ?1
+            ORDER BY weighted_support DESC, support DESC
+            LIMIT ?2;",
+        )?;
+
+        let limit_i64 = i64::try_from(limit).unwrap_or(i64::MAX);
+        let rows = stmt.query_map(params![target, limit_i64], |row| {
+            Ok(CoChangeMetricRow {
+                entity_a: row.get(0)?,
+                entity_b: row.get(1)?,
+                support: row.get(2)?,
+                weighted_support: row.get(3)?,
+                confidence_a_to_b: row.get(4)?,
+                confidence_b_to_a: row.get(5)?,
+                lift: row.get(6)?,
+            })
+        })?;
+
+        let mut results = Vec::new();
+        for r in rows {
+            results.push(r?);
+        }
+        Ok(results)
+    }
+
+    /// Query precomputed function-level cochange metrics for a target function.
+    pub fn query_cochange_function_metrics_for(
+        &self,
+        target: &str,
+        limit: usize,
+    ) -> rusqlite::Result<Vec<CoChangeMetricRow>> {
+        let mut stmt = self.conn.prepare_cached(
+            "SELECT entity_a, entity_b, support, weighted_support, confidence_a_to_b, confidence_b_to_a, lift
+            FROM cochange_function_metrics
+            WHERE entity_a = ?1 OR entity_b = ?1
+            ORDER BY weighted_support DESC, support DESC
+            LIMIT ?2;",
+        )?;
+
+        let limit_i64 = i64::try_from(limit).unwrap_or(i64::MAX);
+        let rows = stmt.query_map(params![target, limit_i64], |row| {
+            Ok(CoChangeMetricRow {
+                entity_a: row.get(0)?,
+                entity_b: row.get(1)?,
+                support: row.get(2)?,
+                weighted_support: row.get(3)?,
+                confidence_a_to_b: row.get(4)?,
+                confidence_b_to_a: row.get(5)?,
+                lift: row.get(6)?,
+            })
+        })?;
+
+        let mut results = Vec::new();
+        for r in rows {
+            results.push(r?);
+        }
+        Ok(results)
+    }
+
+    /// Query top global file-level cochange metrics.
+    pub fn query_global_file_cochange_metrics(
+        &self,
+        limit: usize,
+    ) -> rusqlite::Result<Vec<CoChangeMetricRow>> {
+        let mut stmt = self.conn.prepare_cached(
+            "SELECT entity_a, entity_b, support, weighted_support, confidence_a_to_b, confidence_b_to_a, lift
+            FROM cochange_file_metrics
+            ORDER BY weighted_support DESC, support DESC
+            LIMIT ?1;",
+        )?;
+
+        let limit_i64 = i64::try_from(limit).unwrap_or(i64::MAX);
+        let rows = stmt.query_map(params![limit_i64], |row| {
+            Ok(CoChangeMetricRow {
+                entity_a: row.get(0)?,
+                entity_b: row.get(1)?,
+                support: row.get(2)?,
+                weighted_support: row.get(3)?,
+                confidence_a_to_b: row.get(4)?,
+                confidence_b_to_a: row.get(5)?,
+                lift: row.get(6)?,
+            })
+        })?;
+
+        let mut results = Vec::new();
+        for r in rows {
+            results.push(r?);
+        }
+        Ok(results)
+    }
+
+    /// Query top global function-level cochange metrics.
+    pub fn query_global_function_cochange_metrics(
+        &self,
+        limit: usize,
+    ) -> rusqlite::Result<Vec<CoChangeMetricRow>> {
+        let mut stmt = self.conn.prepare_cached(
+            "SELECT entity_a, entity_b, support, weighted_support, confidence_a_to_b, confidence_b_to_a, lift
+            FROM cochange_function_metrics
+            ORDER BY weighted_support DESC, support DESC
+            LIMIT ?1;",
+        )?;
+
+        let limit_i64 = i64::try_from(limit).unwrap_or(i64::MAX);
+        let rows = stmt.query_map(params![limit_i64], |row| {
+            Ok(CoChangeMetricRow {
+                entity_a: row.get(0)?,
+                entity_b: row.get(1)?,
+                support: row.get(2)?,
+                weighted_support: row.get(3)?,
+                confidence_a_to_b: row.get(4)?,
+                confidence_b_to_a: row.get(5)?,
+                lift: row.get(6)?,
+            })
+        })?;
+
+        let mut results = Vec::new();
+        for r in rows {
+            results.push(r?);
+        }
+        Ok(results)
+    }
+}
+
+/// Precomputed co-change metric row from SQLite storage.
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct CoChangeMetricRow {
+    pub entity_a: String,
+    pub entity_b: String,
+    pub support: u32,
+    pub weighted_support: f64,
+    pub confidence_a_to_b: f64,
+    pub confidence_b_to_a: f64,
+    pub lift: f64,
 }

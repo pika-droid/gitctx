@@ -1,5 +1,6 @@
 pub mod audit_harvester;
 pub mod bench;
+pub mod check_deps;
 pub mod clone_corpus;
 pub mod clone_references;
 pub mod download_models;
@@ -8,6 +9,7 @@ pub mod fixtures;
 pub mod harvest;
 pub mod lint;
 pub mod profile_corpus;
+pub mod semver;
 pub mod test_invariants;
 pub mod test_offline;
 pub mod verify_ground_truth;

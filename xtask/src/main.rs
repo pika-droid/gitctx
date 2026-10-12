@@ -21,6 +21,33 @@ enum Commands {
         /// Automatically apply suggested fixes
         #[arg(long)]
         fix: bool,
+        /// Also run dependency checks (cargo machete, deny, audit)
+        #[arg(long)]
+        deps: bool,
+    },
+    /// Run dependency health checks (cargo machete, cargo deny, cargo audit)
+    CheckDeps {
+        /// Treat missing tools as warnings rather than hard failures
+        #[arg(long)]
+        allow_missing: bool,
+    },
+    /// Run security and license audit (cargo audit, cargo deny)
+    Audit {
+        /// Treat missing tools as warnings rather than hard failures
+        #[arg(long)]
+        allow_missing: bool,
+    },
+    /// Run semantic versioning verification (cargo semver-checks)
+    Semver {
+        /// Baseline git revision (e.g. main or origin/main)
+        #[arg(long)]
+        baseline_rev: Option<String>,
+        /// Specific package to check
+        #[arg(long)]
+        package: Option<String>,
+        /// Treat missing tool as warning rather than hard failure
+        #[arg(long)]
+        allow_missing: bool,
     },
     /// Clone or update vetted reference repositories into `reference_repos/`
     CloneReferences {
@@ -178,7 +205,14 @@ enum EvalSubcommands {
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     match cli.command {
-        Commands::Lint { fix } => tasks::lint::run_lint(fix),
+        Commands::Lint { fix, deps } => tasks::lint::run_lint(fix, deps),
+        Commands::CheckDeps { allow_missing } => tasks::check_deps::run_check_deps(allow_missing),
+        Commands::Audit { allow_missing } => tasks::check_deps::run_audit(allow_missing),
+        Commands::Semver {
+            baseline_rev,
+            package,
+            allow_missing,
+        } => tasks::semver::run_semver(baseline_rev.as_deref(), package.as_deref(), allow_missing),
         Commands::CloneReferences { repo } => {
             tasks::clone_references::run_clone_references(repo.as_deref())
         }

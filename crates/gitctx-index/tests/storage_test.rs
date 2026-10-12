@@ -5,6 +5,7 @@ use gitctx_index::storage::{
     StorageEngine, TouchRecord, CURRENT_SCHEMA_VERSION,
 };
 use std::fs;
+use std::path::PathBuf;
 use tempfile::tempdir;
 
 #[test]
@@ -386,4 +387,124 @@ fn test_explain_cache_isolation() {
             .contains("LLM_SYNTHETIC_EXPLANATION_TOKEN"),
         "Invariant I5 violation: LLM explanation leaked into touch chunk_text"
     );
+}
+
+#[test]
+fn test_schema_v2_cochange_tables_and_queries() {
+    let tmp_dir = tempdir().expect("Failed to create tempdir");
+    let db_path = tmp_dir.path().join("index.db");
+    let config = IndexConfig::new(CURRENT_SCHEMA_VERSION, "BGESmallENV15", "code", 500, 1);
+
+    assert_eq!(CURRENT_SCHEMA_VERSION, 2);
+
+    let conn = open_connection(&db_path).expect("Failed to open connection");
+    gitctx_index::storage::initialize_schema(&conn).expect("Failed to initialize schema");
+    conn.execute(
+        "INSERT INTO index_state (key, value) VALUES ('schema_version', ?1), ('config_hash', ?2);",
+        rusqlite::params![
+            CURRENT_SCHEMA_VERSION.to_string(),
+            config.compute_config_hash().as_str()
+        ],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO cochange_file_metrics (entity_a, entity_b, support, weighted_support, confidence_a_to_b, confidence_b_to_a, lift)
+         VALUES ('src/a.rs', 'src/b.rs', 5, 4.8, 0.83, 0.71, 2.5);",
+        [],
+    ).unwrap();
+
+    conn.execute(
+        "INSERT INTO cochange_function_metrics (entity_a, entity_b, support, weighted_support, confidence_a_to_b, confidence_b_to_a, lift)
+         VALUES ('mod::foo', 'mod::bar', 3, 2.9, 0.75, 0.60, 3.1);",
+        [],
+    ).unwrap();
+
+    let engine = StorageEngine::open(&db_path, &config).expect("Failed to open engine");
+
+    // Query file metrics for entity_a ('src/a.rs')
+    let res_a = engine
+        .query_cochange_file_metrics_for("src/a.rs", 10)
+        .unwrap();
+    assert_eq!(res_a.len(), 1);
+    assert_eq!(res_a[0].entity_b, "src/b.rs");
+    assert_eq!(res_a[0].support, 5);
+
+    // Query file metrics for entity_b ('src/b.rs')
+    let res_b = engine
+        .query_cochange_file_metrics_for("src/b.rs", 10)
+        .unwrap();
+    assert_eq!(res_b.len(), 1);
+    assert_eq!(res_b[0].entity_a, "src/a.rs");
+
+    // Query function metrics
+    let res_func = engine
+        .query_cochange_function_metrics_for("mod::foo", 10)
+        .unwrap();
+    assert_eq!(res_func.len(), 1);
+    assert_eq!(res_func[0].entity_b, "mod::bar");
+
+    // Query global metrics
+    let global_files = engine.query_global_file_cochange_metrics(10).unwrap();
+    assert_eq!(global_files.len(), 1);
+    let global_funcs = engine.query_global_function_cochange_metrics(10).unwrap();
+    assert_eq!(global_funcs.len(), 1);
+}
+
+#[test]
+fn test_staged_atomic_rotation() {
+    let tmp_dir = tempdir().expect("Failed to create tempdir");
+    let mut manager = AtomicStorageManager::new(tmp_dir.path());
+
+    // Write initial existing files
+    fs::write(manager.db_path(), b"INITIAL_DB").unwrap();
+    fs::write(manager.vectors_path(), b"INITIAL_VEC").unwrap();
+    fs::create_dir_all(manager.tantivy_dir()).unwrap();
+    fs::write(manager.tantivy_dir().join("meta.json"), b"INITIAL_TANTIVY").unwrap();
+
+    // Write new temp files
+    fs::write(manager.tmp_db_path(), b"NEW_DB").unwrap();
+    fs::write(manager.tmp_vectors_path(), b"NEW_VEC").unwrap();
+    fs::create_dir_all(manager.tmp_tantivy_dir()).unwrap();
+    fs::write(manager.tmp_tantivy_dir().join("meta.json"), b"NEW_TANTIVY").unwrap();
+
+    // Commit swap
+    manager.commit_swap().expect("commit_swap should succeed");
+
+    assert_eq!(fs::read(manager.db_path()).unwrap(), b"NEW_DB");
+    assert_eq!(fs::read(manager.vectors_path()).unwrap(), b"NEW_VEC");
+    assert_eq!(
+        fs::read(manager.tantivy_dir().join("meta.json")).unwrap(),
+        b"NEW_TANTIVY"
+    );
+
+    // Verify .bak files were cleaned up
+    assert!(!manager.db_path().with_extension("bak").exists());
+    assert!(!manager.vectors_path().with_extension("bak").exists());
+    assert!(!manager.tantivy_dir().with_extension("bak").exists());
+}
+
+#[test]
+fn test_staged_atomic_rotation_cleans_stale_wal() {
+    let tmp_dir = tempdir().expect("Failed to create tempdir");
+    let mut manager = AtomicStorageManager::new(tmp_dir.path());
+
+    // Write initial existing files and a stale -wal / -shm
+    fs::write(manager.db_path(), b"INITIAL_DB").unwrap();
+    let stale_wal = PathBuf::from(format!("{}-wal", manager.db_path().display()));
+    let stale_shm = PathBuf::from(format!("{}-shm", manager.db_path().display()));
+    fs::write(&stale_wal, b"STALE_WAL_DATA").unwrap();
+    fs::write(&stale_shm, b"STALE_SHM_DATA").unwrap();
+    assert!(stale_wal.exists());
+    assert!(stale_shm.exists());
+
+    // Write new temp db
+    fs::write(manager.tmp_db_path(), b"NEW_DB").unwrap();
+
+    // Commit swap
+    manager.commit_swap().expect("commit_swap should succeed");
+
+    assert_eq!(fs::read(manager.db_path()).unwrap(), b"NEW_DB");
+    // Stale WAL and SHM files must be removed so SQLite doesn't attempt replay
+    assert!(!stale_wal.exists());
+    assert!(!stale_shm.exists());
 }

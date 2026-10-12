@@ -1,6 +1,6 @@
 use rusqlite::{Connection, Result};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 1;
+pub const CURRENT_SCHEMA_VERSION: u32 = 2;
 
 pub const SCHEMA_DDL: &str = r"
 CREATE TABLE IF NOT EXISTS index_state (
@@ -72,6 +72,32 @@ CREATE TABLE IF NOT EXISTS explain_cache (
     text TEXT NOT NULL,
     created_at INTEGER NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS cochange_file_metrics (
+    entity_a TEXT NOT NULL,
+    entity_b TEXT NOT NULL,
+    support INTEGER NOT NULL,
+    weighted_support REAL NOT NULL,
+    confidence_a_to_b REAL NOT NULL,
+    confidence_b_to_a REAL NOT NULL,
+    lift REAL NOT NULL,
+    PRIMARY KEY(entity_a, entity_b)
+);
+CREATE INDEX IF NOT EXISTS ix_cochange_file_a ON cochange_file_metrics(entity_a);
+CREATE INDEX IF NOT EXISTS ix_cochange_file_b ON cochange_file_metrics(entity_b);
+
+CREATE TABLE IF NOT EXISTS cochange_function_metrics (
+    entity_a TEXT NOT NULL,
+    entity_b TEXT NOT NULL,
+    support INTEGER NOT NULL,
+    weighted_support REAL NOT NULL,
+    confidence_a_to_b REAL NOT NULL,
+    confidence_b_to_a REAL NOT NULL,
+    lift REAL NOT NULL,
+    PRIMARY KEY(entity_a, entity_b)
+);
+CREATE INDEX IF NOT EXISTS ix_cochange_func_a ON cochange_function_metrics(entity_a);
+CREATE INDEX IF NOT EXISTS ix_cochange_func_b ON cochange_function_metrics(entity_b);
 ";
 
 pub fn initialize_schema(conn: &Connection) -> Result<()> {

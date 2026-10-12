@@ -10,6 +10,7 @@ pub mod extractor;
 pub mod graph;
 pub mod impact;
 pub mod metrics;
+pub mod service;
 
 pub use config::{
     CoChangeConfig, DEFAULT_BOT_PATTERNS, DEFAULT_DECAY_HALF_LIFE_DAYS, DEFAULT_MAX_COMMIT_FILES,
@@ -20,3 +21,4 @@ pub use extractor::{CoChangeExtractor, ExtractionStats, RawCoChangePair};
 pub use graph::{CoChangeEdge, CoChangeGraph, CoupledEntity, EntityNode, EntityType};
 pub use impact::{ImpactAnalyzer, ImpactResult};
 pub use metrics::{CoChangeMetrics, MetricsComputer};
+pub use service::{GlobalImpactSummary, ImpactService};

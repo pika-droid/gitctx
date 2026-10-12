@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, phase12 ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, phase12 ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -49,3 +49,35 @@ jobs:
 
       - name: Run invariant verification suite
         run: cargo run -p xtask -- test-invariants
+
+  audit-and-dependencies:
+    name: Security, Dependencies & SemVer Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Install cargo quality & security tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny,cargo-audit,cargo-machete,cargo-semver-checks
+
+      - name: Check unused dependencies (cargo-machete)
+        run: cargo machete
+
+      - name: Check licenses, bans & advisories (cargo-deny)
+        run: cargo deny check
+
+      - name: Security audit vulnerabilities (cargo-audit)
+        run: cargo audit
+
+      - name: Check SemVer compatibility (cargo-semver-checks)
+        if: github.event_name == 'pull_request'
+        run: cargo semver-checks check-release --baseline-rev ${{ github.base_ref || 'origin/main' }} || true

@@ -10,13 +10,11 @@ use gitctx_index::storage::{StorageEngine, CURRENT_SCHEMA_VERSION};
 use gitctx_index::tantivy_index::TantivyEngine;
 use gitctx_index::vector::{FastEmbedGenerator, MmapVectorStorage};
 use gitctx_query::chain::ChainAssembler;
-use gitctx_query::cochange::{
-    CoChangeConfig, CoChangeExtractor, CoChangeGraph, EntityType, ImpactAnalyzer, MetricsComputer,
-};
+use gitctx_query::cochange::ImpactService;
 use gitctx_query::retrieval::HybridRetriever;
 use rusqlite::OptionalExtension;
 use std::path::Path;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::{Arc, Mutex};
 
 /// MCP tool descriptor for `tools/list` response.
 pub fn tool_definitions() -> serde_json::Value {
@@ -131,6 +129,7 @@ pub struct ToolContext {
     storage: StorageEngine,
     tantivy: Option<TantivyEngine>,
     vectors: Option<MmapVectorStorage>,
+    embedder: Option<Arc<Mutex<FastEmbedGenerator>>>,
     repo_path: std::path::PathBuf,
 }
 
@@ -154,10 +153,19 @@ impl ToolContext {
         let tantivy = TantivyEngine::open(&tantivy_path).ok();
         let vectors = MmapVectorStorage::open(&vectors_path).ok();
 
+        let embedder = if vectors.is_some() {
+            FastEmbedGenerator::new(None)
+                .ok()
+                .map(|e| Arc::new(Mutex::new(e)))
+        } else {
+            None
+        };
+
         Ok(Self {
             storage,
             tantivy,
             vectors,
+            embedder,
             repo_path: repo_path.to_path_buf(),
         })
     }
@@ -212,14 +220,16 @@ impl ToolContext {
             .and_then(serde_json::Value::as_u64)
             .unwrap_or(10) as usize;
 
-        // Embed query for dense vector search
-        let query_vector = if self.vectors.is_some() {
-            let mut embedder = FastEmbedGenerator::new(None)
-                .map_err(|e| format!("Failed to initialize embedder: {e}"))?;
-            let mut embeddings = embedder
-                .embed_texts(&[query.to_string()], None)
-                .map_err(|e| format!("Failed to embed query: {e}"))?;
-            embeddings.pop()
+        // Embed query for dense vector search using warm cached embedder
+        let query_vector = if let Some(ref emb_arc) = self.embedder {
+            if let Ok(mut emb) = emb_arc.lock() {
+                let mut embeddings = emb
+                    .embed_texts(&[query.to_string()], None)
+                    .map_err(|e| format!("Failed to embed query: {e}"))?;
+                embeddings.pop()
+            } else {
+                None
+            }
         } else {
             None
         };
@@ -317,34 +327,10 @@ impl ToolContext {
             .and_then(serde_json::Value::as_u64)
             .unwrap_or(10) as usize;
 
-        let secs = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs();
-        let now_epoch = i64::try_from(secs).unwrap_or(i64::MAX);
-        let cochange_config = CoChangeConfig::with_reference_epoch(now_epoch);
-
-        let extractor = CoChangeExtractor::new(&self.storage, &cochange_config);
-        let (file_pairs, func_pairs, stats) = extractor
-            .extract()
-            .map_err(|e| format!("Co-change extraction failed: {e}"))?;
-
-        // Heuristic: targets with dots and no :: are files
-        let is_file = target.contains('.') && !target.contains("::");
-
-        let (metrics, entity_type) = if is_file {
-            let m =
-                MetricsComputer::compute(&file_pairs, stats.qualifying_commits, &cochange_config);
-            (m, EntityType::File)
-        } else {
-            let m =
-                MetricsComputer::compute(&func_pairs, stats.qualifying_commits, &cochange_config);
-            (m, EntityType::Function)
-        };
-
-        let graph = CoChangeGraph::from_metrics(&metrics, entity_type);
-        let analyzer = ImpactAnalyzer::new(&self.storage, &graph);
-        let impact = analyzer.analyze(target, limit);
+        let service = ImpactService::new(&self.storage);
+        let impact = service
+            .analyze(target, limit)
+            .map_err(|e| format!("Impact analysis failed: {e}"))?;
 
         let mut response = serde_json::json!({
             "target": target,

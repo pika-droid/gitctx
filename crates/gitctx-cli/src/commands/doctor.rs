@@ -78,7 +78,7 @@ pub fn run(format: Format) -> anyhow::Result<()> {
 
                 // Schema Version Check
                 let db_schema: Result<u32, _> = conn.query_row(
-                    "SELECT value FROM meta_state WHERE key = 'schema_version'",
+                    "SELECT value FROM index_state WHERE key = 'schema_version'",
                     [],
                     |r| {
                         let val: String = r.get(0)?;
@@ -117,7 +117,7 @@ pub fn run(format: Format) -> anyhow::Result<()> {
 
                 // Config Hash Match
                 let db_hash: Result<String, _> = conn.query_row(
-                    "SELECT value FROM meta_state WHERE key = 'config_hash'",
+                    "SELECT value FROM index_state WHERE key = 'config_hash'",
                     [],
                     |r| r.get(0),
                 );

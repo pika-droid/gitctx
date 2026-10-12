@@ -44,40 +44,89 @@ impl<'a> ImpactAnalyzer<'a> {
     }
 
     /// Check if a commit message indicates a fix.
-    fn is_fix_commit(message: &str) -> bool {
+    pub fn is_fix_commit(message: &str) -> bool {
         FIX_PATTERN.is_match(message)
+    }
+
+    /// Determine entity type for a given identifier using graph and storage knowledge.
+    pub fn resolve_entity_type(&self, entity: &str) -> EntityType {
+        if let Some(t) = self.graph.entity_type(entity) {
+            return t;
+        }
+        if entity.contains("::") {
+            return EntityType::Function;
+        }
+        if entity.contains('/') || entity.contains('\\') {
+            return EntityType::File;
+        }
+        if let Ok(func_commits) = self.engine.query_commits_touching_function(entity) {
+            if !func_commits.is_empty() {
+                return EntityType::Function;
+            }
+        }
+        if let Ok(path_commits) = self.engine.query_commits_touching_path(entity) {
+            if !path_commits.is_empty() {
+                return EntityType::File;
+            }
+        }
+        if entity.contains('.') {
+            EntityType::File
+        } else {
+            EntityType::Function
+        }
+    }
+
+    /// Helper to get commits touching an entity (path or function qualified name).
+    fn get_commits_touching(
+        &self,
+        entity: &str,
+        entity_type: EntityType,
+    ) -> Vec<(String, i64, String)> {
+        match entity_type {
+            EntityType::Function => self
+                .engine
+                .query_commits_touching_function(entity)
+                .unwrap_or_default(),
+            EntityType::File => self
+                .engine
+                .query_commits_touching_path(entity)
+                .unwrap_or_default(),
+        }
     }
 
     /// Count follow-up fix commits per GRAPH-03.
     ///
-    /// For each coupled entity, counts how many "fix" commits touched the coupled entity
+    /// For each coupled entity, counts how many unique "fix" commits touched the coupled entity
     /// within `FOLLOWUP_WINDOW_SECONDS` of a commit that touched the target.
-    fn count_followup_fixes(&self, target: &str, coupled_names: &[String]) -> u32 {
-        // Get commits that touched the target entity
-        let Ok(target_commits) = self.engine.query_commits_touching_path(target) else {
-            return 0;
-        };
-
+    fn count_followup_fixes(
+        &self,
+        target: &str,
+        target_type: EntityType,
+        coupled_names: &[String],
+    ) -> u32 {
+        let target_commits = self.get_commits_touching(target, target_type);
         if target_commits.is_empty() || coupled_names.is_empty() {
             return 0;
         }
 
         let mut fix_count: u32 = 0;
+        let mut seen_coupled_fixes = std::collections::HashSet::new();
 
         for coupled in coupled_names {
-            let Ok(coupled_commits) = self.engine.query_commits_touching_path(coupled) else {
-                continue;
-            };
+            let coupled_type = self.resolve_entity_type(coupled);
+            let coupled_commits = self.get_commits_touching(coupled, coupled_type);
 
-            for (_, target_epoch, _) in &target_commits {
-                for (_, coupled_epoch, coupled_msg) in &coupled_commits {
-                    // Check if coupled commit is within the follow-up window
+            for (coupled_hash, coupled_epoch, coupled_msg) in &coupled_commits {
+                if !Self::is_fix_commit(coupled_msg) {
+                    continue;
+                }
+                for (_, target_epoch, _) in &target_commits {
                     let time_delta = coupled_epoch - target_epoch;
-                    if time_delta > 0
-                        && time_delta <= FOLLOWUP_WINDOW_SECONDS
-                        && Self::is_fix_commit(coupled_msg)
-                    {
-                        fix_count += 1;
+                    if time_delta > 0 && time_delta <= FOLLOWUP_WINDOW_SECONDS {
+                        if seen_coupled_fixes.insert((coupled.clone(), coupled_hash.clone())) {
+                            fix_count += 1;
+                        }
+                        break;
                     }
                 }
             }
@@ -91,22 +140,19 @@ impl<'a> ImpactAnalyzer<'a> {
     /// Returns the composite risk score combining coupling strength,
     /// follow-up fix ratio, and churn.
     pub fn analyze(&self, target: &str, top_k: usize) -> ImpactResult {
+        let target_type = self.resolve_entity_type(target);
         let coupled = self.graph.top_coupled(target, top_k);
 
         let coupled_names: Vec<String> = coupled.iter().map(|c| c.name.clone()).collect();
 
         // Compute follow-up fix count
-        let followup_fix_count = self.count_followup_fixes(target, &coupled_names);
+        let followup_fix_count = self.count_followup_fixes(target, target_type, &coupled_names);
 
         // Compute risk score components
         let max_confidence = coupled.iter().map(|c| c.confidence).fold(0.0_f64, f64::max);
 
         // Get target's total touches for fix ratio normalization
-        let target_touches = self
-            .engine
-            .query_commits_touching_path(target)
-            .map(|c| c.len())
-            .unwrap_or(0);
+        let target_touches = self.get_commits_touching(target, target_type).len();
 
         let normalized_fix_ratio = if target_touches > 0 {
             (f64::from(followup_fix_count) / target_touches as f64).clamp(0.0, 1.0)
@@ -123,7 +169,7 @@ impl<'a> ImpactAnalyzer<'a> {
                 .clamp(0.0, 1.0);
 
         let entity_type = if coupled.is_empty() {
-            EntityType::File
+            target_type
         } else {
             coupled[0].entity_type
         };

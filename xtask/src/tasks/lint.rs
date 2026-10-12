@@ -1,8 +1,9 @@
+use crate::tasks::check_deps::run_check_deps;
 use crate::util::run_cmd;
 use anyhow::Result;
 use std::process::Command;
 
-pub fn run_lint(fix: bool) -> Result<()> {
+pub fn run_lint(fix: bool, check_deps: bool) -> Result<()> {
     let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
 
     if fix {
@@ -41,6 +42,10 @@ pub fn run_lint(fix: bool) -> Result<()> {
             &mut clippy_cmd,
             "cargo clippy --workspace --all-targets -- -D warnings",
         )?;
+    }
+
+    if check_deps {
+        run_check_deps(true)?;
     }
 
     println!("All lint and format checks passed successfully!");
