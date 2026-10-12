@@ -1,6 +1,6 @@
 # gitctx Comprehensive Evaluation Report
 
-**Generated:** 2026-10-12T17:17:59Z
+**Generated:** 2026-10-12T21:00:49Z
 **Corpus:** 3 repositories pinned in `eval/corpus.lock.toml`
 **Ground Truth:** Set A (260 issue-closing pairs), Set B (27 why-queries)
 **Random Seed:** 42
@@ -88,7 +88,7 @@ All retrieval misses (Recall@10 < 1.0 in any configuration) are classified into 
 
 | Bucket | Count | Affected Queries |
 |--------|-------|------------------|
-| Dense Retrieval Misalignment | 4 | syn-014, syn-001, syn-016, syn-006 |
+| Dense Retrieval Misalignment | 4 | syn-016, syn-001, syn-006, syn-014 |
 
 ### Taxonomy Reference
 
