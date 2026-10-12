@@ -6,7 +6,7 @@ use gitctx_index::storage::CURRENT_SCHEMA_VERSION;
 use std::path::Path;
 use std::time::Instant;
 
-pub fn run(repo_path: &str, format: Format) -> anyhow::Result<()> {
+pub fn run(repo_path: &str, format: Format, max_commits: Option<usize>) -> anyhow::Result<()> {
     let start_time = Instant::now();
     let path = Path::new(repo_path);
 
@@ -23,7 +23,7 @@ pub fn run(repo_path: &str, format: Format) -> anyhow::Result<()> {
         println!("Indexing repository at: {}", path.display());
     }
 
-    if let Err(e) = IndexPipeline::run(path, &config) {
+    if let Err(e) = IndexPipeline::run_with_limit(path, &config, max_commits) {
         anyhow::bail!("Failed to run indexing pipeline: {e:?}");
     }
 

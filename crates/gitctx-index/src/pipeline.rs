@@ -23,6 +23,15 @@ pub struct IndexPipeline;
 impl IndexPipeline {
     /// Run the full indexing pipeline for a repository.
     pub fn run(repo_path: &Path, config: &IndexConfig) -> Result<()> {
+        Self::run_with_limit(repo_path, config, None)
+    }
+
+    /// Run the indexing pipeline for a repository with an optional commit limit.
+    pub fn run_with_limit(
+        repo_path: &Path,
+        config: &IndexConfig,
+        max_commits: Option<usize>,
+    ) -> Result<()> {
         let repo = GitRepo::open(repo_path)?;
         let walker = GitWalker::new(&repo)?;
 
@@ -58,11 +67,19 @@ impl IndexPipeline {
         let mut touch_counter: i64 = 0;
 
         // 1. Collect commits and reverse them so history is traversed chronologically (root -> HEAD)
-        let commits: Vec<_> = walker.collect::<Result<Vec<_>>>()?;
+        let mut commits: Vec<_> = walker.collect::<Result<Vec<_>>>()?;
+        if let Some(max) = max_commits {
+            commits.truncate(max);
+        }
+        let total_commits = commits.len();
+        println!("--> Processing {total_commits} commits into index pipeline...");
         let commits: Vec<_> = commits.into_iter().rev().collect();
 
         // 2. Walk commits in chronological order
         for (idx, commit_info) in commits.into_iter().enumerate() {
+            if (idx + 1) % 10 == 0 || idx + 1 == total_commits {
+                println!("    Indexed {}/{} commits...", idx + 1, total_commits);
+            }
             let topo_order = (idx + 1) as u32;
             let commit_id = commit_info.commit_id.clone();
 

@@ -32,8 +32,11 @@ pub enum Format {
 pub fn run(cli: Cli) -> anyhow::Result<()> {
     let format = cli.format;
     match cli.command {
-        Some(Commands::Index { repo_path }) => {
-            commands::index::run(&repo_path, format)?;
+        Some(Commands::Index {
+            repo_path,
+            max_commits,
+        }) => {
+            commands::index::run(&repo_path, format, max_commits)?;
         }
         Some(Commands::Search { query }) => {
             commands::search::run(&query, format)?;
