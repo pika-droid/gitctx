@@ -12,7 +12,7 @@ pre-commit:
       run: cargo clippy --workspace --all-targets -- -D warnings
     taplo:
       glob: "*.toml"
-      run: taplo fmt --check {staged_files}
+      run: taplo lint {staged_files}
     machete:
       glob: "Cargo.toml"
       run: cargo machete

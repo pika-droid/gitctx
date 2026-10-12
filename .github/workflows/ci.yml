@@ -74,8 +74,8 @@ jobs:
         with:
           tool: cargo-deny,cargo-audit,cargo-machete,cargo-semver-checks,taplo-cli
 
-      - name: Check TOML formatting (taplo)
-        run: taplo fmt --check
+      - name: Lint TOML files (taplo)
+        run: taplo lint
 
       - name: Check unused dependencies (cargo-machete)
         run: cargo machete

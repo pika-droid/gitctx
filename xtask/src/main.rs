@@ -243,10 +243,9 @@ fn main() -> anyhow::Result<()> {
             package,
             allow_missing,
         } => tasks::semver::run_semver(baseline_rev.as_deref(), package.as_deref(), allow_missing),
-        Commands::Test {
-            cargo_test,
-            filter,
-        } => tasks::test::run_test(cargo_test, filter.as_deref()),
+        Commands::Test { cargo_test, filter } => {
+            tasks::test::run_test(cargo_test, filter.as_deref())
+        }
         Commands::Coverage {
             html,
             lcov,
