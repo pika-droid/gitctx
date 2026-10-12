@@ -17,14 +17,12 @@ path = "src/main.rs"
 gitctx-core.workspace = true
 gitctx-index.workspace = true
 gitctx-query.workspace = true
-thiserror.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 rusqlite.workspace = true
 git2.workspace = true
-anyhow.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

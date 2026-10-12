@@ -24,10 +24,10 @@ pub fn run_test(use_cargo_test: bool, test_filter: Option<&str>) -> Result<()> {
             let mut cmd = Command::new(&cargo);
             cmd.arg("nextest").args(&args).current_dir(&root);
             return run_cmd(&mut cmd, &format!("cargo nextest {}", args.join(" ")));
-        } else {
-            println!("==> Note: 'cargo-nextest' is not installed, falling back to 'cargo test'.");
-            println!("    (Tip: install cargo-nextest with: cargo install cargo-nextest --locked)");
         }
+
+        println!("==> Note: 'cargo-nextest' is not installed, falling back to 'cargo test'.");
+        println!("    (Tip: install cargo-nextest with: cargo install cargo-nextest --locked)");
     }
 
     println!("==> Running tests with standard cargo test...");

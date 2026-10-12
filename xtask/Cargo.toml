@@ -9,6 +9,9 @@ repository.workspace = true
 [package.metadata.dist]
 dist = false
 
+[package.metadata.cargo-machete]
+ignored = ["tempfile"]
+
 [lints]
 workspace = true
 
@@ -20,10 +23,7 @@ path = "src/main.rs"
 clap.workspace = true
 anyhow.workspace = true
 serde.workspace = true
-serde_json.workspace = true
 toml.workspace = true
 git2.workspace = true
 tempfile.workspace = true
-gitctx-core.workspace = true
 gitctx-eval.workspace = true
-

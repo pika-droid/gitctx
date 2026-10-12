@@ -13,7 +13,6 @@ thiserror.workspace = true
 blake3.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-tracing.workspace = true
 regex.workspace = true
 git2.workspace = true
 lru.workspace = true
@@ -30,6 +29,3 @@ tree-sitter-php.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
-
-
-
