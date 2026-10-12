@@ -6,14 +6,19 @@ all-features = false
 no-default-features = false
 
 [advisories]
-vulnerability = "deny"
-unmaintained = "warn"
 yanked = "warn"
-notice = "warn"
-ignore = []
+unmaintained = "workspace"
+unsound = "workspace"
+ignore = [
+    { id = "RUSTSEC-2026-0008", reason = "git2 0.19.0 Buf deref unsoundness; pinned for libgit2 stability" },
+    { id = "RUSTSEC-2026-0183", reason = "git2 0.19.0 Remote::list null pointer; pinned for libgit2 stability" },
+    { id = "RUSTSEC-2026-0184", reason = "git2 0.19.0 BlameHunk null pointer; pinned for libgit2 stability" },
+    { id = "RUSTSEC-2026-0002", reason = "lru 0.12.5 IterMut stacked borrows; transitive via tantivy 0.22" },
+    { id = "RUSTSEC-2026-0253", reason = "lru 0.12.5 LruCache::pop panic safety; transitive via tantivy 0.22" },
+    { id = "RUSTSEC-2026-0009", reason = "time 0.3.36 stack exhaustion in RFC2822 parsing; transitive via tantivy 0.22, patched time requires rustc >= 1.88" },
+]
 
 [licenses]
-unlicensed = "deny"
 allow = [
     "MIT",
     "Apache-2.0",
@@ -27,6 +32,7 @@ allow = [
     "Zlib",
     "CC0-1.0",
     "MPL-2.0",
+    "CDLA-Permissive-2.0",
 ]
 confidence-threshold = 0.8
 exceptions = [

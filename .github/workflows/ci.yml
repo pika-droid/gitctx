@@ -88,7 +88,7 @@ jobs:
 
       - name: Check SemVer compatibility (cargo-semver-checks)
         if: github.event_name == 'pull_request'
-        run: cargo semver-checks check-release --baseline-rev ${{ github.base_ref || 'origin/main' }} || true
+        run: cargo semver-checks check-release --baseline-rev origin/${{ github.base_ref || 'main' }} --exclude xtask --exclude gitctx-eval --exclude gitctx-mcp || true
 
   coverage:
     name: Code Coverage
