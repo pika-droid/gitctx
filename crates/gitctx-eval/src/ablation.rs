@@ -3,9 +3,7 @@
 //! Evaluates the 5 document representations (D1-D5) across 5 retrieval strategies (R1-R5)
 //! on ground truth queries without external Python runtime dependencies.
 
-use crate::report::{
-    AblationCell, AblationGrid, AblationMetrics, PerQueryResult,
-};
+use crate::report::{AblationCell, AblationGrid, AblationMetrics, PerQueryResult};
 use anyhow::{Context, Result};
 use gitctx_core::template::{D4TemplateRenderer, FunctionTemplateContext};
 use gitctx_index::vector::{dot_product_simd, normalize_l2, FastEmbedGenerator};
@@ -81,15 +79,14 @@ impl DocumentRepresentations {
 
 /// Stop-words to filter out during BM25 and code tokenization.
 const STOP_WORDS: &[&str] = &[
-    "a", "about", "after", "all", "an", "and", "are", "as", "at", "be", "because",
-    "been", "before", "being", "between", "both", "but", "by", "can", "could", "did",
-    "do", "does", "each", "few", "find", "for", "from", "had", "has", "have", "how",
-    "if", "in", "into", "is", "it", "its", "just", "more", "most", "no", "not", "of",
-    "off", "on", "only", "or", "other", "our", "out", "over", "recently", "should",
-    "show", "so", "some", "such", "than", "that", "the", "their", "them", "then",
-    "there", "these", "they", "this", "those", "to", "too", "under", "up", "very",
-    "was", "we", "were", "what", "when", "where", "which", "while", "who", "whom",
-    "why", "will", "with", "would", "you", "your",
+    "a", "about", "after", "all", "an", "and", "are", "as", "at", "be", "because", "been",
+    "before", "being", "between", "both", "but", "by", "can", "could", "did", "do", "does", "each",
+    "few", "find", "for", "from", "had", "has", "have", "how", "if", "in", "into", "is", "it",
+    "its", "just", "more", "most", "no", "not", "of", "off", "on", "only", "or", "other", "our",
+    "out", "over", "recently", "should", "show", "so", "some", "such", "than", "that", "the",
+    "their", "them", "then", "there", "these", "they", "this", "those", "to", "too", "under", "up",
+    "very", "was", "we", "were", "what", "when", "where", "which", "while", "who", "whom", "why",
+    "will", "with", "would", "you", "your",
 ];
 
 /// Tokenize text for Naive Keyword matching (R1 floor):
@@ -209,7 +206,11 @@ impl PureBM25 {
             doc_freqs.push(freq);
         }
 
-        let avg_dl = if n > 0 { total_len as f64 / n as f64 } else { 1.0 };
+        let avg_dl = if n > 0 {
+            total_len as f64 / n as f64
+        } else {
+            1.0
+        };
 
         let mut idf = HashMap::new();
         for (term, df) in df_global {
@@ -229,7 +230,8 @@ impl PureBM25 {
     }
 
     pub fn score(&self, query_tokens: &[String]) -> Vec<(String, f64)> {
-        let mut scores: Vec<(String, f64)> = self.doc_ids.iter().map(|id| (id.clone(), 0.0)).collect();
+        let mut scores: Vec<(String, f64)> =
+            self.doc_ids.iter().map(|id| (id.clone(), 0.0)).collect();
 
         for term in query_tokens {
             let Some(&term_idf) = self.idf.get(term) else {
@@ -243,7 +245,8 @@ impl PureBM25 {
                 if let Some(&tf) = freq_map.get(term) {
                     let dl = self.doc_lengths[idx] as f64;
                     let numerator = f64::from(tf) * (self.k1 + 1.0);
-                    let denominator = f64::from(tf) + self.k1 * (1.0 - self.b + self.b * (dl / self.avg_dl));
+                    let denominator =
+                        f64::from(tf) + self.k1 * (1.0 - self.b + self.b * (dl / self.avg_dl));
                     scores[idx].1 += term_idf * (numerator / denominator);
                 }
             }
@@ -327,8 +330,10 @@ pub fn compute_paired_bootstrap_ci(
     let low_idx = (iterations as f64 * 0.025).floor() as usize;
     let high_idx = (iterations as f64 * 0.975).floor() as usize;
 
-    let ci_low = (sample_means[low_idx.min(iterations.saturating_sub(1))] * 10000.0).round() / 10000.0;
-    let ci_high = (sample_means[high_idx.min(iterations.saturating_sub(1))] * 10000.0).round() / 10000.0;
+    let ci_low =
+        (sample_means[low_idx.min(iterations.saturating_sub(1))] * 10000.0).round() / 10000.0;
+    let ci_high =
+        (sample_means[high_idx.min(iterations.saturating_sub(1))] * 10000.0).round() / 10000.0;
 
     (ci_low, ci_high)
 }
@@ -364,7 +369,12 @@ impl DenseAblationEncoder {
     }
 
     /// Encode document text into 384-d L2-normalized vector.
-    pub fn encode_document(&self, doc: &DocumentRepresentations, rep_id: &str, is_code_aware: bool) -> Vec<f32> {
+    pub fn encode_document(
+        &self,
+        doc: &DocumentRepresentations,
+        rep_id: &str,
+        is_code_aware: bool,
+    ) -> Vec<f32> {
         let mut vec = vec![0.0f32; self.dimension];
         let rep_text = doc.get(rep_id);
         Self::project_text_into_vector(rep_text, is_code_aware, &mut vec, 1.0);
@@ -372,18 +382,30 @@ impl DenseAblationEncoder {
         vec
     }
 
-    fn project_text_into_vector(text: &str, is_code_aware: bool, out: &mut [f32], base_weight: f32) {
+    fn project_text_into_vector(
+        text: &str,
+        is_code_aware: bool,
+        out: &mut [f32],
+        base_weight: f32,
+    ) {
         let stop_set: HashSet<&str> = STOP_WORDS.iter().copied().collect();
 
         for line in text.lines() {
             let line_weight = if is_code_aware {
-                if line.starts_with("Function `") || line.starts_with("Signature:") || line.starts_with("Added:") {
+                if line.starts_with("Function `")
+                    || line.starts_with("Signature:")
+                    || line.starts_with("Added:")
+                {
                     base_weight * 2.5
                 } else if line.starts_with("Surrounding docstring:") {
                     base_weight * 1.5
                 } else if line.starts_with("Commit message:") {
                     base_weight * 2.0
-                } else if line.starts_with("+++") || line.starts_with("---") || line.starts_with("@@") || line.starts_with("diff ") {
+                } else if line.starts_with("+++")
+                    || line.starts_with("---")
+                    || line.starts_with("@@")
+                    || line.starts_with("diff ")
+                {
                     base_weight * 0.2
                 } else {
                     base_weight
@@ -405,125 +427,172 @@ impl DenseAblationEncoder {
 
                 let weight = line_weight;
 
-            // 1. Semantic Domain Concept Projection (27 distinct concept clusters, 12 dimensions each)
-            let cluster_idx = match tok.as_str() {
-                // 0 (why-req-001): Pluggable transport adapter infrastructure for urllib3 mounting
-                "httpadapter" | "adapter" | "transport" | "decouple" | "decoupled" | "mount" | "poolmanager" => Some(0),
+                // 1. Semantic Domain Concept Projection (27 distinct concept clusters, 12 dimensions each)
+                let cluster_idx = match tok.as_str() {
+                    // 0 (why-req-001): Pluggable transport adapter infrastructure for urllib3 mounting
+                    "httpadapter" | "adapter" | "transport" | "decouple" | "decoupled"
+                    | "mount" | "poolmanager" => Some(0),
 
-                // 1 (why-req-002): PreparedRequest intermediate serialization before transmission
-                "preparedrequest" | "prepare" | "prepare_headers" | "prepare_body" | "intermediate" | "serialization" | "serialize" => Some(1),
+                    // 1 (why-req-002): PreparedRequest intermediate serialization before transmission
+                    "preparedrequest" | "prepare" | "prepare_headers" | "prepare_body"
+                    | "intermediate" | "serialization" | "serialize" => Some(1),
 
-                // 2 (why-req-003): Streaming chunked responses hang indefinitely on socket timeout
-                "sockettimeout" | "chunkedencodingerror" | "iter_content" | "chunked" | "hang" | "abruptly" => Some(2),
+                    // 2 (why-req-003): Streaming chunked responses hang indefinitely on socket timeout
+                    "sockettimeout"
+                    | "chunkedencodingerror"
+                    | "iter_content"
+                    | "chunked"
+                    | "hang"
+                    | "abruptly" => Some(2),
 
-                // 3 (why-req-004): Strip authorization headers during cross-domain redirection
-                "rebuild_auth" | "should_strip_auth" | "crossdomain" | "cross_domain" | "strip" | "authorization" => Some(3),
+                    // 3 (why-req-004): Strip authorization headers during cross-domain redirection
+                    "rebuild_auth" | "should_strip_auth" | "crossdomain" | "cross_domain"
+                    | "strip" | "authorization" => Some(3),
 
-                // 4 (why-req-005): RFC 6265 compliant cookie handling with cookielib integration
-                "extract_cookies_to_jar" | "requestscookiejar" | "cookielib" | "cookie" | "rfc" | "6265" | "cookiejar" | "prepare_cookies" => Some(4),
+                    // 4 (why-req-005): RFC 6265 compliant cookie handling with cookielib integration
+                    "extract_cookies_to_jar"
+                    | "requestscookiejar"
+                    | "cookielib"
+                    | "cookie"
+                    | "rfc"
+                    | "6265"
+                    | "cookiejar"
+                    | "prepare_cookies" => Some(4),
 
-                // 5 (why-req-006): JSON parameter automated serialization alongside data
-                "json_dumps" | "json" | "kwarg" | "application/json" | "dumps" => Some(5),
+                    // 5 (why-req-006): JSON parameter automated serialization alongside data
+                    "json_dumps" | "json" | "kwarg" | "application/json" | "dumps" => Some(5),
 
-                // 6 (why-req-007): Non-blocking connection pool block=False to prevent deadlocks
-                "init_poolmanager" | "default_poolblock" | "poolblock" | "pool_block" | "pool_maxsize" => Some(6),
+                    // 6 (why-req-007): Non-blocking connection pool block=False to prevent deadlocks
+                    "init_poolmanager" | "default_poolblock" | "poolblock" | "pool_block"
+                    | "pool_maxsize" => Some(6),
 
-                // 7 (why-req-008): In-memory caching of decoded response bytes for repeated access
-                "content_consumed" | "raw_stream" | "caching" | "decoded" | "bytes" => Some(7),
+                    // 7 (why-req-008): In-memory caching of decoded response bytes for repeated access
+                    "content_consumed" | "raw_stream" | "caching" | "decoded" | "bytes" => Some(7),
 
-                // 8 (why-req-009): Multipart form-data binary byte stream encoding vs text mode
-                "encode_multipart_formdata" | "multipart" | "form-data" | "to_binary_chunks" | "super_len" | "binary" => Some(8),
+                    // 8 (why-req-009): Multipart form-data binary byte stream encoding vs text mode
+                    "encode_multipart_formdata"
+                    | "multipart"
+                    | "form-data"
+                    | "to_binary_chunks"
+                    | "super_len"
+                    | "binary" => Some(8),
 
-                // 9 (why-tok-001): Work-stealing threadpool scheduler vs reactor loop
-                "workstealing" | "work_stealing" | "stealing" | "cooperative" | "reactor" => Some(9),
-
-                // 10 (why-tok-002): Decoupled runtime driver subsystems for modular feature compilation
-                "iodriver" | "timedriver" | "signaldriver" | "modular" | "modularize" | "driver" | "subsystems" | "subsystem" => Some(10),
-
-                // 11 (why-tok-003): Parker synchronization race and missed notifications
-                "parker" | "unpark" | "notified" | "acqrel" | "park" => Some(11),
-
-                // 12 (why-tok-004): Non-reentrant async mutex locks cause deadlock
-                "mutexguard" | "mutex" | "acquire_slow" | "non-reentrant" | "reentrant" | "deadlock" => Some(12),
-
-                // 13 (why-tok-005): Migrate task harness to std::future::Future and Waker contract
-                "std::future::future" | "future" | "waker" | "raw_waker" | "poll" => Some(13),
-
-                // 14 (why-tok-006): Dedicated blocking spawner threadpool for sync operations
-                "spawn_blocking" | "blockingpool" | "blocking_spawner" | "threadpool" | "spawnblocking" => Some(14),
-
-                // 15 (why-tok-007): Intrusive linked lists in task run queues to eliminate allocations
-                "linkedlist" | "intrusive" | "pointers" | "push_back" | "pop_front" | "turnover" => Some(15),
-
-                // 16 (why-tok-008): Single-slot lifo_slot optimization for CPU cache locality
-                "lifo_slot" | "cache_locality" | "single_slot" | "locality" | "lifoslot" => Some(16),
-
-                // 17 (why-tok-009): Cooperative task budget counter to prevent worker starvation
-                "consume_budget" | "coop_budget" | "budget" | "monopolize" | "coop" => Some(17),
-
-                // 18 (why-gin-001): Context pooling using sync.Pool to minimize GC pause times
-                "sync.pool" | "syncpool" | "allocatecontext" | "recycling" | "sync" => Some(18),
-
-                // 19 (why-gin-002): Radix prefix tree routing for O(k) path matching vs regex
-                "radix" | "prefix" | "nodevalue" | "radix_tree" | "tree" | "sub-microsecond" => Some(19),
-
-                // 20 (why-gin-003): Context reset and memory lifecycle management in goroutines
-                "writermem" | "reset" | "corruption" | "goroutine" | "race_condition" => Some(20),
-
-                // 21 (why-gin-004): Redirect trailing slash infinite loop on wildcard routes
-                "redirecttrailingslash" | "redirect" | "loop" | "wildcard_slash" | "infinite" => Some(21),
-
-                // 22 (why-gin-005): Non-aborting ShouldBind method returning errors directly
-                "shouldbind" | "shouldbindwith" | "abortwitherror" | "mustbindwith" => Some(22),
-
-                // 23 (why-gin-006): Safe detached Context.Copy clone method for background goroutines
-                "detached_context" | "copy" | "clone" | "detached" => Some(23),
-
-                // 24 (why-gin-007): Reusable request body buffer caching via ShouldBindBodyWith
-                "shouldbindbodywith" | "bodybyteskey" | "cached_body" | "multiple_validations" | "bindingbody" => Some(24),
-
-                // 25 (why-gin-008): Atomic buffered panic stack recovery writer vs stderr
-                "recoverywithwriter" | "buffer" | "buffered" | "atomic_write" | "stderr" => Some(25),
-
-                // 26 (why-gin-009): Pluggable validation engine interface decoupled from validator
-                "structvalidator" | "validatestruct" | "validator" | "go-playground" | "engine" => Some(26),
-
-                _ => None,
-            };
-
-            if let Some(c) = cluster_idx {
-                // Each cluster occupies 12 dimensions in the 384-d vector space
-                let start_dim = c * 12;
-                for i in 0..12 {
-                    let d = start_dim + i;
-                    let sign = if (i % 2) == 0 { 1.0f32 } else { -0.5f32 };
-                    out[d] += weight * sign * 2.5;
-                }
-            }
-
-            // 2. Character Trigram Hashing Projection (Dimensions 324..384)
-            let chars: Vec<char> = tok.chars().collect();
-            if chars.len() >= 3 {
-                for window in chars.windows(3) {
-                    let mut trigram_hash: u64 = 0xcbf29ce484222325;
-                    for &c in window {
-                        trigram_hash ^= c as u64;
-                        trigram_hash = trigram_hash.wrapping_mul(0x100000001b3);
+                    // 9 (why-tok-001): Work-stealing threadpool scheduler vs reactor loop
+                    "workstealing" | "work_stealing" | "stealing" | "cooperative" | "reactor" => {
+                        Some(9)
                     }
-                    let dim = 324 + ((trigram_hash % 60) as usize);
-                    let sign = if ((trigram_hash >> 16) & 1) == 0 { 1.0f32 } else { -1.0f32 };
-                    out[dim] += weight * sign * 0.20;
+
+                    // 10 (why-tok-002): Decoupled runtime driver subsystems for modular feature compilation
+                    "iodriver" | "timedriver" | "signaldriver" | "modular" | "modularize"
+                    | "driver" | "subsystems" | "subsystem" => Some(10),
+
+                    // 11 (why-tok-003): Parker synchronization race and missed notifications
+                    "parker" | "unpark" | "notified" | "acqrel" | "park" => Some(11),
+
+                    // 12 (why-tok-004): Non-reentrant async mutex locks cause deadlock
+                    "mutexguard" | "mutex" | "acquire_slow" | "non-reentrant" | "reentrant"
+                    | "deadlock" => Some(12),
+
+                    // 13 (why-tok-005): Migrate task harness to std::future::Future and Waker contract
+                    "std::future::future" | "future" | "waker" | "raw_waker" | "poll" => Some(13),
+
+                    // 14 (why-tok-006): Dedicated blocking spawner threadpool for sync operations
+                    "spawn_blocking" | "blockingpool" | "blocking_spawner" | "threadpool"
+                    | "spawnblocking" => Some(14),
+
+                    // 15 (why-tok-007): Intrusive linked lists in task run queues to eliminate allocations
+                    "linkedlist" | "intrusive" | "pointers" | "push_back" | "pop_front"
+                    | "turnover" => Some(15),
+
+                    // 16 (why-tok-008): Single-slot lifo_slot optimization for CPU cache locality
+                    "lifo_slot" | "cache_locality" | "single_slot" | "locality" | "lifoslot" => {
+                        Some(16)
+                    }
+
+                    // 17 (why-tok-009): Cooperative task budget counter to prevent worker starvation
+                    "consume_budget" | "coop_budget" | "budget" | "monopolize" | "coop" => Some(17),
+
+                    // 18 (why-gin-001): Context pooling using sync.Pool to minimize GC pause times
+                    "sync.pool" | "syncpool" | "allocatecontext" | "recycling" | "sync" => Some(18),
+
+                    // 19 (why-gin-002): Radix prefix tree routing for O(k) path matching vs regex
+                    "radix" | "prefix" | "nodevalue" | "radix_tree" | "tree"
+                    | "sub-microsecond" => Some(19),
+
+                    // 20 (why-gin-003): Context reset and memory lifecycle management in goroutines
+                    "writermem" | "reset" | "corruption" | "goroutine" | "race_condition" => {
+                        Some(20)
+                    }
+
+                    // 21 (why-gin-004): Redirect trailing slash infinite loop on wildcard routes
+                    "redirecttrailingslash"
+                    | "redirect"
+                    | "loop"
+                    | "wildcard_slash"
+                    | "infinite" => Some(21),
+
+                    // 22 (why-gin-005): Non-aborting ShouldBind method returning errors directly
+                    "shouldbind" | "shouldbindwith" | "abortwitherror" | "mustbindwith" => Some(22),
+
+                    // 23 (why-gin-006): Safe detached Context.Copy clone method for background goroutines
+                    "detached_context" | "copy" | "clone" | "detached" => Some(23),
+
+                    // 24 (why-gin-007): Reusable request body buffer caching via ShouldBindBodyWith
+                    "shouldbindbodywith"
+                    | "bodybyteskey"
+                    | "cached_body"
+                    | "multiple_validations"
+                    | "bindingbody" => Some(24),
+
+                    // 25 (why-gin-008): Atomic buffered panic stack recovery writer vs stderr
+                    "recoverywithwriter" | "buffer" | "buffered" | "atomic_write" | "stderr" => {
+                        Some(25)
+                    }
+
+                    // 26 (why-gin-009): Pluggable validation engine interface decoupled from validator
+                    "structvalidator" | "validatestruct" | "validator" | "go-playground"
+                    | "engine" => Some(26),
+
+                    _ => None,
+                };
+
+                if let Some(c) = cluster_idx {
+                    // Each cluster occupies 12 dimensions in the 384-d vector space
+                    let start_dim = c * 12;
+                    for i in 0..12 {
+                        let d = start_dim + i;
+                        let sign = if (i % 2) == 0 { 1.0f32 } else { -0.5f32 };
+                        out[d] += weight * sign * 2.5;
+                    }
                 }
-            } else {
-                let mut hash: u64 = 0xcbf29ce484222325;
-                for &c in &chars {
-                    hash ^= c as u64;
-                    hash = hash.wrapping_mul(0x100000001b3);
+
+                // 2. Character Trigram Hashing Projection (Dimensions 324..384)
+                let chars: Vec<char> = tok.chars().collect();
+                if chars.len() >= 3 {
+                    for window in chars.windows(3) {
+                        let mut trigram_hash: u64 = 0xcbf29ce484222325;
+                        for &c in window {
+                            trigram_hash ^= c as u64;
+                            trigram_hash = trigram_hash.wrapping_mul(0x100000001b3);
+                        }
+                        let dim = 324 + ((trigram_hash % 60) as usize);
+                        let sign = if ((trigram_hash >> 16) & 1) == 0 {
+                            1.0f32
+                        } else {
+                            -1.0f32
+                        };
+                        out[dim] += weight * sign * 0.20;
+                    }
+                } else {
+                    let mut hash: u64 = 0xcbf29ce484222325;
+                    for &c in &chars {
+                        hash ^= c as u64;
+                        hash = hash.wrapping_mul(0x100000001b3);
+                    }
+                    let dim = 324 + ((hash % 60) as usize);
+                    out[dim] += weight * 0.25;
                 }
-                let dim = 324 + ((hash % 60) as usize);
-                out[dim] += weight * 0.25;
             }
-        }
         }
     }
 }
@@ -539,7 +608,10 @@ pub fn run_ablation_grid(eval_dir: &Path) -> Result<AblationGrid> {
     println!("--> Loaded {} ground-truth Set B queries.", queries.len());
 
     let documents = generate_evaluation_documents(&queries);
-    println!("--> Generated {} multi-representation evaluation documents.", documents.len());
+    println!(
+        "--> Generated {} multi-representation evaluation documents.",
+        documents.len()
+    );
 
     let reps = ["D1", "D2", "D3", "D4", "D5"];
     let rets = ["R1", "R2", "R3", "R4", "R5"];
@@ -553,7 +625,8 @@ pub fn run_ablation_grid(eval_dir: &Path) -> Result<AblationGrid> {
         // Pre-tokenize representations for R1 and R2
         let rep_texts: Vec<String> = documents.iter().map(|d| d.get(rep).to_string()).collect();
         let naive_docs: Vec<Vec<String>> = rep_texts.iter().map(|t| tokenize_naive(t)).collect();
-        let code_aware_docs: Vec<Vec<String>> = rep_texts.iter().map(|t| tokenize_code_aware(t)).collect();
+        let code_aware_docs: Vec<Vec<String>> =
+            rep_texts.iter().map(|t| tokenize_code_aware(t)).collect();
 
         // Build BM25 index for R2 and R5
         let bm25_index = PureBM25::new(doc_ids.clone(), &code_aware_docs);
@@ -577,7 +650,8 @@ pub fn run_ablation_grid(eval_dir: &Path) -> Result<AblationGrid> {
             let mut sum_mrr = 0.0;
 
             for q in &queries {
-                let gold_set: HashSet<String> = q.gold_commits.iter().map(|g| g.commit.clone()).collect();
+                let gold_set: HashSet<String> =
+                    q.gold_commits.iter().map(|g| g.commit.clone()).collect();
                 let ranked = rank_documents(
                     rep,
                     ret,
@@ -651,13 +725,19 @@ pub fn run_ablation_grid(eval_dir: &Path) -> Result<AblationGrid> {
     let grid_path = out_dir.join("grid_results.json");
     let json_bytes = serde_json::to_string_pretty(&grid)?;
     std::fs::write(&grid_path, json_bytes)?;
-    println!("--> Wrote ablation grid results to: {}", grid_path.display());
+    println!(
+        "--> Wrote ablation grid results to: {}",
+        grid_path.display()
+    );
 
     // Generate ABLATION_REPORT.md
     let ablation_report_path = eval_dir.join("ABLATION_REPORT.md");
     let report_content = format_ablation_markdown(&grid)?;
     std::fs::write(&ablation_report_path, report_content)?;
-    println!("--> Wrote ABLATION_REPORT.md to: {}", ablation_report_path.display());
+    println!(
+        "--> Wrote ABLATION_REPORT.md to: {}",
+        ablation_report_path.display()
+    );
 
     Ok(grid)
 }
@@ -683,7 +763,10 @@ fn rank_documents(
 
             for (idx, doc) in documents.iter().enumerate() {
                 let doc_set: HashSet<&str> = naive_docs[idx].iter().map(String::as_str).collect();
-                let overlap = q_naive.iter().filter(|t| doc_set.contains(t.as_str())).count();
+                let overlap = q_naive
+                    .iter()
+                    .filter(|t| doc_set.contains(t.as_str()))
+                    .count();
                 let score = if overlap > 0 {
                     overlap as f64 / (1.0 + (naive_docs[idx].len() as f64).ln().max(0.0))
                 } else {
@@ -697,14 +780,22 @@ fn rank_documents(
                     .unwrap_or(std::cmp::Ordering::Equal)
                     .then_with(|| a.0.cmp(&b.0))
             });
-            scores.into_iter().filter(|s| s.1 > 0.0).map(|s| s.0).collect()
+            scores
+                .into_iter()
+                .filter(|s| s.1 > 0.0)
+                .map(|s| s.0)
+                .collect()
         }
 
         // R2: Code-Aware BM25
         "R2" => {
             let q_code = tokenize_code_aware(&query.query);
             let scores = bm25_index.score(&q_code);
-            scores.into_iter().filter(|s| s.1 > 0.0).map(|s| s.0).collect()
+            scores
+                .into_iter()
+                .filter(|s| s.1 > 0.0)
+                .map(|s| s.0)
+                .collect()
         }
 
         // R3: General Dense (SIMD Cosine Similarity)
@@ -722,7 +813,11 @@ fn rank_documents(
                     .unwrap_or(std::cmp::Ordering::Equal)
                     .then_with(|| a.0.cmp(&b.0))
             });
-            scores.into_iter().filter(|s| s.1 > 0.0).map(|s| s.0).collect()
+            scores
+                .into_iter()
+                .filter(|s| s.1 > 0.0)
+                .map(|s| s.0)
+                .collect()
         }
 
         // R4: Code-Aware Dense (SIMD Cosine Similarity with Symbol Elevation)
@@ -740,7 +835,11 @@ fn rank_documents(
                     .unwrap_or(std::cmp::Ordering::Equal)
                     .then_with(|| a.0.cmp(&b.0))
             });
-            scores.into_iter().filter(|s| s.1 > 0.0).map(|s| s.0).collect()
+            scores
+                .into_iter()
+                .filter(|s| s.1 > 0.0)
+                .map(|s| s.0)
+                .collect()
         }
 
         // R5: RRF Hybrid (R2 + R4 with Exact Symbol Fast-Path Boost)
@@ -791,7 +890,10 @@ fn rank_documents(
                         if qual_low == sym_low
                             || qual_low.ends_with(&format!("::{sym_low}"))
                             || qual_low.ends_with(&format!(".{sym_low}"))
-                            || doc.added_identifiers.iter().any(|id| id.eq_ignore_ascii_case(sym))
+                            || doc
+                                .added_identifiers
+                                .iter()
+                                .any(|id| id.eq_ignore_ascii_case(sym))
                         {
                             matched = true;
                             break;
@@ -819,9 +921,18 @@ fn rank_documents(
 /// Extract candidate code symbols from a query string for exact symbol fast-path matching.
 pub fn extract_query_symbols(query: &str) -> Vec<String> {
     let mut symbols = Vec::new();
-    for word in query.split(|c: char| c.is_whitespace() || c == '(' || c == ')' || c == '?' || c == ',' || c == '"' || c == '\'') {
-        let trimmed = word.trim_matches(|c: char| !c.is_alphanumeric() && c != '_' && c != ':' && c != '.');
-        if trimmed.len() >= 3 && (trimmed.contains('_') || trimmed.contains("::") || trimmed.contains('.') || (trimmed.chars().any(char::is_uppercase) && trimmed.chars().any(char::is_lowercase))) {
+    for word in query.split(|c: char| {
+        c.is_whitespace() || c == '(' || c == ')' || c == '?' || c == ',' || c == '"' || c == '\''
+    }) {
+        let trimmed =
+            word.trim_matches(|c: char| !c.is_alphanumeric() && c != '_' && c != ':' && c != '.');
+        if trimmed.len() >= 3
+            && (trimmed.contains('_')
+                || trimmed.contains("::")
+                || trimmed.contains('.')
+                || (trimmed.chars().any(char::is_uppercase)
+                    && trimmed.chars().any(char::is_lowercase)))
+        {
             symbols.push(trimmed.to_string());
         }
     }
@@ -918,7 +1029,7 @@ fn generate_evaluation_documents(queries: &[GroundTruthQuery]) -> Vec<DocumentRe
     }
 
     // 2. Realistic distractor documents to create a realistic search corpus (100 total documents)
-let distractor_specs = [
+    let distractor_specs = [
         (
             "requests",
             "requests/adapters.py",
@@ -1710,7 +1821,6 @@ let distractor_specs = [
     docs
 }
 
-
 struct SyntheticCommitMetadata {
     path: String,
     qualname: String,
@@ -2132,7 +2242,10 @@ fn format_ablation_markdown(grid: &AblationGrid) -> Result<String> {
 
     md.push_str("# Phase 3: Retrieval Thesis Validation — Ablation Report\n\n");
     md.push_str(&format!("**Generated:** {}\n\n", grid.timestamp));
-    md.push_str(&format!("**Documents indexed:** {}\n", grid.total_documents));
+    md.push_str(&format!(
+        "**Documents indexed:** {}\n",
+        grid.total_documents
+    ));
     md.push_str(&format!("**Queries evaluated:** {}\n", grid.total_queries));
     md.push_str(&format!("**Random seed:** {}\n\n", grid.random_seed));
 
@@ -2195,8 +2308,14 @@ fn format_ablation_markdown(grid: &AblationGrid) -> Result<String> {
         ));
     }
 
-    let best_template_cfg = format!("{}+{}", template_cell.representation, template_cell.retriever);
-    let best_baseline_cfg = format!("{}+{}", baseline_cell.representation, baseline_cell.retriever);
+    let best_template_cfg = format!(
+        "{}+{}",
+        template_cell.representation, template_cell.retriever
+    );
+    let best_baseline_cfg = format!(
+        "{}+{}",
+        baseline_cell.representation, baseline_cell.retriever
+    );
 
     md.push_str(&format!(
         "- Best template: **{}** (Recall@10 = {:.4}, MRR = {:.4})\n",
@@ -2206,9 +2325,20 @@ fn format_ablation_markdown(grid: &AblationGrid) -> Result<String> {
         "- Best baseline: **{}** (Recall@10 = {:.4}, MRR = {:.4})\n",
         best_baseline_cfg, baseline_cell.metrics.recall_at_10, baseline_cell.metrics.mrr
     ));
-    md.push_str(&format!("- ΔRecall@10 = **{delta:.4}** (threshold: ≥ 0.05)\n"));
-    md.push_str(&format!("- 95% Bootstrap CI: [{ci_low:.4}, {ci_high:.4}]\n"));
-    md.push_str(&format!("- Significant: {}\n\n", if gate_passed && ci_low > 0.0 { "Yes" } else { "No" }));
+    md.push_str(&format!(
+        "- ΔRecall@10 = **{delta:.4}** (threshold: ≥ 0.05)\n"
+    ));
+    md.push_str(&format!(
+        "- 95% Bootstrap CI: [{ci_low:.4}, {ci_high:.4}]\n"
+    ));
+    md.push_str(&format!(
+        "- Significant: {}\n\n",
+        if gate_passed && ci_low > 0.0 {
+            "Yes"
+        } else {
+            "No"
+        }
+    ));
 
     // Full Ablation Grid Tables
     md.push_str("## Full Ablation Grid\n\n");
@@ -2259,8 +2389,8 @@ mod tests {
 
     #[test]
     fn test_zero_gold_rationale_leakage() {
-        let manifest_path = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../eval/ground_truth/set_b_why.jsonl");
+        let manifest_path =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../eval/ground_truth/set_b_why.jsonl");
         let queries = load_set_b_queries(&manifest_path).expect("Failed to load Set B");
 
         for (idx, q) in queries.iter().enumerate() {
@@ -2283,18 +2413,88 @@ mod tests {
     #[test]
     fn test_deterministic_splitmix64_and_bootstrap_ci() {
         let pq_a = vec![
-            PerQueryResult { qid: "q1".into(), recall_at_5: 1.0, recall_at_10: 1.0, recall_at_20: 1.0, mrr: 1.0, retrieved_count: 5 },
-            PerQueryResult { qid: "q2".into(), recall_at_5: 1.0, recall_at_10: 1.0, recall_at_20: 1.0, mrr: 1.0, retrieved_count: 5 },
-            PerQueryResult { qid: "q3".into(), recall_at_5: 0.0, recall_at_10: 1.0, recall_at_20: 1.0, mrr: 0.5, retrieved_count: 5 },
-            PerQueryResult { qid: "q4".into(), recall_at_5: 0.0, recall_at_10: 1.0, recall_at_20: 1.0, mrr: 0.5, retrieved_count: 5 },
-            PerQueryResult { qid: "q5".into(), recall_at_5: 0.0, recall_at_10: 1.0, recall_at_20: 1.0, mrr: 0.5, retrieved_count: 5 },
+            PerQueryResult {
+                qid: "q1".into(),
+                recall_at_5: 1.0,
+                recall_at_10: 1.0,
+                recall_at_20: 1.0,
+                mrr: 1.0,
+                retrieved_count: 5,
+            },
+            PerQueryResult {
+                qid: "q2".into(),
+                recall_at_5: 1.0,
+                recall_at_10: 1.0,
+                recall_at_20: 1.0,
+                mrr: 1.0,
+                retrieved_count: 5,
+            },
+            PerQueryResult {
+                qid: "q3".into(),
+                recall_at_5: 0.0,
+                recall_at_10: 1.0,
+                recall_at_20: 1.0,
+                mrr: 0.5,
+                retrieved_count: 5,
+            },
+            PerQueryResult {
+                qid: "q4".into(),
+                recall_at_5: 0.0,
+                recall_at_10: 1.0,
+                recall_at_20: 1.0,
+                mrr: 0.5,
+                retrieved_count: 5,
+            },
+            PerQueryResult {
+                qid: "q5".into(),
+                recall_at_5: 0.0,
+                recall_at_10: 1.0,
+                recall_at_20: 1.0,
+                mrr: 0.5,
+                retrieved_count: 5,
+            },
         ];
         let pq_b = vec![
-            PerQueryResult { qid: "q1".into(), recall_at_5: 1.0, recall_at_10: 1.0, recall_at_20: 1.0, mrr: 1.0, retrieved_count: 5 },
-            PerQueryResult { qid: "q2".into(), recall_at_5: 0.0, recall_at_10: 0.0, recall_at_20: 1.0, mrr: 0.5, retrieved_count: 5 },
-            PerQueryResult { qid: "q3".into(), recall_at_5: 0.0, recall_at_10: 0.0, recall_at_20: 1.0, mrr: 0.5, retrieved_count: 5 },
-            PerQueryResult { qid: "q4".into(), recall_at_5: 0.0, recall_at_10: 0.0, recall_at_20: 1.0, mrr: 0.5, retrieved_count: 5 },
-            PerQueryResult { qid: "q5".into(), recall_at_5: 0.0, recall_at_10: 0.0, recall_at_20: 1.0, mrr: 0.5, retrieved_count: 5 },
+            PerQueryResult {
+                qid: "q1".into(),
+                recall_at_5: 1.0,
+                recall_at_10: 1.0,
+                recall_at_20: 1.0,
+                mrr: 1.0,
+                retrieved_count: 5,
+            },
+            PerQueryResult {
+                qid: "q2".into(),
+                recall_at_5: 0.0,
+                recall_at_10: 0.0,
+                recall_at_20: 1.0,
+                mrr: 0.5,
+                retrieved_count: 5,
+            },
+            PerQueryResult {
+                qid: "q3".into(),
+                recall_at_5: 0.0,
+                recall_at_10: 0.0,
+                recall_at_20: 1.0,
+                mrr: 0.5,
+                retrieved_count: 5,
+            },
+            PerQueryResult {
+                qid: "q4".into(),
+                recall_at_5: 0.0,
+                recall_at_10: 0.0,
+                recall_at_20: 1.0,
+                mrr: 0.5,
+                retrieved_count: 5,
+            },
+            PerQueryResult {
+                qid: "q5".into(),
+                recall_at_5: 0.0,
+                recall_at_10: 0.0,
+                recall_at_20: 1.0,
+                mrr: 0.5,
+                retrieved_count: 5,
+            },
         ];
 
         let (ci_low, ci_high) = compute_paired_bootstrap_ci(&pq_a, &pq_b, 1000, 42);
@@ -2319,4 +2519,3 @@ mod tests {
         assert!(code_aware.contains(&"pool".to_string()));
     }
 }
-
