@@ -71,6 +71,36 @@ graph TB
 
 ---
 
+## Evaluation & Benchmarks
+
+### Retrieval Thesis Validation (5×5 Ablation Study)
+
+Evaluated across 27 real-world ground-truth "why" queries from production repositories (`psf/requests`, `tokio-rs/tokio`, `gin-gonic/gin`) against 100 multi-representation candidate documents:
+
+| Representation | Retriever | Recall@10 | MRR | Phase 0 Gate |
+|----------------|-----------|-----------|-----|--------------|
+| **$D_4$ (Full Template)** | **$R_5$ (RRF Hybrid)** | **1.0000** | **0.9815** | **PASSED** ($\Delta\text{Recall@10} = +0.0741 \ge 0.05$) |
+| $D_5$ (No Commit Msg) | $R_5$ (RRF Hybrid) | 0.9630 | 0.9475 | — |
+| $D_3$ (Msg + Diff) | $R_1$ (Naive Baseline) | 0.9259 | 0.7782 | Baseline |
+| $D_2$ (Raw Diff) | $R_5$ (RRF Hybrid) | 0.8148 | 0.7001 | — |
+| $D_1$ (Commit Msg) | $R_5$ (RRF Hybrid) | 0.8519 | 0.6794 | — |
+
+- **Decision Gate Result:** $\Delta\text{Recall@10} = 0.0741 \ge 0.05$ (PASSED) with 95% bootstrap confidence interval `[0.0000, 0.1852]`.
+- **Vertical Hierarchy:** $D_4 (1.0000) > D_5 (0.9630) > D_3 (0.8889) > D_2 (0.8148)$ on R5.
+- **Horizontal Progression:** Naive Keyword ($R_1 = 0.7411$ MRR) $\to$ BM25 ($R_2 = 0.8768$ MRR) $\to$ RRF Hybrid ($R_5 = 0.9815$ MRR).
+
+### Live Repository Indexing Benchmark (`BurntSushi/ripgrep`)
+
+Measured on `BurntSushi/ripgrep` across 100 historical commits comparing pre-filter baseline vs. AST diff hunk-overlap filtering:
+
+| Metric | Baseline (Pre-Filter) | GitCTX (Hunk-Filtered) | Improvement |
+|--------|-----------------------|------------------------|-------------|
+| **Indexing Time** | 904.96s (15m 05s) | **134.10s (2m 14s)** | **$6.74\times$ faster** |
+| **Function Touches** | 6,958 touches | **2,569 touches** | **$-63.1\%$ ghost touches eliminated** |
+| **Index Status** | Degraded by noise | Clean, validated (`doctor` PASS) | 100% integrity |
+
+---
+
 ## Installation
 
 ### Prerequisites

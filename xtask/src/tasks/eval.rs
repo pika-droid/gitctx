@@ -105,3 +105,23 @@ pub fn run_eval_report(eval_dir: Option<&Path>, output: Option<&Path>) -> Result
 
     Ok(())
 }
+
+/// Runs 5x5 retrieval ablation grid evaluation across D1-D5 and R1-R5.
+pub fn run_eval_ablation(eval_dir: Option<&Path>) -> Result<()> {
+    let root = crate::util::project_root();
+
+    let mut cmd = Command::new("cargo");
+    cmd.current_dir(&root);
+    cmd.args(["run", "-p", "gitctx-eval", "--", "ablation"]);
+
+    if let Some(dir) = eval_dir {
+        cmd.arg("--eval-dir");
+        cmd.arg(dir);
+    }
+
+    crate::util::run_cmd(&mut cmd, "gitctx-eval ablation")
+        .context("Failed running retrieval ablation grid evaluation")?;
+
+    Ok(())
+}
+

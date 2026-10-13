@@ -328,11 +328,11 @@ pub fn generate_report(eval_dir: &Path) -> Result<String> {
 
     // ── Section 2: Decision Gate ───────────────────────────────────
     report.push_str("---\n\n## 2. Phase 0 Decision Gate\n\n");
-    let (best_template, best_baseline, delta) = compute_gate_decision(&grid);
+    let (best_template, best_baseline, delta, ci_low, ci_high) = compute_gate_decision(&grid);
     let gate_passed = delta >= 0.05;
     report.push_str(&format!(
-        "| Metric | Value |\n|--------|-------|\n| Best template config | {} |\n| Best baseline config | {} |\n| ΔRecall@10 | {:.4} |\n| Threshold | ≥ 0.05 |\n| Gate | {} |\n\n",
-        best_template, best_baseline, delta,
+        "| Metric | Value |\n|--------|-------|\n| Best template config | {} |\n| Best baseline config | {} |\n| ΔRecall@10 | {:.4} |\n| Threshold | ≥ 0.05 |\n| 95% Bootstrap CI (1,000 resamples, seed=42) | [{:.4}, {:.4}] |\n| Gate | {} |\n\n",
+        best_template, best_baseline, delta, ci_low, ci_high,
         if gate_passed { "✅ PASSED" } else { "❌ FAILED — templates did not sufficiently improve over baselines" }
     ));
 
@@ -536,32 +536,71 @@ fn format_metric_table(grid: &AblationGrid, metric: &str) -> String {
     table
 }
 
-fn compute_gate_decision(grid: &AblationGrid) -> (String, String, f64) {
+fn compute_gate_decision(grid: &AblationGrid) -> (String, String, f64, f64, f64) {
     let template_reps = ["D4", "D5"];
     let baseline_reps = ["D1", "D2", "D3"];
 
-    let mut best_template = (String::new(), 0.0_f64);
-    let mut best_baseline = (String::new(), 0.0_f64);
+    let mut best_template_cell: Option<&AblationCell> = None;
+    let mut best_baseline_cell: Option<&AblationCell> = None;
 
     for cell in &grid.cells {
-        let config = format!("{}+{}", cell.representation, cell.retriever);
-        if template_reps.contains(&cell.representation.as_str())
-            && cell.metrics.recall_at_10 > best_template.1
-        {
-            best_template = (config.clone(), cell.metrics.recall_at_10);
+        if template_reps.contains(&cell.representation.as_str()) {
+            match best_template_cell {
+                None => best_template_cell = Some(cell),
+                Some(current) => {
+                    if cell.metrics.recall_at_10 > current.metrics.recall_at_10
+                        || ((cell.metrics.recall_at_10 - current.metrics.recall_at_10).abs() < 1e-6
+                            && cell.metrics.mrr > current.metrics.mrr)
+                    {
+                        best_template_cell = Some(cell);
+                    }
+                }
+            }
         }
-        if baseline_reps.contains(&cell.representation.as_str())
-            && cell.metrics.recall_at_10 > best_baseline.1
-        {
-            best_baseline = (config, cell.metrics.recall_at_10);
+        if baseline_reps.contains(&cell.representation.as_str()) {
+            match best_baseline_cell {
+                None => best_baseline_cell = Some(cell),
+                Some(current) => {
+                    if cell.metrics.recall_at_10 > current.metrics.recall_at_10
+                        || ((cell.metrics.recall_at_10 - current.metrics.recall_at_10).abs() < 1e-6
+                            && cell.metrics.mrr > current.metrics.mrr)
+                    {
+                        best_baseline_cell = Some(cell);
+                    }
+                }
+            }
         }
     }
 
-    let delta = best_template.1 - best_baseline.1;
+    let template_cell = best_template_cell.expect("grid must contain template cells");
+    let baseline_cell = best_baseline_cell.expect("grid must contain baseline cells");
+
+    let (ci_low, ci_high) = crate::ablation::compute_paired_bootstrap_ci(
+        &template_cell.per_query,
+        &baseline_cell.per_query,
+        1000,
+        grid.random_seed,
+    );
+
+    let delta = template_cell.metrics.recall_at_10 - baseline_cell.metrics.recall_at_10;
     (
-        format!("{} (Recall@10 = {:.4})", best_template.0, best_template.1),
-        format!("{} (Recall@10 = {:.4})", best_baseline.0, best_baseline.1),
+        format!(
+            "{}+{} (Recall@10 = {:.4}, MRR = {:.4})",
+            template_cell.representation,
+            template_cell.retriever,
+            template_cell.metrics.recall_at_10,
+            template_cell.metrics.mrr
+        ),
+        format!(
+            "{}+{} (Recall@10 = {:.4}, MRR = {:.4})",
+            baseline_cell.representation,
+            baseline_cell.retriever,
+            baseline_cell.metrics.recall_at_10,
+            baseline_cell.metrics.mrr
+        ),
         delta,
+        ci_low,
+        ci_high,
     )
 }
 
