@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, phase12 ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, phase12 ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -29,6 +29,11 @@ jobs:
           toolchain: ${{ matrix.rust }}
           components: rustfmt, clippy
 
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
 
@@ -41,11 +46,75 @@ jobs:
       - name: Download ONNX Runtime
         run: cargo run -p xtask -- download-ort-runtime
 
-      - name: Run workspace tests
-        run: cargo test --workspace
+      - name: Run workspace tests (Nextest)
+        run: cargo nextest run --workspace --profile ci
 
       - name: Run xtask lint verification
         run: cargo run -p xtask -- lint
 
       - name: Run invariant verification suite
         run: cargo run -p xtask -- test-invariants
+
+  audit-and-dependencies:
+    name: Security, Dependencies & Quality Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Install cargo quality & security tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny,cargo-audit,cargo-machete,cargo-semver-checks,taplo-cli
+
+      - name: Lint TOML files (taplo)
+        run: taplo lint
+
+      - name: Check unused dependencies (cargo-machete)
+        run: cargo machete
+
+      - name: Check licenses, bans & advisories (cargo-deny)
+        run: cargo deny check
+
+      - name: Security audit vulnerabilities (cargo-audit)
+        run: cargo audit
+
+      - name: Check SemVer compatibility (cargo-semver-checks)
+        if: github.event_name == 'pull_request'
+        run: cargo semver-checks check-release --baseline-rev origin/${{ github.base_ref || 'main' }} --exclude xtask --exclude gitctx-eval --exclude gitctx-mcp || true
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Install cargo-llvm-cov & nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov,cargo-nextest
+
+      - name: Download ONNX Runtime
+        run: cargo run -p xtask -- download-ort-runtime
+
+      - name: Generate code coverage
+        run: cargo llvm-cov --workspace --lcov --output-path lcov.info
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: lcov.info

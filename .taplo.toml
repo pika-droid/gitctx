@@ -1,0 +1,15 @@
+# Taplo TOML linter and formatter configuration
+# Documentation: https://taplo.tamasfe.dev/configuration/
+
+include = ["**/*.toml"]
+exclude = ["target/**", "eval/corpus/**", "reference_repos/**"]
+
+[formatting]
+align_entries = false
+align_comments = true
+array_trailing_comma = true
+compact_arrays = true
+compact_inline_tables = false
+indent_tables = false
+indent_entries = false
+reorder_keys = false

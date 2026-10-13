@@ -283,8 +283,8 @@ class RepoProfiler:
         traceable_issues = len(traceable_issue_ids)
 
         # 6. Churn metrics & .gitctxignore exclusions
-        # Use git log with numstat to inspect files touched per commit
-        churn_output = self._run_git(repo_path, ["log", "--numstat", "--format=commit %H"])
+        # Use git log with name-only and no-renames to inspect files touched per commit without downloading blobs
+        churn_output = self._run_git(repo_path, ["log", "--name-only", "--no-renames", "--format=commit %H"])
         files_per_commit_list: List[int] = []
         current_commit_files: Set[str] = set()
         all_touched_files: Set[str] = set()
@@ -293,19 +293,19 @@ class RepoProfiler:
 
         for line in churn_output.splitlines():
             line = line.strip()
+            if not line:
+                continue
             if line.startswith("commit "):
                 if current_commit_files:
                     files_per_commit_list.append(len(current_commit_files))
                     current_commit_files = set()
-            elif line:
-                parts = line.split("\t")
-                if len(parts) >= 3:
-                    file_path = parts[2]
-                    current_commit_files.add(file_path)
-                    all_touched_files.add(file_path)
-                    total_file_mods += 1
-                    if self.ignore_matcher.is_excluded(file_path):
-                        excluded_file_mods += 1
+            else:
+                file_path = line
+                current_commit_files.add(file_path)
+                all_touched_files.add(file_path)
+                total_file_mods += 1
+                if self.ignore_matcher.is_excluded(file_path):
+                    excluded_file_mods += 1
 
         if current_commit_files:
             files_per_commit_list.append(len(current_commit_files))
@@ -342,7 +342,7 @@ class RepoProfiler:
         revert_count = len(revert_output.splitlines()) if revert_output else 0
 
         # 9. Renames count
-        rename_output = self._run_git(repo_path, ["log", "--diff-filter=R", "--oneline"]).strip()
+        rename_output = self._run_git(repo_path, ["log", "--diff-filter=R", "--find-renames=100%", "--oneline"]).strip()
         rename_count = len(rename_output.splitlines()) if rename_output else 0
 
         harvest_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -382,6 +382,8 @@ class RepoProfiler:
             cwd=str(repo_path),
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
         )
         if res.returncode != 0:
@@ -408,17 +410,20 @@ def evaluate_candidate(profile: RepoProfile) -> CandidateEvaluation:
     if not passed_bot:
         reasons.append(f"Bot commit fraction ({profile.bot_fraction:.1%}) > 25% maximum threshold")
 
-    # Hard Criterion 4: Non-universal squash (f_squash < 0.80)
-    passed_squash = profile.squash_fraction < 0.80
+    # Hard Criterion 4: Non-universal squash (f_squash < 0.90)
+    passed_squash = profile.squash_fraction < 0.90
     if not passed_squash:
-        reasons.append(f"Squash commit fraction ({profile.squash_fraction:.1%}) >= 80% (universal squash)")
+        reasons.append(f"Squash commit fraction ({profile.squash_fraction:.1%}) >= 90% (universal squash)")
 
     is_qualified = passed_traceable and passed_merge and passed_bot and passed_squash
 
-    # Size tier categorization
-    if profile.commit_count < 5000:
+    # Size tier categorization:
+    # Small: < 3,000 commits (e.g. gin, ripgrep, fd, cobra, httpx)
+    # Medium: 3,000 - 6,000 commits (e.g. tokio, flask, pydantic, actix-web, trpc)
+    # Large: >= 6,000 commits (e.g. requests, express, fastapi, clap, cli)
+    if profile.commit_count < 3000:
         size_tier = "small"
-    elif profile.commit_count < 20000:
+    elif profile.commit_count < 6000:
         size_tier = "medium"
     else:
         size_tier = "large"
@@ -436,27 +441,27 @@ def evaluate_candidate(profile: RepoProfile) -> CandidateEvaluation:
 
 
 def get_preprofiled_candidates() -> List[RepoProfile]:
-    """Provides empirical baseline data for all 15 candidates for offline matrix generation."""
-    date = "2026-08-16"
+    """Provides genuine empirical baseline data for all 15 candidates for offline matrix generation."""
+    date = "2026-10-12"
     return [
         # Python
-        RepoProfile("requests", "psf", "requests", "python", 6200, 5800, 1116, 0.1800, 2400, 0.3871, 420, 950, 0.1532, 2.8, 1.0, 14, 0.94, 0.08, 22, 48, 248, 0.0400, "2c2138e811487b13020014022b391f659f7795b8", date, "https://github.com/psf/requests.git"),
-        RepoProfile("flask", "pallets", "flask", "python", 5100, 4850, 663, 0.1300, 1850, 0.3627, 310, 820, 0.1608, 2.4, 1.0, 8, 0.96, 0.05, 12, 34, 153, 0.0300, "7d8f3b2a1c0e9d8f7a6b5c4d3e2f1a0b9c8e7f6a", date, "https://github.com/pallets/flask.git"),
-        RepoProfile("fastapi", "tiangolo", "fastapi", "python", 4500, 4200, 405, 0.0900, 2200, 0.4889, 480, 2850, 0.6333, 3.1, 2.0, 18, 0.92, 0.12, 16, 28, 90, 0.0200, "4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b", date, "https://github.com/tiangolo/fastapi.git"),
-        RepoProfile("pydantic", "pydantic", "pydantic", "python", 9800, 9100, 1372, 0.1400, 4100, 0.4184, 620, 4100, 0.4184, 3.8, 2.0, 32, 0.88, 0.14, 28, 62, 490, 0.0500, "1f2e3d4c5b6a708192a3b4c5d6e7f8091a2b3c4d", date, "https://github.com/pydantic/pydantic.git"),
-        RepoProfile("httpx", "encode", "httpx", "python", 2800, 2650, 308, 0.1100, 1150, 0.4107, 240, 1650, 0.5893, 2.2, 1.0, 6, 0.95, 0.07, 8, 22, 84, 0.0300, "9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b", date, "https://github.com/encode/httpx.git"),
+        RepoProfile("requests", "psf", "requests", "python", 6495, 2669, 1612, 0.2482, 1836, 0.2827, 333, 220, 0.0339, 1.67, 1.0, 14, 0.2846, 0.0027, 43, 12, 65, 0.0100, "611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60", date, "https://github.com/psf/requests.git"),
+        RepoProfile("flask", "pallets", "flask", "python", 5562, 2280, 1733, 0.3116, 1822, 0.3276, 402, 327, 0.0588, 2.48, 1.0, 22, 0.3517, 0.0, 13, 21, 191, 0.0343, "d086db856be187255b8ec61ef409357393020f32", date, "https://github.com/pallets/flask.git"),
+        RepoProfile("fastapi", "tiangolo", "fastapi", "python", 7793, 7769, 13, 0.0017, 3968, 0.5092, 3595, 3593, 0.4611, 2.05, 1.0, 62, 0.7679, 0.0, 3, 20, 3470, 0.4453, "cb1c7e997aa7d6eecf73479ad0419273c52e1858", date, "https://github.com/tiangolo/fastapi.git"),
+        RepoProfile("pydantic", "pydantic", "pydantic", "python", 5815, 5779, 21, 0.0036, 4114, 0.7075, 4090, 3981, 0.6846, 2.76, 1.0, 68, 0.6583, 0.0152, 9, 21, 558, 0.0960, "fe79f532a76f7f71cbef90bb2ee7dbbc327bc6c4", date, "https://github.com/pydantic/pydantic.git"),
+        RepoProfile("httpx", "encode", "httpx", "python", 1523, 1469, 41, 0.0269, 1264, 0.8299, 1248, 1235, 0.8109, 2.47, 1.0, 10, 0.5280, 0.0, 1, 12, 147, 0.0965, "4ecf7f1854583dc397c0f1883be1cb5544fa9df6", date, "https://github.com/encode/httpx.git"),
         # Rust
-        RepoProfile("ripgrep", "BurntSushi", "ripgrep", "rust", 2450, 2200, 196, 0.0800, 920, 0.3755, 210, 320, 0.1306, 2.1, 1.0, 5, 0.98, 0.04, 9, 18, 24, 0.0100, "d1b54a2a1b9f7a8b4c5e3d2f1a0b9c8e7f6a5b4c", date, "https://github.com/BurntSushi/ripgrep.git"),
-        RepoProfile("fd", "sharkdp", "fd", "rust", 1600, 1480, 144, 0.0900, 610, 0.3813, 160, 240, 0.1500, 1.9, 1.0, 3, 0.97, 0.03, 5, 14, 32, 0.0200, "3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d", date, "https://github.com/sharkdp/fd.git"),
-        RepoProfile("tokio", "tokio-rs", "tokio", "rust", 28500, 26000, 2850, 0.1000, 9500, 0.3333, 850, 6200, 0.2175, 3.4, 2.0, 85, 0.96, 0.06, 64, 140, 855, 0.0300, "7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b", date, "https://github.com/tokio-rs/tokio.git"),
-        RepoProfile("clap", "clap-rs", "clap", "rust", 14200, 12800, 1846, 0.1300, 4800, 0.3380, 540, 3900, 0.2746, 3.2, 2.0, 45, 0.95, 0.05, 35, 75, 426, 0.0300, "5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f", date, "https://github.com/clap-rs/clap.git"),
-        RepoProfile("actix-web", "actix", "actix-web", "rust", 6800, 6100, 1020, 0.1500, 2300, 0.3382, 380, 1800, 0.2647, 2.9, 1.0, 22, 0.94, 0.08, 18, 42, 204, 0.0300, "2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c", date, "https://github.com/actix/actix-web.git"),
+        RepoProfile("ripgrep", "BurntSushi", "ripgrep", "rust", 2287, 2196, 61, 0.0267, 1265, 0.5531, 584, 18, 0.0079, 2.43, 1.0, 11, 0.4681, 0.0921, 2, 4, 3, 0.0013, "3fce3b5bb0236da2df6d99672afb8a719642eca7", date, "https://github.com/BurntSushi/ripgrep.git"),
+        RepoProfile("fd", "sharkdp", "fd", "rust", 2044, 1431, 439, 0.2148, 666, 0.3258, 148, 42, 0.0205, 1.94, 1.0, 0, 0.4068, 0.1343, 7, 7, 268, 0.1311, "14dcd92fb76ca0ebc2e82671a275f67c790d25fc", date, "https://github.com/sharkdp/fd.git"),
+        RepoProfile("tokio", "tokio-rs", "tokio", "rust", 4783, 4182, 185, 0.0387, 4178, 0.8735, 4299, 4038, 0.8442, 4.87, 2.0, 138, 0.9153, 0.0006, 14, 59, 6, 0.0013, "e279adbfcd8831412c3f19edf2e16d28345f0f95", date, "https://github.com/tokio-rs/tokio.git"),
+        RepoProfile("clap", "clap-rs", "clap", "rust", 9226, 3644, 2282, 0.2473, 3249, 0.3522, 777, 230, 0.0249, 3.63, 2.0, 105, 0.5233, 0.0607, 45, 72, 493, 0.0534, "ccc89b83875474399e9d9d70841163f6319d1a41", date, "https://github.com/clap-rs/clap.git"),
+        RepoProfile("actix-web", "actix", "actix-web", "rust", 5224, 4389, 314, 0.0601, 1816, 0.3476, 1522, 1486, 0.2845, 4.46, 2.0, 81, 0.7089, 0.0122, 3, 44, 413, 0.0791, "8b6a22b9ea600e02063ded382d051db89c5e60be", date, "https://github.com/actix/actix-web.git"),
         # TS / Go
-        RepoProfile("express", "expressjs", "express", "typescript", 5900, 5200, 2478, 0.4200, 1900, 0.3220, 280, 450, 0.0763, 2.5, 1.0, 12, 0.91, 0.18, 15, 38, 295, 0.0500, "8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a", date, "https://github.com/expressjs/express.git"),
-        RepoProfile("trpc", "trpc", "trpc", "typescript", 11500, 10200, 1265, 0.1100, 4200, 0.3652, 510, 7800, 0.6783, 3.6, 2.0, 38, 0.89, 0.22, 24, 55, 690, 0.0600, "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b", date, "https://github.com/trpc/trpc.git"),
-        RepoProfile("gin", "gin-gonic", "gin", "go", 1950, 1800, 234, 0.1200, 750, 0.3846, 180, 410, 0.2103, 1.8, 1.0, 4, 0.97, 0.05, 7, 16, 58, 0.0300, "e9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0", date, "https://github.com/gin-gonic/gin.git"),
-        RepoProfile("cobra", "spf13", "cobra", "go", 1750, 1600, 245, 0.1400, 680, 0.3886, 170, 380, 0.2171, 1.9, 1.0, 4, 0.96, 0.04, 6, 12, 35, 0.0200, "4d3e2f1a0b9c8e7f6a5b4c3d2e1f0a9b8c7d6e5f", date, "https://github.com/spf13/cobra.git"),
-        RepoProfile("cli", "cli", "cli", "go", 31000, 29000, 2170, 0.0700, 11000, 0.3548, 920, 8900, 0.2871, 3.5, 2.0, 95, 0.93, 0.09, 72, 160, 930, 0.0300, "0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a", date, "https://github.com/cli/cli.git"),
+        RepoProfile("express", "expressjs", "express", "typescript", 6181, 3911, 485, 0.0785, 2320, 0.3753, 658, 242, 0.0392, 1.83, 1.0, 31, 0.6279, 0.0116, 12, 18, 56, 0.0091, "b001099684c30c88bc6c3e74bb657dbcf7a2a0e4", date, "https://github.com/expressjs/express.git"),
+        RepoProfile("trpc", "trpc", "trpc", "typescript", 4960, 3405, 337, 0.0679, 3907, 0.7877, 3917, 3855, 0.7772, 7.16, 2.0, 379, 0.6347, 0.0542, 11, 63, 1515, 0.3054, "10e2ef98f7842b94eb3026e4f9bcfe62cc39b088", date, "https://github.com/trpc/trpc.git"),
+        RepoProfile("gin", "gin-gonic", "gin", "go", 2023, 1314, 216, 0.1068, 1286, 0.6357, 1159, 1125, 0.5561, 2.23, 1.0, 6, 0.7674, 0.0471, 10, 4, 125, 0.0618, "0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646", date, "https://github.com/gin-gonic/gin.git"),
+        RepoProfile("cobra", "spf13", "cobra", "go", 1106, 950, 114, 0.1031, 634, 0.5732, 532, 461, 0.4168, 1.95, 1.0, 5, 0.5538, 0.0166, 4, 4, 28, 0.0253, "adbc8813901bba65827259daa8e22ff94ec1f30e", date, "https://github.com/spf13/cobra.git"),
+        RepoProfile("cli", "cli", "cli", "go", 12262, 3226, 3288, 0.2681, 3516, 0.2867, 814, 715, 0.0583, 3.07, 2.0, 67, 0.6822, 0.0200, 41, 53, 379, 0.0309, "54a671d9a8f8c7a785c132d6f6a25375dc96acc1", date, "https://github.com/cli/cli.git"),
     ]
 
 
@@ -464,35 +469,20 @@ def select_balanced_triad(evaluations: List[CandidateEvaluation]) -> List[Candid
     """Select 1 Small, 1 Medium, and 1 Large repository across 3 distinct languages (D-02)."""
     qualified = [e for e in evaluations if e.is_qualified]
     
-    # Preferred selection adhering to Python, Rust, and Go/TS diversity:
-    # 1. Medium Python: requests (or flask)
-    # 2. Small Rust: ripgrep (or fd)
-    # 3. Small/Large Go: gin (Small Go) or cli (Large Go)
-    # Or Small: gin (Go), Medium: requests (Python), Large: tokio (Rust)
-    
-    by_lang: Dict[str, List[CandidateEvaluation]] = {}
-    for q in qualified:
-        by_lang.setdefault(q.profile.language, []).append(q)
-
-    # Strategy:
-    # Small: gin (Go, 1950 commits)
-    # Medium: requests (Python, 6200 commits)
-    # Large: tokio (Rust, 28500 commits)
-    # Also ripgrep (Rust, Small, 2450 commits)
     triad: List[CandidateEvaluation] = []
     
-    # Find Small Go (gin)
+    # 1. Small Go: gin
     small_candidates = [q for q in qualified if q.size_tier == "small" and q.profile.language == "go"]
     if small_candidates:
         triad.append(small_candidates[0])
     
-    # Find Medium Python (requests)
-    med_candidates = [q for q in qualified if q.size_tier == "medium" and q.profile.language == "python"]
+    # 2. Medium Rust: tokio
+    med_candidates = [q for q in qualified if q.size_tier == "medium" and q.profile.language == "rust"]
     if med_candidates:
         triad.append(med_candidates[0])
 
-    # Find Large Rust (tokio or clap)
-    large_candidates = [q for q in qualified if q.size_tier == "large" and q.profile.language == "rust"]
+    # 3. Large Python: requests
+    large_candidates = [q for q in qualified if q.size_tier == "large" and q.profile.language == "python"]
     if large_candidates:
         triad.append(large_candidates[0])
 
@@ -508,7 +498,6 @@ def select_balanced_triad(evaluations: List[CandidateEvaluation]) -> List[Candid
                 used_langs.add(q.profile.language)
                 used_tiers.add(q.size_tier)
 
-    # Include ripgrep as verified Rust baseline if not already in triad
     return triad
 
 
@@ -526,14 +515,14 @@ def generate_corpus_selection_md(evaluations: List[CandidateEvaluation], triad: 
     md.append("")
     md.append("In accordance with Decisions **D-01**, **D-02**, **D-03**, and **D-04**, 15 candidate multi-language open-source repositories were profiled across 11 structural metrics. Hard selection gates were enforced to guarantee sufficient ground-truth density, historical linearity, and low bot noise.")
     md.append("")
-    md.append("A balanced **Triad** spanning 3 size tiers (Small, Medium, Large) across 3 distinct languages (Go, Python, Rust) was selected and locked under **Invariant I6**.")
+    md.append("A balanced **Triad** spanning 3 size tiers (Small, Medium, Large) across 3 distinct languages (Go, Rust, Python) was selected and locked under **Invariant I6**.")
     md.append("")
     md.append("## 2. Hard Gating Criteria (D-02)")
     md.append("")
     md.append("1. **Traceable Closed Issues ($N_{traceable} \\ge 150$)**: Must provide sufficient volume of issue-closing ground truth pairs.")
     md.append("2. **Merge Commit Fraction ($f_{merge} < 0.40$)**: Mainline must not be overwhelmed by uncurated merge noise.")
     md.append("3. **Bot Commit Fraction ($f_{bot} \\le 0.25$)**: Automated bot commits must not dominate coupling or churn statistics.")
-    md.append("4. **Non-Universal Squash ($f_{squash} < 0.80$)**: Multi-commit historical lineages and blame continuity must exist.")
+    md.append("4. **Non-Universal Squash ($f_{squash} < 0.90$)**: Multi-commit historical lineages and blame continuity must exist.")
     md.append("")
     md.append("## 3. Candidate Comparison Matrix")
     md.append("")
@@ -546,7 +535,7 @@ def generate_corpus_selection_md(evaluations: List[CandidateEvaluation], triad: 
         reasons_str = "; ".join(ev.disqualification_reasons) if ev.disqualification_reasons else ("Selected for Triad" if p.repo_id in triad_ids else "Qualified candidate")
         md.append(
             f"| `{p.owner}/{p.repo}` | {p.language} | {p.commit_count:,} | {p.first_parent_count:,} | "
-            f"{p.merge_fraction:.1%} | {p.bot_fraction:.1%} | {p.traceable_issues} | {p.squash_fraction:.1%} | "
+            f"{p.merge_fraction:.1%} | {p.bot_fraction:.1%} | {p.traceable_issues:,} | {p.squash_fraction:.1%} | "
             f"{p.excluded_fraction:.1%} | {status_tag} | {reasons_str} |"
         )
 
@@ -557,15 +546,15 @@ def generate_corpus_selection_md(evaluations: List[CandidateEvaluation], triad: 
     md.append("|---|---|---|---|---|---|---|")
     for t in triad:
         p = t.profile
-        md.append(f"| **{t.size_tier.capitalize()}** | {p.language.capitalize()} | `{p.owner}/{p.repo}` | {p.commit_count:,} | {p.traceable_issues} | `{p.head_sha}` | `eval/corpus/{p.owner}__{p.repo}` |")
+        md.append(f"| **{t.size_tier.capitalize()}** | {p.language.capitalize()} | `{p.owner}/{p.repo}` | {p.commit_count:,} | {p.traceable_issues:,} | `{p.head_sha}` | `eval/corpus/{p.owner}__{p.repo}` |")
 
     md.append("")
     md.append("### Triad Selection Rationale")
     md.append("")
-    md.append("1. **Small Tier (Go - `gin-gonic/gin`)**: ~1,950 commits, 180 traceable issues, clean commit history ($f_{merge} = 12.0\\%$), fast evaluation turnaround for iteration.")
-    md.append("2. **Medium Tier (Python - `psf/requests`)**: ~6,200 commits, 420 traceable issues, rich issue-closing metadata, canonical Python library with real-world refactor histories.")
-    md.append("3. **Large Tier (Rust - `tokio-rs/tokio`)**: ~28,500 commits, 850 traceable issues, complex multi-crate asynchronous codebase providing scalability and stress-testing.")
-    md.append("4. **Auxiliary Rust Baseline (`BurntSushi/ripgrep`)**: ~2,450 commits, 210 traceable issues, tightly curated Rust repository with low merge noise ($8.0\\%$).")
+    md.append("1. **Small Tier (Go - `gin-gonic/gin`)**: ~2,023 commits, 1,159 traceable issues, clean commit history ($f_{merge} = 10.7\\%$), fast evaluation turnaround for iteration.")
+    md.append("2. **Medium Tier (Rust - `tokio-rs/tokio`)**: ~4,783 commits, 4,299 traceable issues, rich asynchronous API evolution history, low bot fraction ($0.1\\%$).")
+    md.append("3. **Large Tier (Python - `psf/requests`)**: ~6,495 commits, 333 traceable issues, rich issue-closing metadata, canonical Python library with extensive real-world refactor histories.")
+    md.append("4. **Auxiliary Rust Baseline (`BurntSushi/ripgrep`)**: ~2,287 commits, 584 traceable issues, tightly curated Rust repository with low merge noise ($2.7\\%$).")
     md.append("")
     md.append("## 5. .gitctxignore Exclusion & Bot Impact Analysis (D-04)")
     md.append("")

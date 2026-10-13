@@ -143,6 +143,25 @@ impl MinHashFingerprint {
 
         (Self(min_hashes), is_short)
     }
+
+    /// Compute a 64-bit hash for a specific band of MinHash rows.
+    ///
+    /// Used for Locality-Sensitive Hashing (LSH) band indexing.
+    #[inline]
+    #[must_use]
+    pub fn band_hash(&self, band_idx: usize, rows_per_band: usize) -> u64 {
+        let start = band_idx * rows_per_band;
+        let end = (start + rows_per_band).min(MINHASH_PERMUTATIONS);
+        let slice = &self.0[start..end];
+        let mut h: u64 = 0xcbf29ce484222325;
+        for &val in slice {
+            for b in val.to_le_bytes() {
+                h ^= u64::from(b);
+                h = h.wrapping_mul(0x100000001b3);
+            }
+        }
+        h
+    }
 }
 
 #[cfg(test)]

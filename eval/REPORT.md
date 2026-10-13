@@ -1,6 +1,6 @@
 # gitctx Comprehensive Evaluation Report
 
-**Generated:** 2026-09-05T14:27:08Z
+**Generated:** 2026-10-12T21:00:49Z
 **Corpus:** 3 repositories pinned in `eval/corpus.lock.toml`
 **Ground Truth:** Set A (260 issue-closing pairs), Set B (27 why-queries)
 **Random Seed:** 42
@@ -88,7 +88,7 @@ All retrieval misses (Recall@10 < 1.0 in any configuration) are classified into 
 
 | Bucket | Count | Affected Queries |
 |--------|-------|------------------|
-| Dense Retrieval Misalignment | 4 | syn-006, syn-016, syn-001, syn-014 |
+| Dense Retrieval Misalignment | 4 | syn-016, syn-001, syn-006, syn-014 |
 
 ### Taxonomy Reference
 
@@ -113,9 +113,9 @@ Pinned repositories from `eval/corpus.lock.toml` (Invariant I6):
 
 | ID | Repository | Language | Size | Commits | Traceable Issues | Merge % |
 |----|------------|----------|------|---------|------------------|---------|
-| gin | gin | go | small | 1950 | 180 | 12% |
-| requests | requests | python | medium | 6200 | 420 | 18% |
-| tokio | tokio | rust | large | 28500 | 850 | 10% |
+| gin | gin | go | small | 2023 | 1159 | 11% |
+| tokio | tokio | rust | medium | 4783 | 4299 | 4% |
+| requests | requests | python | large | 6495 | 333 | 25% |
 
 ---
 

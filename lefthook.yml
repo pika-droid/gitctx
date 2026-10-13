@@ -1,0 +1,26 @@
+# Lefthook Git pre-commit hooks configuration
+# https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: true
+  commands:
+    rustfmt:
+      glob: "*.rs"
+      run: cargo fmt -- --check
+    clippy:
+      glob: "*.rs"
+      run: cargo clippy --workspace --all-targets -- -D warnings
+    taplo:
+      glob: "*.toml"
+      run: taplo lint {staged_files}
+    machete:
+      glob: "Cargo.toml"
+      run: cargo machete
+
+pre-push:
+  parallel: false
+  commands:
+    deny:
+      run: cargo deny check
+    audit:
+      run: cargo audit

@@ -10,10 +10,7 @@ workspace = true
 
 [dependencies]
 gitctx-core.workspace = true
-thiserror.workspace = true
 serde.workspace = true
-serde_json.workspace = true
-tracing.workspace = true
 rusqlite.workspace = true
 crossbeam-channel.workspace = true
 tantivy.workspace = true
@@ -31,4 +28,3 @@ ureq = "2.12.1"
 flate2 = "1.0"
 tar = "0.4.46"
 zip = { version = "2.2", default-features = false, features = ["deflate"] }
-

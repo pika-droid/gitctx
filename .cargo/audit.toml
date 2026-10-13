@@ -1,0 +1,7 @@
+[advisories]
+ignore = [
+    # Denial of Service via Stack Exhaustion in time RFC2822 parsing (transitive dependency via tantivy 0.22).
+    # Upstream patch (time >= 0.3.47) requires rustc >= 1.88.0 which exceeds workspace MSRV (1.85.0).
+    "RUSTSEC-2026-0009",
+]
+informational_warnings = ["unmaintained", "unsound", "notice"]

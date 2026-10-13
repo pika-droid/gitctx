@@ -912,8 +912,6 @@ dependencies = [
  "rusqlite",
  "serde",
  "serde_json",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -928,7 +926,6 @@ dependencies = [
  "serde_json",
  "tempfile",
  "thiserror 2.0.20",
- "tracing",
  "tree-sitter",
  "tree-sitter-c",
  "tree-sitter-cpp",
@@ -976,12 +973,9 @@ dependencies = [
  "rayon",
  "rusqlite",
  "serde",
- "serde_json",
  "tantivy",
  "tar",
  "tempfile",
- "thiserror 2.0.20",
- "tracing",
  "ureq 2.12.1",
  "zip",
 ]
@@ -990,7 +984,6 @@ dependencies = [
 name = "gitctx-mcp"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "git2",
  "gitctx-core",
  "gitctx-index",
@@ -999,7 +992,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
- "thiserror 2.0.20",
  "tracing",
  "tracing-subscriber",
 ]
@@ -1015,9 +1007,7 @@ dependencies = [
  "regex",
  "rusqlite",
  "serde",
- "serde_json",
  "tempfile",
- "thiserror 2.0.20",
  "tracing",
 ]
 
@@ -2328,9 +2318,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.43"
+version = "0.23.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0283386ce02abc0151e1761d08802dfe86c173b0b494af5cbc086574e453da06"
+checksum = "0d41d731c7d2f962d1ccc364cec258de3c0e93b38c2fb3ba97ac74513048d634"
 dependencies = [
  "log",
  "once_cell",
@@ -3864,10 +3854,8 @@ dependencies = [
  "anyhow",
  "clap",
  "git2",
- "gitctx-core",
  "gitctx-eval",
  "serde",
- "serde_json",
  "tempfile",
  "toml",
 ]

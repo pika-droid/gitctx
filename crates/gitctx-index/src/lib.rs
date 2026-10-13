@@ -5,6 +5,7 @@
 pub use gitctx_core as core;
 
 pub mod pipeline;
+pub mod sink;
 pub mod storage;
 pub mod tantivy_index;
 pub mod vector;

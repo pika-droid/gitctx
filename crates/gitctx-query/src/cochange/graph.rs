@@ -170,6 +170,13 @@ impl CoChangeGraph {
     pub fn contains(&self, entity: &str) -> bool {
         self.name_to_index.contains_key(entity)
     }
+
+    /// Return the entity type of a named node if present in the graph.
+    pub fn entity_type(&self, entity: &str) -> Option<EntityType> {
+        self.name_to_index
+            .get(entity)
+            .map(|&idx| self.graph[idx].entity_type)
+    }
 }
 
 #[cfg(test)]

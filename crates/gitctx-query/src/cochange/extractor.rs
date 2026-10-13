@@ -7,6 +7,7 @@
 use crate::cochange::config::CoChangeConfig;
 use gitctx_index::storage::StorageEngine;
 use serde::{Deserialize, Serialize};
+use std::collections::{BTreeSet, HashMap};
 
 /// A raw co-change pair extracted from a single qualifying commit.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -36,6 +37,13 @@ pub struct ExtractionStats {
     pub total_file_pairs: usize,
     /// Total function-level co-change pairs emitted.
     pub total_function_pairs: usize,
+}
+
+struct CommitGroup {
+    email: String,
+    authored_at: i64,
+    paths: BTreeSet<String>,
+    functions: BTreeSet<String>,
 }
 
 /// Extracts co-change pairs from the indexed commit history.
@@ -82,21 +90,42 @@ impl<'a> CoChangeExtractor<'a> {
         let mut file_pairs = Vec::new();
         let mut function_pairs = Vec::new();
 
-        // 1. Get all commits with file counts and metadata
-        let commit_data = self
+        // 1. Single bulk scan joining function_touches and commits
+        let touch_events = self
             .engine
-            .query_commit_file_counts()
-            .map_err(|e| format!("Failed to query commit file counts: {e}"))?;
+            .query_cochange_touch_events()
+            .map_err(|e| format!("Failed to query cochange touch events: {e}"))?;
 
-        stats.total_commits = commit_data.len();
+        let mut commit_order: Vec<String> = Vec::new();
+        let mut commit_map: HashMap<String, CommitGroup> = HashMap::new();
 
-        for (commit_hash, email, authored_at, file_count) in &commit_data {
+        for (commit_hash, email, authored_at, path, qualname) in touch_events {
+            let entry = commit_map.entry(commit_hash.clone()).or_insert_with(|| {
+                commit_order.push(commit_hash);
+                CommitGroup {
+                    email,
+                    authored_at,
+                    paths: BTreeSet::new(),
+                    functions: BTreeSet::new(),
+                }
+            });
+            entry.paths.insert(path);
+            entry.functions.insert(qualname);
+        }
+
+        stats.total_commits = commit_order.len();
+
+        for commit_hash in commit_order {
+            let Some(group) = commit_map.remove(&commit_hash) else {
+                continue;
+            };
+
             // 2. Apply commit-size filter (GRAPH-01)
-            if (*file_count as usize) > self.config.max_commit_files {
+            if group.paths.len() > self.config.max_commit_files {
                 stats.size_filtered += 1;
                 tracing::debug!(
                     commit = %commit_hash,
-                    files = file_count,
+                    files = group.paths.len(),
                     threshold = self.config.max_commit_files,
                     "Excluding commit: too many files"
                 );
@@ -104,11 +133,11 @@ impl<'a> CoChangeExtractor<'a> {
             }
 
             // 3. Apply bot filter (GRAPH-01)
-            if self.is_bot_email(email) {
+            if self.is_bot_email(&group.email) {
                 stats.bot_filtered += 1;
                 tracing::debug!(
                     commit = %commit_hash,
-                    email = %email,
+                    email = %group.email,
                     "Excluding commit: bot author"
                 );
                 continue;
@@ -117,39 +146,27 @@ impl<'a> CoChangeExtractor<'a> {
             stats.qualifying_commits += 1;
 
             // 4. Extract file-level pairs
-            let paths = self
-                .engine
-                .query_commit_touched_paths(commit_hash)
-                .map_err(|e| format!("Failed to query paths for {commit_hash}: {e}"))?;
-
+            let paths: Vec<String> = group.paths.into_iter().collect();
             if paths.len() >= 2 {
                 for (a, b) in Self::generate_pairs(&paths) {
                     file_pairs.push(RawCoChangePair {
                         entity_a: a,
                         entity_b: b,
                         commit_hash: commit_hash.clone(),
-                        authored_at: *authored_at,
+                        authored_at: group.authored_at,
                     });
                 }
             }
 
             // 5. Extract function-level pairs (by qualified name)
-            let functions = self
-                .engine
-                .query_commit_touched_functions(commit_hash)
-                .map_err(|e| format!("Failed to query functions for {commit_hash}: {e}"))?;
-
-            let mut func_names: Vec<String> = functions.into_iter().map(|(_, qn)| qn).collect();
-            func_names.sort();
-            func_names.dedup();
-
+            let func_names: Vec<String> = group.functions.into_iter().collect();
             if func_names.len() >= 2 {
                 for (a, b) in Self::generate_pairs(&func_names) {
                     function_pairs.push(RawCoChangePair {
                         entity_a: a,
                         entity_b: b,
                         commit_hash: commit_hash.clone(),
-                        authored_at: *authored_at,
+                        authored_at: group.authored_at,
                     });
                 }
             }

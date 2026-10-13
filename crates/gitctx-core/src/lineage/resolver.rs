@@ -13,7 +13,7 @@ use crate::lineage::matcher::{
 use crate::lineage::minhash::MinHashFingerprint;
 use crate::lineage::normalizer::AstNormalizer;
 use crate::model::{Citation, CommitId, FunctionTouch, LineageId};
-use crate::parser::{AstExtractor, LanguageRegistry, ParsedFileSymbols};
+use crate::parser::{AstExtractor, LanguageId, LanguageRegistry, ParsedFileSymbols};
 use git2::Oid;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -44,6 +44,95 @@ pub struct ResolvedCommit {
     pub child_symbols_count: usize,
 }
 
+/// An entry in the LSH band index for copy candidate matching.
+#[derive(Debug, Clone)]
+pub struct LshBucketEntry {
+    pub lineage_id: LineageId,
+    pub path: String,
+    pub qualname: String,
+    pub language: LanguageId,
+    pub fingerprint: MinHashFingerprint,
+}
+
+/// Locality-Sensitive Hashing (LSH) band inverted index for copy derivation candidates.
+/// Partitions 128 MinHash permutations into 16 bands of 8 rows each.
+#[derive(Debug, Clone, Default)]
+pub struct LshIndex {
+    buckets: HashMap<(LanguageId, usize, u64), Vec<LshBucketEntry>>,
+}
+
+impl LshIndex {
+    /// Create a new empty LSH index.
+    pub fn new() -> Self {
+        Self {
+            buckets: HashMap::new(),
+        }
+    }
+
+    /// Insert a symbol descriptor into all 16 band buckets.
+    pub fn insert(&mut self, sym: &SymbolDescriptor) {
+        if sym.is_short {
+            return;
+        }
+        let Some(lineage_id) = sym.lineage_id else {
+            return;
+        };
+        for band in 0..16 {
+            let hash = sym.fingerprint.band_hash(band, 8);
+            self.buckets
+                .entry((sym.language, band, hash))
+                .or_default()
+                .push(LshBucketEntry {
+                    lineage_id,
+                    path: sym.path.clone(),
+                    qualname: sym.qualname.clone(),
+                    language: sym.language,
+                    fingerprint: sym.fingerprint,
+                });
+        }
+    }
+
+    /// Remove a symbol descriptor from the band buckets.
+    pub fn remove(&mut self, sym: &SymbolDescriptor) {
+        if sym.is_short {
+            return;
+        }
+        let Some(lineage_id) = sym.lineage_id else {
+            return;
+        };
+        for band in 0..16 {
+            let hash = sym.fingerprint.band_hash(band, 8);
+            if let Some(entries) = self.buckets.get_mut(&(sym.language, band, hash)) {
+                entries.retain(|e| e.lineage_id != lineage_id);
+                if entries.is_empty() {
+                    self.buckets.remove(&(sym.language, band, hash));
+                }
+            }
+        }
+    }
+
+    /// Retrieve candidates colliding in at least one band bucket.
+    pub fn get_candidates(
+        &self,
+        language: LanguageId,
+        fingerprint: &MinHashFingerprint,
+    ) -> Vec<&LshBucketEntry> {
+        let mut seen = HashSet::new();
+        let mut candidates = Vec::new();
+        for band in 0..16 {
+            let hash = fingerprint.band_hash(band, 8);
+            if let Some(entries) = self.buckets.get(&(language, band, hash)) {
+                for entry in entries {
+                    if seen.insert(entry.lineage_id) {
+                        candidates.push(entry);
+                    }
+                }
+            }
+        }
+        candidates
+    }
+}
+
 /// Multi-tier lineage resolver maintaining state across sequential commits.
 pub struct LineageResolver {
     thresholds: MatchThresholds,
@@ -54,6 +143,8 @@ pub struct LineageResolver {
     dag: LineageDag,
     /// Active symbols in the repository indexed by normalized file path.
     active_symbols: HashMap<String, Vec<SymbolDescriptor>>,
+    /// LSH band index for active symbols across untouched repository files.
+    lsh_index: LshIndex,
     /// Enforces UNIQUE(lineage_id, commit_hash) per D-11.
     seen_touches: HashSet<(LineageId, CommitId)>,
 }
@@ -81,6 +172,7 @@ impl LineageResolver {
             next_lineage_id: 1,
             dag: LineageDag::new(),
             active_symbols: HashMap::new(),
+            lsh_index: LshIndex::new(),
             seen_touches: HashSet::new(),
         }
     }
@@ -154,6 +246,9 @@ impl LineageResolver {
         let mut parent_symbols = Vec::new();
         for old_path in &touched_old_paths {
             if let Some(syms) = self.active_symbols.remove(old_path) {
+                for s in &syms {
+                    self.lsh_index.remove(s);
+                }
                 parent_symbols.extend(syms);
             }
         }
@@ -272,23 +367,27 @@ impl LineageResolver {
                 }
             }
 
-            // Also check active symbols in untouched files across the repository for Copy (M10)
+            // Also check active symbols in untouched files across the repository for Copy (M10) via LSH index
             if best_split.is_none() {
-                for (path, syms) in &self.active_symbols {
-                    if path == &child.path {
+                let candidates = self
+                    .lsh_index
+                    .get_candidates(child.language, &child.fingerprint);
+                for active_sym in candidates {
+                    if active_sym.path == child.path {
                         continue;
                     }
-                    for active_sym in syms {
-                        if active_sym.language != child.language || active_sym.is_short {
-                            continue;
-                        }
 
-                        let sim = active_sym.fingerprint.similarity(&child.fingerprint);
-                        let parent_lineage_id =
-                            active_sym.lineage_id.expect("active symbol has lineage_id");
-
-                        if sim >= 0.80 && best_copy.as_ref().is_none_or(|(_, s)| sim > *s) {
-                            best_copy = Some((parent_lineage_id, sim));
+                    let sim = active_sym.fingerprint.similarity(&child.fingerprint);
+                    if sim >= 0.80 {
+                        match &best_copy {
+                            None => best_copy = Some((active_sym.lineage_id, sim)),
+                            Some((best_id, best_s)) => {
+                                if sim > *best_s
+                                    || (sim == *best_s && active_sym.lineage_id < *best_id)
+                                {
+                                    best_copy = Some((active_sym.lineage_id, sim));
+                                }
+                            }
                         }
                     }
                 }
@@ -357,8 +456,9 @@ impl LineageResolver {
             }
         }
 
-        // 7. Update active symbols with new state
+        // 7. Update active symbols and LSH index with new state
         for child in &child_symbols {
+            self.lsh_index.insert(child);
             self.active_symbols
                 .entry(child.path.clone())
                 .or_default()

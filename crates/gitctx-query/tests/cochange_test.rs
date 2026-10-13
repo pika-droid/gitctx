@@ -9,6 +9,7 @@ use gitctx_query::cochange::extractor::CoChangeExtractor;
 use gitctx_query::cochange::graph::{CoChangeGraph, EntityType};
 use gitctx_query::cochange::impact::ImpactAnalyzer;
 use gitctx_query::cochange::metrics::MetricsComputer;
+use gitctx_query::cochange::ImpactService;
 
 /// Helper: create a fresh StorageEngine with schema initialized.
 fn fresh_engine(dir: &tempfile::TempDir) -> StorageEngine {
@@ -383,4 +384,134 @@ fn test_deterministic_extraction() {
         assert_eq!(m1.entity_b, m2.entity_b);
         assert_eq!(m1.support, m2.support);
     }
+}
+
+#[test]
+fn test_impact_service_with_precomputed_metrics() {
+    let dir = tempfile::tempdir().unwrap();
+    let engine = fresh_engine(&dir);
+    seed_fixture(&engine);
+
+    // Insert precomputed file metrics
+    engine.connection().execute(
+        "INSERT INTO cochange_file_metrics (entity_a, entity_b, support, weighted_support, confidence_a_to_b, confidence_b_to_a, lift)
+         VALUES ('src/parser.rs', 'src/lexer.rs', 2, 1.95, 0.67, 1.0, 1.5);",
+        [],
+    ).unwrap();
+
+    // Insert precomputed function metrics
+    engine.connection().execute(
+        "INSERT INTO cochange_function_metrics (entity_a, entity_b, support, weighted_support, confidence_a_to_b, confidence_b_to_a, lift)
+         VALUES ('lexer::tokenize', 'parser::parse', 2, 1.95, 1.0, 0.67, 1.5);",
+        [],
+    ).unwrap();
+
+    let service = ImpactService::new(&engine);
+
+    // 1. Target file analysis
+    let file_res = service.analyze("src/parser.rs", 10).unwrap();
+    assert_eq!(file_res.target, "src/parser.rs");
+    assert_eq!(file_res.entity_type, EntityType::File);
+    assert_eq!(file_res.coupled_entities.len(), 1);
+    assert_eq!(file_res.coupled_entities[0].name, "src/lexer.rs");
+    assert!((file_res.coupled_entities[0].confidence - 0.67).abs() < 1e-4);
+
+    // 2. Target function analysis
+    let func_res = service.analyze("parser::parse", 10).unwrap();
+    assert_eq!(func_res.target, "parser::parse");
+    assert_eq!(func_res.entity_type, EntityType::Function);
+    assert_eq!(func_res.coupled_entities.len(), 1);
+    assert_eq!(func_res.coupled_entities[0].name, "lexer::tokenize");
+    assert!((func_res.coupled_entities[0].confidence - 0.67).abs() < 1e-4);
+
+    // 3. Global metrics
+    let global = service.global_metrics(10).unwrap();
+    assert_eq!(global.top_file_couplings.len(), 1);
+    assert_eq!(global.top_function_couplings.len(), 1);
+}
+
+#[test]
+fn test_function_target_and_fix_deduplication() {
+    let dir = tempfile::tempdir().unwrap();
+    let engine = fresh_engine(&dir);
+    seed_fixture(&engine);
+
+    let config = CoChangeConfig::with_reference_epoch(1_700_400_000);
+    let extractor = CoChangeExtractor::new(&engine, &config);
+    let (_, func_pairs, stats) = extractor.extract().unwrap();
+    let metrics = MetricsComputer::compute(&func_pairs, stats.qualifying_commits, &config);
+    let graph = CoChangeGraph::from_metrics(&metrics, EntityType::Function);
+    let analyzer = ImpactAnalyzer::new(&engine, &graph);
+
+    // Function target with :: should successfully query commits
+    let result = analyzer.analyze("parser::parse", 10);
+    assert_eq!(result.target, "parser::parse");
+    assert_eq!(result.entity_type, EntityType::Function);
+    assert!(!result.coupled_entities.is_empty());
+}
+
+#[test]
+fn test_bare_function_target_and_file_without_ext() {
+    let dir = tempfile::tempdir().unwrap();
+    let engine = fresh_engine(&dir);
+    let conn = engine.connection();
+
+    // Insert commit and touch for a bare function (no ::) in a file without extension (e.g. Makefile)
+    conn.execute(
+        "INSERT INTO commits (hash, author, email, authored_at, topo_order, branch, parent_hashes, message, insertions, deletions)
+         VALUES ('c999', 'dev', 'dev@example.com', 1700000000, 1, 'main', '', 'fix: init Makefile target', 5, 0);",
+        [],
+    ).unwrap();
+
+    conn.execute(
+        "INSERT INTO function_lineage (lineage_id, current_path, current_qualified_name, language)
+         VALUES (999, 'Makefile', 'build_all', 'makefile');",
+        [],
+    )
+    .unwrap();
+
+    conn.execute(
+        "INSERT INTO function_touches (
+            touch_id, lineage_id, commit_hash, path, qualified_name, arity, change_type,
+            signature_before, signature_after, fingerprint, chunk_text, parse_status, start_line, end_line
+         ) VALUES (999, 999, 'c999', 'Makefile', 'build_all', 0, 'add', NULL, NULL, NULL, 'build_all: target', 'ok', 1, 5);",
+        [],
+    ).unwrap();
+
+    // Precompute metrics for Makefile <-> Dockerfile
+    conn.execute(
+        "INSERT INTO cochange_file_metrics (entity_a, entity_b, support, weighted_support, confidence_a_to_b, confidence_b_to_a, lift)
+         VALUES ('Dockerfile', 'Makefile', 2, 2.0, 1.0, 1.0, 1.0);",
+        [],
+    ).unwrap();
+
+    // Precompute metrics for bare function build_all <-> clean_all
+    conn.execute(
+        "INSERT INTO cochange_function_metrics (entity_a, entity_b, support, weighted_support, confidence_a_to_b, confidence_b_to_a, lift)
+         VALUES ('build_all', 'clean_all', 2, 2.0, 1.0, 1.0, 1.0);",
+        [],
+    ).unwrap();
+
+    let service = ImpactService::new(&engine);
+
+    // 1. File without extension (Makefile) must be identified as EntityType::File
+    let makefile_res = service.analyze("Makefile", 10).unwrap();
+    assert_eq!(makefile_res.target, "Makefile");
+    assert_eq!(makefile_res.entity_type, EntityType::File);
+    assert_eq!(makefile_res.coupled_entities.len(), 1);
+    assert_eq!(makefile_res.coupled_entities[0].name, "Dockerfile");
+
+    // 2. Bare function without :: (build_all) must be identified as EntityType::Function
+    let bare_fn_res = service.analyze("build_all", 10).unwrap();
+    assert_eq!(bare_fn_res.target, "build_all");
+    assert_eq!(bare_fn_res.entity_type, EntityType::Function);
+    assert_eq!(bare_fn_res.coupled_entities.len(), 1);
+    assert_eq!(bare_fn_res.coupled_entities[0].name, "clean_all");
+
+    // 3. Analyzing an uncoupled function should retain EntityType::Function (not default to File)
+    let empty_graph = CoChangeGraph::from_metrics(&[], EntityType::Function);
+    let analyzer = ImpactAnalyzer::new(&engine, &empty_graph);
+    let uncoupled_res = analyzer.analyze("build_all", 10);
+    assert_eq!(uncoupled_res.entity_type, EntityType::Function);
+    assert_eq!(uncoupled_res.risk_score, 0.0);
 }

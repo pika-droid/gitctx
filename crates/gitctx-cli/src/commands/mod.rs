@@ -16,6 +16,9 @@ pub enum Commands {
         /// Path to repository root
         #[arg(default_value = ".")]
         repo_path: String,
+        /// Maximum number of recent commits to index (optional limit for fast profiling/demo)
+        #[arg(short, long)]
+        max_commits: Option<usize>,
     },
     /// Query the indexed codebase
     Search {

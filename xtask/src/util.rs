@@ -27,3 +27,54 @@ pub fn run_cmd(cmd: &mut Command, desc: &str) -> Result<()> {
 
     Ok(())
 }
+
+/// Runs an external cargo extension tool, providing clear installation instructions if missing.
+pub fn run_tool(
+    cargo: &str,
+    tool: &str,
+    args: &[&str],
+    install_crate: &str,
+    allow_missing: bool,
+    cwd: Option<&Path>,
+) -> Result<bool> {
+    // Check if the cargo extension is installed
+    let mut check_cmd = Command::new(cargo);
+    check_cmd.arg(tool).arg("--help");
+    if let Some(dir) = cwd {
+        check_cmd.current_dir(dir);
+    }
+
+    let is_installed = match check_cmd.output() {
+        Ok(out) => out.status.success(),
+        Err(_) => false,
+    };
+
+    if !is_installed {
+        let msg = format!(
+            "'cargo-{tool}' is not installed.\nTo install: cargo install {install_crate} --locked"
+        );
+        if allow_missing {
+            println!("==> ⚠️  {msg} (skipping)");
+            return Ok(false);
+        }
+        bail!("{msg}");
+    }
+
+    let mut cmd = Command::new(cargo);
+    cmd.arg(tool);
+    for arg in args {
+        cmd.arg(arg);
+    }
+    if let Some(dir) = cwd {
+        cmd.current_dir(dir);
+    }
+
+    let desc = if args.is_empty() {
+        format!("cargo {tool}")
+    } else {
+        format!("cargo {tool} {}", args.join(" "))
+    };
+
+    run_cmd(&mut cmd, &desc)?;
+    Ok(true)
+}
