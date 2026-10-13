@@ -5,6 +5,7 @@
 
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
+use gitctx_eval::ablation;
 use gitctx_eval::mutator::{LineageGroundTruthManifest, MutationEngine};
 use gitctx_eval::oracle::{GitLogOracleComparator, MutationBenchmarkRunner, ThresholdTuner};
 use gitctx_eval::report;
@@ -65,6 +66,13 @@ enum Commands {
         repo: PathBuf,
     },
 
+    /// Run 5x5 ablation study across representations (D1-D5) and retrievers (R1-R5)
+    Ablation {
+        /// Directory containing eval artifacts (default: eval/)
+        #[arg(long, default_value = "eval")]
+        eval_dir: PathBuf,
+    },
+
     /// Generate comprehensive evaluation report (eval/REPORT.md)
     Report {
         /// Directory containing eval artifacts (default: eval/)
@@ -89,8 +97,17 @@ fn main() -> Result<()> {
         Commands::BenchLineage { format } => run_bench_lineage(&format),
         Commands::TuneThresholds { out } => run_tune_thresholds(&out),
         Commands::EvalOracle { repo } => run_eval_oracle(&repo),
+        Commands::Ablation { eval_dir } => run_ablation(&eval_dir),
         Commands::Report { eval_dir, output } => run_report(&eval_dir, &output),
     }
+}
+
+fn run_ablation(eval_dir: &std::path::Path) -> Result<()> {
+    println!("\n=== GitCtx 5x5 Ablation Study Runner ===");
+    println!("Eval directory: {}", eval_dir.display());
+    ablation::run_ablation_grid(eval_dir)?;
+    println!("Ablation study completed successfully.\n");
+    Ok(())
 }
 
 fn run_bench_lineage(format: &str) -> Result<()> {

@@ -23,6 +23,11 @@ pub struct SinkTouch {
     pub start_line: usize,
     pub end_line: usize,
     pub commit_message: String,
+    pub arity: u32,
+    pub change_type: String,
+    pub signature_before: Option<String>,
+    pub fingerprint: Option<Vec<u8>>,
+    pub match_rule: String,
 }
 
 /// Unified deep ingestion sink coordinating SQLite, Tantivy, and batched dense vector writes.
@@ -155,11 +160,11 @@ impl IndexSink {
                 commit_hash: t.commit_hash.clone(),
                 path: t.path.clone(),
                 qualified_name: t.qualified_name.clone(),
-                arity: 0,
-                change_type: "modify".to_string(),
-                signature_before: None,
+                arity: t.arity,
+                change_type: t.change_type.clone(),
+                signature_before: t.signature_before.clone(),
                 signature_after: Some(t.signature.clone()),
-                fingerprint: None,
+                fingerprint: t.fingerprint.clone(),
                 chunk_text: t.chunk_text.clone(),
                 parse_status: match t.parse_status {
                     ParseStatus::Ok => "ok".to_string(),

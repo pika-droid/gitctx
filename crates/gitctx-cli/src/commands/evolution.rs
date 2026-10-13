@@ -5,7 +5,6 @@ use anyhow::{Context, Result};
 use gitctx_core::config::IndexConfig;
 use gitctx_index::storage::{StorageEngine, CURRENT_SCHEMA_VERSION};
 use gitctx_query::chain::ChainAssembler;
-use rusqlite::OptionalExtension;
 use std::path::Path;
 use std::time::Instant;
 
@@ -28,18 +27,7 @@ pub fn run(identifier: &str, format: Format) -> Result<()> {
 
     // Lookup lineage_id from identifier
     let conn = storage.connection();
-    let like_suffix = format!("%::{identifier}");
-    let like_dot = format!("%.{identifier}");
-
-    let lineage_id: Option<u64> = conn
-        .query_row(
-            "SELECT lineage_id FROM function_touches 
-         WHERE qualified_name = ?1 OR qualified_name LIKE ?2 OR qualified_name LIKE ?3
-         ORDER BY touch_id DESC LIMIT 1;",
-            rusqlite::params![identifier, like_suffix, like_dot],
-            |row| row.get(0),
-        )
-        .optional()
+    let lineage_id = ChainAssembler::resolve_lineage_id(conn, identifier)
         .context("Failed to query lineage id")?;
 
     let Some(lineage_id) = lineage_id else {

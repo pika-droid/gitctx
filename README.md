@@ -264,6 +264,9 @@ cargo xtask eval bench-lineage --format markdown
 # Calibrate lineage thresholds
 cargo xtask eval tune-thresholds
 
+# Run pure-Rust 5x5 ablation study across representations and retrievers
+cargo run -p gitctx-eval -- ablation
+
 # Generate comprehensive evaluation report
 cargo xtask eval report
 
@@ -274,8 +277,9 @@ cargo xtask bench
 
 See:
 - [`GitCTX-Report.md`](GitCTX-Report.md) — Complete system evaluation & technical report
-- [`eval/REPORT.md`](eval/REPORT.md) and [`eval/ABLATION_REPORT.md`](eval/ABLATION_REPORT.md) — Empirical evaluation, ablation grid, lineage metrics, and failure taxonomy
+- [`eval/REPORT.md`](eval/REPORT.md) and [`eval/ABLATION_REPORT.md`](eval/ABLATION_REPORT.md) — Empirical evaluation, pure-Rust ablation grid (passed Phase 0 decision gate: $\Delta\text{Recall@10} = 0.1111 \ge 0.05$), lineage metrics, and failure taxonomy
 - [`ARCHITECTURE_OVERHAUL_CHANGES.md`](ARCHITECTURE_OVERHAUL_CHANGES.md) — Deep module architecture, LSH index, and Schema v2 optimization details
+- [`CHANGELOG_SESSION.md`](CHANGELOG_SESSION.md) — Commit-by-commit changelog of engine and evaluation overhauls
 
 ---
 

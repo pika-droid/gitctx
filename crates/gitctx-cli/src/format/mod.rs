@@ -38,6 +38,25 @@ pub fn format_doctor(checks: &[DoctorCheck]) {
     println!("{table}");
 }
 
+/// Convert Unix epoch timestamp (seconds) into ISO-8601 date string YYYY-MM-DD.
+pub fn format_epoch_date(timestamp: i64) -> String {
+    let mut days = timestamp / 86400;
+    if timestamp < 0 && timestamp % 86400 != 0 {
+        days -= 1;
+    }
+    let z = days + 719468;
+    let era = (if z >= 0 { z } else { z - 146096 }) / 146097;
+    let doe = (z - era * 146097) as u32;
+    let yoe = (doe - doe / 1029 + doe / 1461 - doe / 146096) / 365;
+    let y = i64::from(yoe) + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = if m <= 2 { y + 1 } else { y };
+    format!("{y:04}-{m:02}-{d:02}")
+}
+
 pub fn format_evolution(chain: &LineageChain) {
     let mut table = Table::new();
     table.load_preset(UTF8_FULL).set_header(vec![
@@ -75,7 +94,7 @@ pub fn format_evolution(chain: &LineageChain) {
         table.add_row(vec![
             Cell::new(short_hash).fg(Color::Cyan),
             Cell::new(&node.commit_author),
-            Cell::new(node.commit_authored_at.to_string()),
+            Cell::new(format_epoch_date(node.commit_authored_at)),
             change_cell,
             Cell::new(format!("{}:{}", node.touch.start_line, node.touch.end_line)),
             Cell::new(truncated_msg),
@@ -247,7 +266,7 @@ pub fn format_show(
 ) {
     println!("Commit:  {hash}");
     println!("Author:  {author} <{email}>");
-    println!("Date:    {authored_at}");
+    println!("Date:    {}", format_epoch_date(authored_at));
     if !parents.is_empty() {
         println!("Parents: {parents}");
     }

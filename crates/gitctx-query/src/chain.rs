@@ -2,7 +2,7 @@ use crate::citation::CitationBuilder;
 use gitctx_core::error::CoreError;
 use gitctx_core::model::Citation;
 use gitctx_index::storage::TouchRecord;
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, OptionalExtension};
 use serde::{Deserialize, Serialize};
 
 /// Chronological evolutionary touch node in a function's lineage chain.
@@ -141,5 +141,41 @@ impl ChainAssembler {
             language: lineage_meta.3,
             nodes,
         })
+    }
+
+    /// Resolve a symbol identifier to its `lineage_id` using exact match, suffix match, or lineage lookup.
+    pub fn resolve_lineage_id(
+        conn: &Connection,
+        identifier: &str,
+    ) -> Result<Option<u64>, CoreError> {
+        let like_suffix = format!("%::{identifier}");
+        let like_dot = format!("%.{identifier}");
+
+        // First check function_lineage for current qualified name
+        let lineage_id: Option<u64> = conn
+            .query_row(
+                "SELECT lineage_id FROM function_lineage 
+                 WHERE current_qualified_name = ?1 OR current_qualified_name LIKE ?2 OR current_qualified_name LIKE ?3
+                 LIMIT 1;",
+                params![identifier, like_suffix, like_dot],
+                |row| row.get(0),
+            )
+            .optional()
+            .map_err(|e| CoreError::InvariantViolation(format!("Lineage resolution query error: {e}")))?;
+
+        if lineage_id.is_some() {
+            return Ok(lineage_id);
+        }
+
+        // Fall back to historical touches
+        conn.query_row(
+            "SELECT lineage_id FROM function_touches 
+             WHERE qualified_name = ?1 OR qualified_name LIKE ?2 OR qualified_name LIKE ?3
+             ORDER BY touch_id DESC LIMIT 1;",
+            params![identifier, like_suffix, like_dot],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(|e| CoreError::InvariantViolation(format!("Lineage resolution query error: {e}")))
     }
 }

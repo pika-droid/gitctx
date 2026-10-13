@@ -56,22 +56,22 @@ impl MatchTier {
 /// Similarity thresholds for multi-tier matching and decoy rejection per D-07, D-08.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct MatchThresholds {
-    /// Similarity threshold for in-file modifications and renames (default 0.65).
+    /// Similarity threshold for in-file modifications and renames (calibrated 0.55, was 0.65).
     pub tau_same: f32,
-    /// Similarity threshold for scoped cross-file moves (default 0.75).
+    /// Similarity threshold for scoped cross-file moves (calibrated 0.65, was 0.75).
     pub tau_cross: f32,
-    /// Decoy rejection threshold on exact key matches (default 0.25).
+    /// Decoy rejection threshold on exact key matches (calibrated 0.20, was 0.25).
     pub tau_decoy: f32,
-    /// Split derivation token overlap threshold (default 0.40).
+    /// Split derivation token overlap threshold (calibrated 0.20).
     pub tau_split: f32,
 }
 
 impl Default for MatchThresholds {
     fn default() -> Self {
         Self {
-            tau_same: 0.65,
-            tau_cross: 0.75,
-            tau_decoy: 0.25,
+            tau_same: 0.55,
+            tau_cross: 0.65,
+            tau_decoy: 0.20,
             tau_split: 0.20,
         }
     }

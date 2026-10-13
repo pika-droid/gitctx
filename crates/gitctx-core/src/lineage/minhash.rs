@@ -110,6 +110,16 @@ impl MinHashFingerprint {
         matching as f32 / MINHASH_PERMUTATIONS as f32
     }
 
+    /// Return the raw little-endian bytes of the fingerprint (512 bytes).
+    #[must_use]
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut bytes = Vec::with_capacity(MINHASH_PERMUTATIONS * 4);
+        for val in &self.0 {
+            bytes.extend_from_slice(&val.to_le_bytes());
+        }
+        bytes
+    }
+
     /// Construct a MinHash fingerprint from normalized token shingles.
     ///
     /// Returns `(fingerprint, is_short)` where `is_short` is true if the token count < 10.

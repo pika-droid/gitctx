@@ -278,18 +278,7 @@ impl ToolContext {
         let mode = BudgetMode::from_str_opt(params.get("mode").and_then(|v| v.as_str()));
 
         let conn = self.storage.connection();
-        let like_suffix = format!("%::{identifier}");
-        let like_dot = format!("%.{identifier}");
-
-        let lineage_id: Option<u64> = conn
-            .query_row(
-                "SELECT lineage_id FROM function_touches 
-                 WHERE qualified_name = ?1 OR qualified_name LIKE ?2 OR qualified_name LIKE ?3
-                 ORDER BY touch_id DESC LIMIT 1;",
-                rusqlite::params![identifier, like_suffix, like_dot],
-                |row| row.get(0),
-            )
-            .optional()
+        let lineage_id = ChainAssembler::resolve_lineage_id(conn, identifier)
             .map_err(|e| format!("Lineage lookup failed: {e}"))?;
 
         let Some(lineage_id) = lineage_id else {

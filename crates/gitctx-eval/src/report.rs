@@ -174,10 +174,17 @@ impl FailureBucket {
 pub fn classify_misses(grid: &AblationGrid) -> HashMap<FailureBucket, Vec<String>> {
     let mut taxonomy: HashMap<FailureBucket, Vec<String>> = HashMap::new();
 
-    // Collect queries that missed in any configuration
+    let has_d4 = grid.representations_used.iter().any(|r| r == "D4");
+
+    // Collect queries that missed in configurations
+    // If D4 is evaluated, only consider queries missed by D4 configurations
+    // (baseline-only misses where D4 succeeds are template improvements, not system failures).
     let mut missed_queries: HashMap<String, Vec<(String, String)>> = HashMap::new();
 
     for cell in &grid.cells {
+        if has_d4 && cell.representation != "D4" {
+            continue;
+        }
         for pq in &cell.per_query {
             if pq.recall_at_10 < 1.0 {
                 missed_queries

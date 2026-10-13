@@ -5,6 +5,7 @@
 #[path = "../../../tests/fixtures/mod.rs"]
 pub mod fixtures;
 
+pub mod ablation;
 pub mod corpus;
 pub mod manifest;
 pub mod mutator;

@@ -4,7 +4,7 @@
 //! executing candidate generation and greedy bipartite matching, and emitting `FunctionTouch` records.
 
 use crate::error::{CoreError, Result};
-use crate::git::diff::{CommitDiff, DeltaStatus, TreeDiffExtractor};
+use crate::git::diff::{CommitDiff, DeltaStatus, DiffHunk, TreeDiffExtractor};
 use crate::git::repository::GitRepo;
 use crate::lineage::dag::{DerivationKind, LineageDag, LineageEdge};
 use crate::lineage::matcher::{
@@ -23,12 +23,61 @@ pub fn normalize_path(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
 }
 
+/// Compute function arity (parameter count) by parsing the signature.
+pub fn compute_arity(sig: &str) -> u32 {
+    let Some(start) = sig.find('(') else {
+        return 0;
+    };
+    let rest = &sig[start + 1..];
+    let mut depth_paren = 0usize;
+    let mut depth_bracket = 0usize;
+    let mut depth_angle = 0usize;
+    let mut param_chars = 0usize;
+    let mut count = 0u32;
+
+    for ch in rest.chars() {
+        match ch {
+            '(' => depth_paren += 1,
+            ')' if depth_paren > 0 => depth_paren -= 1,
+            ')' => {
+                if param_chars > 0 {
+                    count += 1;
+                }
+                return count;
+            }
+            '[' => depth_bracket += 1,
+            ']' if depth_bracket > 0 => depth_bracket -= 1,
+            '<' => depth_angle += 1,
+            '>' if depth_angle > 0 => depth_angle -= 1,
+            ',' if depth_paren == 0 && depth_bracket == 0 && depth_angle == 0 => {
+                if param_chars > 0 {
+                    count += 1;
+                    param_chars = 0;
+                }
+            }
+            c if !c.is_whitespace() => {
+                param_chars += 1;
+            }
+            _ => {}
+        }
+    }
+    if param_chars > 0 {
+        count += 1;
+    }
+    count
+}
+
 /// Enriched touch record containing lineage metadata and match confidence.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ResolvedTouch {
     pub touch: FunctionTouch,
     pub match_rule: String,
     pub match_confidence: f32,
+    pub arity: u32,
+    pub change_type: String,
+    pub signature_before: Option<String>,
+    pub fingerprint: Vec<u8>,
+    pub diff_hunks: Vec<String>,
 }
 
 /// Result of resolving function lineages for a single commit transition.
@@ -309,13 +358,17 @@ impl LineageResolver {
 
         // 5. Lineage assignment and match rule attribution
         let mut match_rules: HashMap<usize, (String, f32)> = HashMap::new();
+        let mut matched_parents: HashMap<usize, usize> = HashMap::new();
 
         for m in &solution.matches {
-            let parent_id = parent_symbols[m.parent_index]
-                .lineage_id
-                .expect("parent symbol must have lineage_id");
-            child_symbols[m.child_index].lineage_id = Some(parent_id);
-            match_rules.insert(m.child_index, (m.tier.as_rule_name().to_string(), m.score));
+            if let Some(parent) = parent_symbols.get(m.parent_index) {
+                let parent_id = parent
+                    .lineage_id
+                    .expect("parent symbol must have lineage_id");
+                child_symbols[m.child_index].lineage_id = Some(parent_id);
+                matched_parents.insert(m.child_index, m.parent_index);
+                match_rules.insert(m.child_index, (m.tier.as_rule_name().to_string(), m.score));
+            }
         }
 
         for child_idx in &solution.unmatched_children {
@@ -340,7 +393,9 @@ impl LineageResolver {
             let mut best_split: Option<(LineageId, f32)> = None;
 
             for m in &solution.matches {
-                let parent = &parent_symbols[m.parent_index];
+                let Some(parent) = parent_symbols.get(m.parent_index) else {
+                    continue;
+                };
                 if parent.language != child.language || parent.is_short {
                     continue;
                 }
@@ -418,7 +473,9 @@ impl LineageResolver {
 
         // 6b. Merges for unmatched parents
         for &parent_idx in &solution.unmatched_parents {
-            let parent = &parent_symbols[parent_idx];
+            let Some(parent) = parent_symbols.get(parent_idx) else {
+                continue;
+            };
             let parent_lineage_id = parent.lineage_id.expect("parent has lineage_id");
 
             if parent.is_short {
@@ -428,7 +485,9 @@ impl LineageResolver {
             let mut best_merge: Option<(LineageId, f32)> = None;
 
             for m in &solution.matches {
-                let child = &child_symbols[m.child_index];
+                let Some(child) = child_symbols.get(m.child_index) else {
+                    continue;
+                };
                 if parent.language != child.language || child.is_short {
                     continue;
                 }
@@ -471,6 +530,68 @@ impl LineageResolver {
         let mut resolved_touches = Vec::with_capacity(child_symbols.len());
 
         for (c_idx, child) in child_symbols.iter().enumerate() {
+            let parent_match = matched_parents
+                .get(&c_idx)
+                .and_then(|&p_idx| parent_symbols.get(p_idx));
+
+            let is_added_file = diff.deltas.is_empty()
+                || diff.deltas.iter().any(|d| {
+                    d.status == DeltaStatus::Added
+                        && d.new_path
+                            .as_ref()
+                            .is_some_and(|p| normalize_path(p) == child.path)
+                });
+
+            let file_has_hunks_entry = diff
+                .hunks_by_path
+                .iter()
+                .any(|(p, _)| normalize_path(p) == child.path);
+
+            let file_hunks: Vec<&DiffHunk> = diff
+                .hunks_by_path
+                .iter()
+                .filter(|(p, _)| normalize_path(p) == child.path)
+                .flat_map(|(_, hunks)| hunks.iter())
+                .collect();
+
+            let mut overlapping_hunk_lines = Vec::new();
+            let mut has_hunk_overlap = false;
+
+            for hunk in &file_hunks {
+                let hunk_start = hunk.new_start as usize;
+                let hunk_end = if hunk.new_lines == 0 {
+                    hunk_start
+                } else {
+                    hunk_start + hunk.new_lines as usize - 1
+                };
+
+                if hunk_start <= child.end_line && child.start_line <= hunk_end {
+                    has_hunk_overlap = true;
+                    overlapping_hunk_lines.extend(hunk.lines.clone());
+                }
+            }
+
+            let is_new = parent_match.is_none();
+            let has_structural_change = match parent_match {
+                Some(p) => {
+                    p.signature != child.signature
+                        || p.fingerprint != child.fingerprint
+                        || p.path != child.path
+                        || p.qualname != child.qualname
+                }
+                None => true,
+            };
+
+            let is_touched = is_added_file
+                || has_hunk_overlap
+                || !file_has_hunks_entry
+                || is_new
+                || has_structural_change;
+
+            if !is_touched {
+                continue;
+            }
+
             let lineage_id = child.lineage_id.expect("all children must have lineage_id");
 
             // Enforce UNIQUE(lineage_id, commit_hash) per D-11
@@ -505,10 +626,32 @@ impl LineageResolver {
                 match_confidence,
             };
 
+            let change_type = match parent_match {
+                None => "add".to_string(),
+                Some(p) => {
+                    if p.path != child.path {
+                        "move".to_string()
+                    } else if p.qualname != child.qualname {
+                        "rename".to_string()
+                    } else {
+                        "modify".to_string()
+                    }
+                }
+            };
+
+            let signature_before = parent_match.map(|p| p.signature.clone());
+            let arity = compute_arity(&child.signature);
+            let fingerprint = child.fingerprint.to_bytes();
+
             resolved_touches.push(ResolvedTouch {
                 touch: touch.clone(),
                 match_rule,
                 match_confidence,
+                arity,
+                change_type,
+                signature_before,
+                fingerprint,
+                diff_hunks: overlapping_hunk_lines,
             });
             touches.push(touch);
             citations.push(citation);

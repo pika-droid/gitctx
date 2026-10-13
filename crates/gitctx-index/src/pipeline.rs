@@ -10,8 +10,7 @@ use gitctx_core::git::{GitRepo, GitWalker};
 use gitctx_core::lineage::LineageResolver;
 use gitctx_core::model::CommitId;
 use gitctx_core::parser::AstExtractor;
-use gitctx_core::sanitize::sanitize_chunk_text;
-use gitctx_core::template::{D4TemplateRenderer, FunctionTemplateContext};
+use gitctx_core::template::{D4TemplateRenderer, IdentifierExtractor};
 
 use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
@@ -71,6 +70,7 @@ impl IndexPipeline {
         if let Some(max) = max_commits {
             commits.truncate(max);
         }
+        let head_commit_id = commits.first().map(|c| c.commit_id.to_string());
         let total_commits = commits.len();
         println!("--> Processing {total_commits} commits into index pipeline...");
         let commits: Vec<_> = commits.into_iter().rev().collect();
@@ -115,50 +115,58 @@ impl IndexPipeline {
             let resolved_commit =
                 resolver.process_commit(&repo, commit_oid, parent_oid, &extractor)?;
 
+            let date_str = format_epoch_date(commit_info.timestamp);
+
             // 4. Process touches
-            for touch in resolved_commit.touches {
+            for rt in resolved_commit.resolved_touches {
                 touch_counter += 1;
                 let touch_id = touch_counter as u64;
 
                 let language = extractor
                     .registry()
-                    .detect(Path::new(&touch.path), None)
+                    .detect(Path::new(&rt.touch.path), None)
                     .map_or_else(
                         || "rust".to_string(),
                         |b| b.language_id().as_str().to_string(),
                     );
 
-                // Format pseudo-document
-                let template_ctx = FunctionTemplateContext {
-                    qualname: &touch.qualname,
-                    path: &touch.path,
-                    author: &commit_info.author_name,
-                    date: "Unknown",
-                    raw_message: &commit_info.message,
-                    added_identifiers: &[],
-                    removed_identifiers: &[],
-                    signature: Some(touch.signature.as_str()),
-                    docstring: touch.docstring.as_deref(),
-                };
+                // Symmetric identifier delta from overlapping diff hunks
+                let delta = IdentifierExtractor::extract_from_lines(&rt.diff_hunks);
 
-                let raw_chunk = D4TemplateRenderer::render_function(&template_ctx);
-                let sanitized_chunk = sanitize_chunk_text(&raw_chunk);
+                // Format pseudo-document via D4TemplateRenderer::render_touch
+                let chunk_text = D4TemplateRenderer::render_touch(
+                    &rt.touch,
+                    &commit_info.author_name,
+                    &date_str,
+                    &commit_info.message,
+                    &delta,
+                );
 
                 sink.push_touch(SinkTouch {
                     touch_id,
-                    lineage_id: touch.lineage_id.as_u64(),
+                    lineage_id: rt.touch.lineage_id.as_u64(),
                     commit_hash: commit_info.commit_id.to_string(),
-                    path: touch.path.clone(),
-                    qualified_name: touch.qualname.clone(),
+                    path: rt.touch.path.clone(),
+                    qualified_name: rt.touch.qualname.clone(),
                     language,
-                    signature: touch.signature.clone(),
-                    chunk_text: sanitized_chunk.sanitized_text,
-                    parse_status: touch.parse_status,
-                    start_line: touch.start_line,
-                    end_line: touch.end_line,
+                    signature: rt.touch.signature.clone(),
+                    chunk_text,
+                    parse_status: rt.touch.parse_status,
+                    start_line: rt.touch.start_line,
+                    end_line: rt.touch.end_line,
                     commit_message: commit_info.message.clone(),
+                    arity: rt.arity,
+                    change_type: rt.change_type,
+                    signature_before: rt.signature_before,
+                    fingerprint: Some(rt.fingerprint),
+                    match_rule: rt.match_rule,
                 })?;
             }
+        }
+
+        // Persist head_at_index state
+        if let Some(head_id) = &head_commit_id {
+            sink.set_state("head_at_index", head_id)?;
         }
 
         // 5. Finalize sink, flushing SQLite, Tantivy, and writing dense vectors
@@ -416,4 +424,23 @@ fn compute_and_persist_cochange(conn: &rusqlite::Connection) -> Result<()> {
         .map_err(|e| CoreError::InvariantViolation(e.to_string()))?;
 
     Ok(())
+}
+
+/// Convert Unix epoch timestamp (seconds) into ISO-8601 date string YYYY-MM-DD.
+fn format_epoch_date(timestamp: i64) -> String {
+    let mut days = timestamp / 86400;
+    if timestamp < 0 && timestamp % 86400 != 0 {
+        days -= 1;
+    }
+    let z = days + 719468;
+    let era = (if z >= 0 { z } else { z - 146096 }) / 146097;
+    let doe = (z - era * 146097) as u32;
+    let yoe = (doe - doe / 1029 + doe / 1461 - doe / 146096) / 365;
+    let y = i64::from(yoe) + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = if m <= 2 { y + 1 } else { y };
+    format!("{y:04}-{m:02}-{d:02}")
 }
