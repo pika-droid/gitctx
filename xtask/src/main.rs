@@ -289,21 +289,29 @@ fn main() -> anyhow::Result<()> {
                         class: sub_class,
                         chain_depth: sub_depth,
                         out: sub_out,
-                    }) => tasks::eval::run_eval_mutate(sub_class.as_deref(), sub_depth, sub_out.as_deref()),
+                    }) => tasks::eval::run_eval_mutate(
+                        sub_class.as_deref(),
+                        sub_depth,
+                        sub_out.as_deref(),
+                    ),
                     Some(EvalSubcommands::BenchLineage { format }) => {
                         tasks::eval::run_eval_bench_lineage(format.as_deref())
                     }
                     Some(EvalSubcommands::TuneThresholds { out: sub_out }) => {
                         tasks::eval::run_eval_tune_thresholds(sub_out.as_deref())
                     }
-                    Some(EvalSubcommands::EvalOracle { repo }) => tasks::eval::run_eval_oracle(&repo),
+                    Some(EvalSubcommands::EvalOracle { repo }) => {
+                        tasks::eval::run_eval_oracle(&repo)
+                    }
                     Some(EvalSubcommands::Ablation { eval_dir }) => {
                         tasks::eval::run_eval_ablation(eval_dir.as_deref())
                     }
                     Some(EvalSubcommands::Report { eval_dir, output }) => {
                         tasks::eval::run_eval_report(eval_dir.as_deref(), output.as_deref())
                     }
-                    None => tasks::eval::run_eval_mutate(class.as_deref(), chain_depth, out.as_deref()),
+                    None => {
+                        tasks::eval::run_eval_mutate(class.as_deref(), chain_depth, out.as_deref())
+                    }
                 }
             }
         }
