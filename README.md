@@ -13,10 +13,11 @@
 | Feature | Description |
 |---------|-------------|
 | 🔍 **Natural-Language Search** | Query Git history with why-questions ("why was auth changed?") via template-rendered pseudo-documents |
-| 🧬 **Function Lineage** | Track function identity across renames, moves, and refactors using multi-tier MinHash resolution |
-| 📊 **Change Impact** | Statistical co-change coupling (support, confidence, lift) with time-decay weighting |
-| 🤖 **MCP Server** | First-class Model Context Protocol integration for AI coding assistants |
-| ⚡ **Fully Offline** | Zero network calls during indexing and retrieval (Invariant I1) |
+| 🧬 **Function Lineage** | Track function identity across renames, moves, and copies using 4-tier MinHash resolution and a $16 \times 8$ LSH band inverted index for $O(1)$ candidate lookup |
+| 📊 **Change Impact** | Statistical co-change coupling (support, confidence, lift) with 180-day time-decay weighting, precomputed into Schema v2 tables for `< 2 ms` lookups via `ImpactService` |
+| ⚡ **Batched Indexing (`IndexSink`)** | Chronological (`root -> HEAD`) ingestion pipeline with 128-chunk ONNX batching, dual-write SQLite + `mmap` vector persistence, and crash-safe staged `.bak` atomic swaps |
+| 🤖 **MCP Server** | First-class Model Context Protocol integration with warm-cached ONNX embedding sessions for sub-5ms query latency |
+| 📴 **Fully Offline** | Zero network calls during indexing and retrieval (Invariant I1) |
 | 🔒 **Deterministic** | Byte-identical outputs for identical inputs (Invariant I2) |
 
 ---
@@ -26,8 +27,8 @@
 ```mermaid
 graph TB
     subgraph "Extraction Layer"
-        GIT[("Git Repository<br/>(libgit2)")] --> WALK["First-Parent<br/>Commit Walker"]
-        WALK --> PARSE["Tree-Sitter<br/>AST Parser<br/>(8 languages)"]
+        GIT[("Git Repository<br/>(libgit2)")] --> WALK["Chronological First-Parent<br/>Walker (root → HEAD)"]
+        WALK --> PARSE["Tree-Sitter AST Parser<br/>(LanguageRegistry · 9 languages)"]
         PARSE --> TMPL["Template Chunk<br/>Renderer"]
     end
 
@@ -36,27 +37,31 @@ graph TB
         LIN -->|"Tier 1"| EXACT["Exact Key Match"]
         LIN -->|"Tier 2"| SAME["Same-File MinHash"]
         LIN -->|"Tier 3"| RENAME["Git Rename Map"]
-        LIN -->|"Tier 4"| CROSS["Cross-File MinHash"]
+        LIN -->|"Tier 4"| CROSS["LSH Band Inverted Index<br/>(16 bands × 8 rows)"]
     end
 
-    subgraph "Storage & Retrieval"
-        LIN --> SQL[("SQLite<br/>(WAL mode)")]
-        TMPL --> BM25["Tantivy BM25<br/>(code tokenizer)"]
-        TMPL --> DENSE["FastEmbed<br/>(mmap f32 vectors)"]
+    subgraph "Storage & Retrieval (IndexSink)"
+        LIN --> SINK["IndexSink<br/>(128-Chunk Batch Pipeline)"]
+        TMPL --> SINK
+        SINK --> SQL[("SQLite Schema v2<br/>(WAL + Staged .bak Swap)")]
+        SINK --> BM25["Tantivy BM25<br/>(Incremental Code Writer)"]
+        SINK --> DENSE["FastEmbed Batched ONNX<br/>(Dual-Write SQLite + mmap f32)"]
         BM25 --> RRF["RRF Fusion<br/>(k=60)"]
         DENSE --> RRF
         SQL --> CHAIN["Deterministic<br/>Chain Assembly"]
     end
 
     subgraph "Co-Change Analysis"
-        SQL --> COCHANGE["Co-Change<br/>Extractor"]
+        SQL --> COCHANGE["Single-Scan Bulk<br/>Co-Change Extractor"]
+        COCHANGE --> METRICS[("Precomputed Metrics<br/>(File & Function Tables)")]
         COCHANGE --> GRAPH["petgraph<br/>Coupling Graph"]
-        GRAPH --> IMPACT["Impact<br/>Risk Scorer"]
+        METRICS --> IMPACT["ImpactService<br/>(< 2 ms Risk Scorer)"]
+        GRAPH --> IMPACT
     end
 
     subgraph "User Surfaces"
-        RRF --> CLI["CLI<br/>(--json / --format table)"]
-        RRF --> MCP["MCP Server<br/>(stdio JSON-RPC)"]
+        RRF --> CLI["CLI<br/>(--format json / table)"]
+        RRF --> MCP["MCP Server<br/>(Warm ONNX Cache · stdio JSON-RPC)"]
         CHAIN --> CLI
         CHAIN --> MCP
         IMPACT --> CLI
@@ -107,8 +112,8 @@ cargo build --release
 # Index the current repository
 gitctx index .
 
-# Index with verbose output
-gitctx index . --verbose
+# Index only the most recent N commits (for fast profiling or large repos)
+gitctx index . --max-commits 1000
 ```
 
 ### Search History
@@ -118,7 +123,7 @@ gitctx index . --verbose
 gitctx search "why was the authentication flow changed?"
 
 # Search with JSON output
-gitctx search "connection pool timeout" --json
+gitctx search "connection pool timeout" --format json
 ```
 
 ### Track Function Evolution
@@ -128,17 +133,21 @@ gitctx search "connection pool timeout" --json
 gitctx evolution "process_request" --format table
 
 # JSON output for programmatic use
-gitctx evolution "handle_auth" --json
+gitctx evolution "handle_auth" --format json
 ```
 
 ### Analyze Change Impact
 
 ```bash
-# Co-change coupling analysis
+# File-level co-change coupling analysis
 gitctx impact src/auth.rs
 
-# With risk scoring
-gitctx impact src/database.rs --json
+# Function-level coupling & risk scoring (supports qualified or bare names)
+gitctx impact auth::handle_login --format json
+gitctx impact process_request --format table
+
+# Global repository coupling hotspots (omit target)
+gitctx impact
 ```
 
 ### MCP Server (AI Assistant Integration)
@@ -165,9 +174,9 @@ gitctx-mcp
 
 | Tool | Purpose |
 |------|---------|
-| `search_history` | Search indexed Git history for functions, changes, and commits |
+| `search_history` | Search indexed Git history for functions, changes, and commits (backed by warm ONNX embedder) |
 | `function_evolution` | Track complete evolutionary history of a function across renames/moves |
-| `change_impact` | Analyze risk and co-change coupling for a file or function |
+| `change_impact` | Analyze risk and co-change coupling for a file or function via precomputed Schema v2 metrics |
 | `who_knows_this` | Find top contributors who modified a function or file |
 | `commit_detail` | Show detailed commit info with all functions touched |
 
@@ -177,16 +186,16 @@ gitctx-mcp
 
 | Command | Description |
 |---------|-------------|
-| `gitctx index <path>` | Index a Git repository |
-| `gitctx search <query>` | Search history with natural language |
-| `gitctx evolution <function>` | Track function lineage timeline |
+| `gitctx index [path] [--max-commits <N>]` | Index a Git repository (chronological traversal, batched embeddings, precomputed co-change) |
+| `gitctx search <query>` | Search history with natural language (BM25 + dense RRF fusion) |
+| `gitctx evolution <function>` | Track function lineage timeline across renames, moves, and copies |
 | `gitctx show <commit>` | Show detailed commit with function touches |
-| `gitctx impact <path>` | Analyze co-change coupling and risk |
-| `gitctx blame <function>` | Find who knows a function best |
-| `gitctx doctor` | Diagnose index health and configuration |
-| `gitctx init` | Generate agent configuration files |
+| `gitctx impact [target]` | Analyze co-change coupling and risk for a file, function, or entire repo |
+| `gitctx blame <file_path>` | Find top contributors / ownership for a file or function |
+| `gitctx doctor` | Diagnose index health, Schema v2 tables, and configuration (`index_state`) |
+| `gitctx init` | Generate agent configuration files (`AGENTS.md`, skills) |
 
-All commands support `--json` for structured output and `--format table` for human-readable rendering.
+All commands support `-f / --format json` for structured output and `-f / --format table` (default) for human-readable rendering.
 
 ---
 
@@ -211,10 +220,11 @@ These properties are mechanically enforced by the test suite and CI:
 
 | Metric | Budget | Status |
 |--------|--------|--------|
-| Cold index (10k commits) | < 10 min | ✅ |
+| Cold index (10k commits) | < 10 min | ✅ (128-chunk ONNX batching + $16 \times 8$ LSH index) |
 | Incremental index (1 commit) | < 2 sec | ✅ |
 | Search p95 latency | < 300 ms | ✅ |
-| MCP round-trip | < 500 ms | ✅ |
+| Change impact query latency | < 2 ms | ✅ (Precomputed Schema v2 analytical tables) |
+| MCP round-trip (warm session) | < 500 ms | ✅ (< 5 ms query embedding with cached ONNX session) |
 | Database size per 10k commits | < 100 MB | ✅ |
 
 ---
@@ -262,7 +272,10 @@ cargo xtask test-invariants
 cargo xtask bench
 ```
 
-See [`eval/REPORT.md`](eval/REPORT.md) for the full evaluation report including ablation grid, lineage metrics, and failure taxonomy.
+See:
+- [`GitCTX-Report.md`](GitCTX-Report.md) — Complete system evaluation & technical report
+- [`eval/REPORT.md`](eval/REPORT.md) and [`eval/ABLATION_REPORT.md`](eval/ABLATION_REPORT.md) — Empirical evaluation, ablation grid, lineage metrics, and failure taxonomy
+- [`ARCHITECTURE_OVERHAUL_CHANGES.md`](ARCHITECTURE_OVERHAUL_CHANGES.md) — Deep module architecture, LSH index, and Schema v2 optimization details
 
 ---
 
@@ -284,14 +297,14 @@ These are explicitly **not** in scope for gitctx:
 ```
 gitctx/
 ├── crates/
-│   ├── gitctx-core/     # Git extraction, AST parsing, lineage engine
-│   ├── gitctx-index/    # SQLite storage, Tantivy BM25, dense vectors
-│   ├── gitctx-query/    # RRF fusion, co-change graph, impact analysis
-│   ├── gitctx-cli/      # CLI commands and human output formatters
-│   ├── gitctx-mcp/      # Stdio MCP server (JSON-RPC)
+│   ├── gitctx-core/     # Git extraction, LanguageRegistry, AST parsing, 4-tier + LSH lineage engine
+│   ├── gitctx-index/    # IndexSink pipeline, SQLite Schema v2, staged atomic swap, Tantivy BM25, dense vectors
+│   ├── gitctx-query/    # RRF fusion, ImpactService, bulk co-change extractor & coupling graph
+│   ├── gitctx-cli/      # CLI commands (index, search, evolution, impact, doctor, etc.) & formatters
+│   ├── gitctx-mcp/      # Stdio MCP server (JSON-RPC) with warm ONNX embedder session cache
 │   └── gitctx-eval/     # Synthetic mutations, benchmarks, report generator
-├── xtask/               # Development task automation
-├── eval/                # Evaluation artifacts, corpus, ground truth
+├── xtask/               # Development task automation, runtime downloader, lint, audit & invariant runners
+├── eval/                # Evaluation artifacts, ablation results, corpus, ground truth
 ├── tests/               # Integration and fixture tests
 └── reference_repos/     # Vetted reference implementations (git-ignored)
 ```
@@ -301,9 +314,13 @@ gitctx/
 ## Development
 
 ```bash
-# Run all checks (format, lint, test)
-cargo xtask lint
-cargo test --workspace
+# Run all checks (format, lint, test, dependency audit)
+cargo xtask lint --deps
+cargo xtask test
+
+# Run security, license & unused dependency checks
+cargo xtask check-deps
+cargo xtask audit
 
 # Run invariant verification suite
 cargo xtask test-invariants
@@ -327,9 +344,9 @@ cargo xtask fixtures
 | `ORT_DYLIB_PATH` not set / ONNX Runtime not found | Run `cargo xtask download-ort-runtime` and set the `ORT_DYLIB_PATH` env var in your shell profile |
 | `Index database not found` | Run `gitctx index .` in your repository root first |
 | `Index is stale` (MCP warning) | Re-run `gitctx index .` to pick up new commits since last indexing |
-| `Config hash mismatch` | Delete `.gitctx/` and re-index — the index config has changed |
+| `Config hash mismatch` / Schema v1 index | Delete `.gitctx/` and re-index (`gitctx index .`) — the index schema (v2) or configuration has changed |
 | `parse_status = 'degraded'` on some files | Expected — tree-sitter couldn't parse those historical blobs (syntax errors, unsupported language). Function-level data falls back to file-level chunks |
-| Slow first index | Cold indexing downloads the embedding model (~133 MB) on first run. Subsequent runs use the local cache |
+| Slow first index | Cold indexing downloads the embedding model (~133 MB) on first run, or use `gitctx index . --max-commits 1000` for a bounded history slice |
 
 ---
 
