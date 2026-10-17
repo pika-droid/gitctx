@@ -1,0 +1,985 @@
+=== PAGE 14 (Ch 2) ===
+II.   LITERATURE REVIEW AND FOUNDATIONS 
+The work presented in this paper sits at the intersection of several established research areas: 
+mining software repositories, probabilistic information retrieval, hybrid rank fusion, function-
+level code identity tracking, statistical co-change coupling analysis, and the emerging problem 
+of grounding large language models with structured factual context. Each area is surveyed 
+below, with the goal of positioning  gitctx relative to prior art and identifying the specific 
+gaps in the literature that it fills. 
+2.1  Mining Software Repositories (MSR) 
+The Mining Software Repositories (MSR) research community has studied version control 
+histories as empirical data sources for over two decades. Foundational work by Hassan and 
+Holt [1] demonstrated that historical change data could be used to predict fault-prone modules, 
+establishing the central principle that a file's evolutionary past is predictive of its defect-prone 
+future. Fischer et al. [2] introduced the systematic study of evolutionary coupling, which is the 
+tendency for files that are frequently modified together to encode implicit architectural 
+dependencies and showed that such co-change patterns persist and strengthen across successive 
+release cycles. 
+Moser et al. [3] demonstr ated that change -based metrics derived from version control 
+outperform static code metrics for defect prediction, a finding subsequently replicated across 
+multiple industrial settings. More recent MSR work has focused on commit message quality 
+assessment [4], automated intent classification of commits into categories such as bug fixes, 
+feature additions, and refactors [5], and the extraction of issue-closing links from commit trailer 
+conventions [6]. Tools such as PyDriller [7] provide programmatic Python APIs for traversing 
+Git history, extracting diffs, and computing file -level change metrics, forming part of the 
+standard MSR practitioner toolkit. 
+gitctx builds upon this established tradition by mining the same foundational sources of 
+repository history, including commits, diffs, file trees, and rename events. However, it extends 
+beyond conventional file -level statistical aggregation by introducing functi on-level semantic 
+indexing, enabling a more granular representation of code evolution and historical 
+relationships. Furthermore, gitctx incorporates a natural -language query layer that allows 
+developers to retrieve and explore historical insights through i ntuitive questions, a capability 
+not typically offered by prior MSR tools. 
+=== PAGE 15 (Ch 2) ===
+2.2  Information Retrieval for Source Code 
+Applying information retrieval (IR) techniques to source code has a long history in the software 
+engineering literature. Early approaches adapted Term Frequency –Inverse Document 
+Frequency (TF-IDF) weighting to code token distributions [8], treating identifiers, keywords, 
+and inline comments as a document vocabulary amenable to standard vector-space retrieval.  
+The introduction of BM25 [9], known as the Best Match 25, which is the probabilistic ranking 
+function developed by Robertson and Zaragoza, significantly improved retrieval precision on 
+bag-of-words representations by incorporating term frequency saturation and document-length 
+normalization. The relevance score of a document 𝐷 given a query  𝑄 containing keywords 
+𝑞1,  𝑞2, … ,  𝑞𝑛 is defined as:  
+𝑠𝑐𝑜𝑟𝑒(𝐷, 𝑄) = ∑ 𝐼𝐷𝐹(𝑞𝑖)
+𝑛
+𝑖=1
+⋅ 𝑓(𝑞𝑖, 𝐷) ⋅ (𝑘1 + 1)
+𝑓(𝑞𝑖, 𝐷) + 𝑘1 ⋅ (1 − 𝑏 + 𝑏 ⋅ |𝐷|
+𝑎𝑣𝑔𝑑𝑙)
+ 
+where 𝑓(𝑞𝑖, 𝐷) is the term frequency in the document, |𝐷| is the document length in words, 
+𝑎𝑣𝑔𝑑𝑙 is the average document length in the text collection, and 𝑘1 and 𝑏 are free parameters. 
+BM25 remains the dominant baseline across code search benchmarks [10] and forms the lexical 
+retrieval backbone of gitctx, implemented via the Tantivy search engine with a custom code-
+aware tokenizer that splits on camelCase boundaries, underscores, and common programming 
+identifier delimiters.  
+The limitations of purely lexical retrieval motivated a shift toward dense semant ic 
+representations. Early neural approaches used Siamese networks and, later, transformer-based 
+encoders to embed code and natural -language queries into a shared continuous vector space. 
+The CodeBERT [10] and UniXcoder model families demonstrated that pre-training on bimodal 
+code-text corpora produces embeddings that significantly improve semantic code search, 
+particularly for queries that share no lexical overlap with the code token vocabulary.  gitctx 
+employs a smaller, locally cached sentence embedding model, BGE-Small-EN-v1.5, compiled 
+to ONNX and executed entirely offline through ONNX Runtime, trading maximum retrieval 
+quality for the strict offline and deterministic guarantees required by the system's core 
+architectural invariants and operational constraints. 
+ 
+ 
+=== PAGE 16 (Ch 2) ===
+2.3  Hybrid Retrieval and Reciprocal Rank Fusion 
+Neither lexical BM25 nor dense embedding retrieval dominates the other across all query types. 
+Lexical methods excel at exact identifier matching and rare domain -specific tokens; dense 
+methods excel at paraphrase and semantic generalization across vocabulary gaps. A substantial 
+body of work on rank fusion addresses this complementarity directly. 
+Reciprocal Rank Fusion (RRF), proposed by Cormack, Clarke, and Buettcher [13], combines 
+ranked result lists from multiple independent retrievers by summing reciprocal rank scores with 
+a smoothing constant k: 
+𝑅𝑅𝐹(𝑑) = ∑ 1
+𝑘 + 𝑟𝑎𝑛𝑘𝑖(𝑑)
+𝑁
+𝑖=1
+ 
+This formulation produces a fused ranking without requiring score normalization or inter -
+retriever calibration. The smooth ing constant k = 60 has been empirically validated across 
+TREC benchmarks, demonstrating robustness against outlier high -rank scores. Subsequent 
+studies, including the BEIR zero-shot evaluation benchmark [14], have further established that 
+RRF consistently matches or outperforms learned fusion methods when training data for a 
+supervised combiner is unavailable, making it particularly suitable for newly initialized 
+repositories that have not previously been indexed. 
+gitctx applies RRF with  k = 60 to fuse BM2 5 and dense retrieval results at query time, 
+supplemented by an exact-match fast path that injects function name or commit SHA matches 
+at rank 0, guaranteeing their mathematical dominance in the final ranking. 
+2.4  Co-Change Coupling and Evolutionary Design Analysis  
+The statistical relationship between files that are frequently modified together — termed logical 
+coupling or co -change coupling — was formalized by Gall, Hajek, and Jazayeri [11] and 
+subsequently system atized in Adam Tornhill's work on evolutionary design analysis [15]. 
+The code-maat tool operationalizes these ideas using standard association rule metrics: 
+support (how often entities A and B change together), directional confidence P(B | A), and lift, 
+which is the ratio of observed joint probability to the expected rate under statistical 
+independence. 
+=== PAGE 17 (Ch 2) ===
+High lift values identify entity pairs that change together far more than chance would predict, 
+flagging implicit architectural coupling absent from any sta tic dependency graph. A well -
+documented confound in co-change analysis is the presence of mass-formatting or bulk-update 
+commits that modify large numbers of files simultaneously, injecting spurious coupling signal 
+across otherwise unrelated modules [16].  gitctx addresses this by filtering commits that 
+touch more than 25 files and by applying exponential time-decay weighting that down-weights 
+historical coupling relative to recent co-change patterns. 
+2.5  Function Identity Tracking and Code Lineage 
+Tracking the identity of a code entity, such as a function, method, or class, throughout its 
+evolutionary history presents a non -trivial challenge. The git log -L command supports 
+line-range tracking within a single file but fails to maintain continuity when the containing file 
+is renamed or the entity's implementation is moved elsewhere. Grund et al. [17] investigated 
+the frequency and characteristics of function moves across large open -source projects, 
+demonstrating that cross-file moves account for a significant proportion of refactoring activity 
+and expose a systematic limitation in existing code history tracking tools. 
+Locality-Sensitive Hashing (LSH) using MinHash , introduced by Broder [18], provides a 
+computationally efficient approach for identifying near-duplicate documents without requiring 
+exhaustive pairwise comparisons. By generating MinHash signatures from the token multisets 
+of function bodies, different versions of a function that retain most of their token content while 
+differing in name, signature, or file location can produce similar signatures and high estimated 
+Jaccard similarity. gitctx implements a four-tier lineage resolution cascade comprising exact 
+key matching, same -file MinHash, Git rename map cross -referencing, and scoped cross -file 
+MinHash. This layered approach enables the system to reconstruct complete and deterministic 
+chronological chains for individual functions across multiple file renames, code movements, 
+and structural refactoring operations. 
+2.6  LLM Grounding and the Model Context Protocol (MCP) 
+The widespread deployment of large language models as coding assistants has introduced a 
+new class of requirements for developer tooling. LLMs possess broad general programming 
+knowledge but have no access to a specific project's actual Git history. Their tendency to 
+generate plausible but factually incorrect commit attributions and historical rationale has been 
+documented in the literature [19]. This hallucination failure mode is particularly harmful for 
+=== PAGE 18 (Ch 2) ===
+historical why -questions, where a confidently stated but incorrect answer can mislead a 
+developer into making a wrong architectural decision. 
+The Retrieval -Augmented Generation (RAG) framework [12] addresses this by supplying 
+language models with retrieved factual passages at inference time, significantly reducing 
+hallucination rates on knowledge -intensive tasks. The Model Context Protocol (MCP) [20], 
+introduced as a standardized interface for supplying structured tool outputs to LLMs over a 
+stdio JSON-RPC channel, provides a practical deployment mechanism for grounding model 
+responses with verifiable, deterministic data from extern al systems without requiring LLM -
+side changes. 
+gitctx applies the Retrieval -Augmented Generation (RAG) principle specifically to the 
+domain of code history. By exposing a set of MCP tools backed by deterministic, offline 
+retrieval mechanisms, it enables AI coding assistants to address historical why-questions using 
+evidence traceable to specific commit SHAs, authors, and timestamps. This approach reduces 
+hallucinations in historical code queries by grounding responses in verifiable repository data, 
+while eliminating network dependencies and avoiding LLM inference along the retrieval path. 
+As a result, gitctx provides a reproducible and evidence-based foundation for exploring code 
+evolution and understanding the rationale behind past development decisions. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+.
+=== PAGE 19 (Ch 2) ===
+III.   SYSTEM DESIGN AND METHODOLOGY 
+This chapter details the architectural design and technical implementation of the gitctx 
+engine. Building upon the theoretical foundations of software repository mining and 
+information retrieval, the proposed system transforms raw version control history into a 
+structured semantic knowledge base. The methodology focuses on deterministic offli ne 
+processing, resilient function tracking across structural refactoring, and the integration of large 
+language models through verifiable retrieval mechanisms. The following sections outline the 
+core system invariants, the step -by-step data extraction pipe line, and the hybrid storage 
+architecture required to achieve these objectives. 
+3.1  Overview and Design Invariants 
+The gitctx system is organized as a modular Rust workspace of six crates, each isolating a 
+separate architectural concern:  
+o gitctx-core: Manages repository Git extraction, abstract syntax tree (AST) parsing, 
+the lineage tracking engine, and structured template rendering.  
+o gitctx-index: Orchestrates local storage mechanisms, including Tantivy -based 
+BM25 indexing and dense vector persistence.  
+o gitctx-query: Executes hybrid search retrieval, constructs the statistical co -change 
+graph, and performs change impact analysis.  
+o gitctx-cli: Exposes the human -facing command -line interface for manual 
+developer queries.   
+o gitctx-mcp: Operates a Model Context Protocol server to facilitate seamless 
+integration with autonomous AI agents.  
+o gitctx-eval: Coordinates reproducible benchmarking and generates standardized 
+evaluation reports.  
+To guarantee deterministic execution, the system arc hitecture is bound by eight mechanically 
+enforced invariants, denoted as I1 through I8. The two most critical constraints define the 
+operational boundaries of the software:  
+1. Invariant I1 (Zero Network Activity):  The system must execute all indexing and 
+retrieval operations entirely offline. This constraint is rigorously validated during 
+continuous integration (CI) workflows via strict network namespace isolation. 
+=== PAGE 20 (Ch 2) ===
+2. Invariant I2 (Deterministic Output):  The engine must produce byte -identical 
+database states giv en identical repository inputs. This is verified continuously by 
+double-indexing a test repository and asserting absolute parity between the resulting 
+cryptographic checksums.  
+3. Invariant I3 (Incremental Equivalence):  The state produced by incrementally 
+indexing one new commit must be identical to the state produced by performing a 
+complete full re -index of the repository up to that commit. This prevents the 
+incremental code path from silently diverging from the full-index path over time. 
+4. Invariant I4 (Non-Null Citations): Every result record returned by a query operation 
+must include complete, non -null citation metadata, specifically the commit SHA, 
+author name, and timestamp, ensuring that each retrieved result can be traced to its 
+corresponding historical source within the repository. Results with missing provenance 
+are rejected at the schema layer, ensuring that all retrieved information is fully 
+traceable to its source commit. 
+5. Invariant I5 (Isolated Explain Cache):  An optional “explain” cache that stores 
+additional LLM-generated annotations is maintained in a fully isolated SQLite table 
+and is disabled by default. This separation ensures that the deterministic retrieval core 
+(I2) cannot be contaminated by non-deterministic LLM outputs introduced through the 
+opt-in annotation path. 
+6. Invariant I6 (Pinned Evaluation Corpus): The evaluation corpus is pinned at exact 
+commit SHAs in a lock file ( eval/corpus.lock.toml) and verified by BLAKE3 
++ SHA -256 cryptographic checksums before any evaluation  run. This prevents 
+uncontrolled upstream changes from silently altering the benchmark dataset between 
+evaluation runs. 
+7. Invariant I7 (Stated Baselines and Uncertainty):  All reported evaluation metrics 
+must be accompanied by explicitly stated baseline compa risons and bootstrap 
+confidence intervals. Point estimates without uncertainty quantification are rejected by 
+the evaluation report generator, enforcing methodological transparency. 
+8. Invariant I8 (Explicit First-Parent Traversal): The commit walker must always use 
+first-parent traversal mode, never implicit or default traversal. This is enforced in the 
+walker configuration and verified by a dedicated test that confirms no second -parent 
+commits appear in the indexed dataset for a repository with known merge topology. 
+=== PAGE 21 (Ch 2) ===
+These constraints are mechanically validated by a dedicated cargo xtask test -
+invariants suite that immediately fails CI builds upon any violation. This rigid enforcement 
+ensures the tool remains fully reproducible, auditable, and secure for deploy ment in isolated, 
+air-gapped development environments. 
+ 
+Figure 3.1: Step-by-step pipeline from version history to structured, query-able knowledge base. 
+ 
+As illustrated in Figure 3.1, the data processing architecture relies on a strict sequential 
+indexing pipeline to transform raw commits into a query -able format. The end-to-end system 
+operates across four primary functional stages:  
+o Extraction Layer:  The process begins when a first -parent commit walker 
+systematically traverses the repository history to extract a commit stream. This 
+specialized traversal prevents duplicate processing of merged branches. Each commit 
+is then evaluated by a multilingual A ST parser that identifies function -level 
+modifications.  
+o Processing Layer: The extracted AST touches are routed into two parallel analytical 
+engines. The D4 Template Renderer converts raw structural changes into natural 
+language text and generates semantic  embeddings. Simultaneously, the Lineage 
+Resolver maps function identities over time to maintain continuity despite file renames 
+or refactoring.  
+o Storage Layer:  The processed data is persisted atomically across three distinct 
+database engines. The natural language templates are indexed lexically using Tantivy 
+BM25. The generated embeddings are stored in a dense vector database via FastEmbed. 
+Finally, the structur ed lineage data is written to a Write -Ahead Logging SQLite 
+database.  
+
+=== PAGE 31 (Ch 4) ===
+IV.   SYSTEM IMPLEMENTATION 
+The preceding chapter established the architectural design of the gitctx system. This chapter 
+documents the concrete implementation decisions made across each development phase: the 
+specific algorithms chosen, the data structures that enforce correctness, and the production code 
+that realizes the theoretical model.  
+The implementation was organized as eleven sequential development phases, each governed 
+by a pre -registered plan and a set of verifiable acceptance criteria, following the rigorous 
+project lifecycle documented properly after each phase.  
+4.1  Development Phases and Project Lifecycle 
+To construct a robust, production -grade intelligence engine while preventing regressions and 
+verifying mathematical guarantees, the development of  gitctx was decomposed into eleven 
+discrete phases (alongside a reserved phase for retrieval  validation). Each phase 
+implemented a distinct layer of the architectural stack and produced dedicated verifiable 
+artifacts, test harnesses, and documentation. 
+Table 4.1 summarizes the scope, title, primary deliverables, and key verification checkpoints 
+established across the development lifecycle. 
+Phase 03 was deliberately reserved as an empirical decision gate for retrieval thesis validation, 
+executed once the underlying storage and document rendering layers stabilized. 
+The rationale , technical challenges, and implementation mechanisms of the primary 
+deliverables across these development phases are detailed below. 
+4.1.1  Phase 01: Foundation and Invariant Enforcement Harnesses 
+The primary challenge addressed in Phase 01 was establishing a verifiable guarantee that core 
+system invariants could never be violated by future code changes or architectural refactoring. 
+Rather than relying on informal developer discipline or subjective review guidelines, the team 
+developed automated invariant test harnesses integrated directly into the cargo xtask build 
+tool. This test infrastructure functions as a mandatory continuous integration gate, binding 
+high-level design specifications directly to executable assertions that fail closed whenever non-
+deterministic behaviour, state mutation, or unauthorized network egress is detected. 
+ 
+=== PAGE 32 (Ch 4) ===
+ 
+Phase Title Primary Deliverable Core Function and Verification Focus 
+01 Foundation, 
+Invariants and 
+Fixture Scaffolding 
+Multi-crate 
+workspace, Invariant 
+test harness 
+Strict compilation under 
+#![forbid(unsafe_code)], automated 
+enforcement of offline Invariant I1 via proxy 
+blackholing, and deterministic synthetic Git 
+scenarios. 
+02 Corpus Selection 
+and Ground Truth 
+Harvesting 
+Pinned corpus, 260 
+issue-closing pairs, 
+sanitizer 
+Empirical profiling of candidate repositories, 
+harvesting 260 verified issue-commit pairs, 27 
+why-queries, cryptographic SHA locking, and a 6-
+stage leakage stripper. 
+04 Rust Git Extraction 
+and Historical AST 
+Parser 
+GitWalker,  
+AstExtractor,  
+9-language registry 
+First-parent topological traversal, in-memory blob 
+caching, Tree-sitter multi-language AST extraction, 
+and graceful degradation for broken syntax. 
+05 Function Lineage 
+Engine and 
+Mutation Oracle 
+LineageResolver, 
+M1-M10 mutation 
+fixtures 
+Four-tier bipartite matching cascade (exact, same-
+file MinHash, rename map, cross-file MinHash) 
+benchmarked against ten synthetic mutation classes. 
+06 Deterministic 
+Storage and 
+Hybrid Retrieval 
+Engine 
+IndexPipeline, 
+Tantivy BM25, 
+ONNX FastEmbed 
+Multi-modal persistence (SQLite relational store, 
+embedded Tantivy lexical index, BGE-Small-EN-
+v1.5 dense vectors) with atomic swap management. 
+07 Co-Change Graph 
+and Impact 
+Analysis Engine 
+CoChangeGraph, 
+exponential decay 
+engine 
+Association metric calculation (support, confidence, 
+lift) over historical commits, 25-file bulk filter, and 
+time-decay weighting (h = 180 days). 
+08 CLI Interface and 
+Human Output 
+Formatter 
+gitctx-cli  
+executable binary 
+High-performance interactive console interface 
+with structured tabular views, shell-pipeable JSON 
+output, and formatted risk visualization. 
+09 Model Context 
+Protocol (MCP) 
+Server Surface 
+gitctx-mcp stdio 
+JSON-RPC server 
+Offline integration surface exposing five analytical 
+tools to AI coding agents, supporting adaptive token 
+budgeting (compact vs full mode). 
+10 Verification and 
+Benchmarking 
+Suite 
+cargo xtask 
+bench, performance 
+harnesses 
+Automated benchmarking of indexing throughput, 
+p95 query latency under 300 ms, memory budgets, 
+and end-to-end invariant validation under stress. 
+11 Comprehensive 
+Evaluation and 
+Failure Taxonomy 
+Reported a ten-class 
+failure taxonomy 
+Full 5 x 5 ablation evaluation, empirical decision 
+gate analysis, bootstrap confidence interval 
+generation, and structured failure categorization 
+12 Production 
+Readiness and 
+Release 
+Engineering 
+Cross-platform CI, 
+installer scripts 
+(Linux/Windows/ 
+MacOS) 
+Multi-OS build matrices (Linux, macOS, 
+Windows), automated packaging, shell 
+completions, and developer documentation. 
+ 
+Table 4.1: Systematic Development Phases and Primary Engineering Deliverables 
+=== PAGE 33 (Ch 4) ===
+The invariant harness implements mechanical assertions for critical operating constraints: 
+ Offline Air -Gap Enforcement (Invariant I1):  The harness executes tests in an 
+aggressively sandboxed environment where network sockets are blackholed at the OS 
+level (using local proxy blackholing and Linux network namespaces by unshare -n). 
+Any attempt by any dependency or extraction routine to perform an external network 
+request results in an immediate, hard test failure. 
+ Topological Determinism (Invariant I2):  The test harness generates synthetic Git 
+histories using a custom repository generator ( mkrepo.rs). By fixing the base Unix 
+timestamp, setting a zero time-zone offset, and pinning identical author signatures, the 
+generator produces byte-identical commit object identifiers (OIDs) across independent 
+operating systems. 
+ Fixture Topologies: The synthetic harness models six canonical Git topologies: linear 
+commit histories, explicit file renames, c ross-directory moves, squash merges, “evil 
+merges” (where manual conflict resolution introduces novel source code absent from 
+both parent branches), and syntactically invalid historical snapshots. 
+ Synthetic Mutation Engine: To evaluate lineage tracking prior to deploying complex 
+historical algorithms, Phase 01 implemented a mutation generator (gitctx-eval mutate) 
+covering ten formal code mutation classes (M1 to M10), producing verified ground -
+truth manifests alongside generated Git commits. 
+4.1.2  Phase 02: Corpus and Ground Truth Harvesting 
+A major challenge in code search and repository mining is dataset bias and evaluation leakage. 
+Toy repositories limit generalizability, while explicit issue identifiers in commit messages (e.g., 
+Fixes #1048) can artifici ally inflate retrieval accuracy. Phase 02 addresses these challenges 
+through four components: 
+1. Repository Selection.  An automated profiler ( eval/profile.py) evaluated 15 
+open-source repositories across multiple programming. Candidates had to meet four 
+pre-registered gating rules:  
+o at least 150 traceable issue-linked commits 
+o a merge-fraction below 0.40 
+o a bot-commit ratio no greater than 0.25 
+o non-universal squash merges less than 0.80 
+=== PAGE 34 (Ch 4) ===
+The repository classifier followed the following rule-  
+ 
+The resulting evaluation triad covers three language ecosystems and repository 
+scales: gin-gonic/gin (Go, small; ~2,000 commits), tokio-rs/tokio (Rust, 
+medium; ~4,700 commits), and psf/requests (Python, large; ~6,400 commits). 
+Repositories exceeding the merge noise threshold, such as expressjs/express (42% 
+merge fraction), were disqualified to prevent distorted co-change graphs. 
+2. Ground Truth Set A: Issue -Closing Pairs.  The harvester ( eval/harvest.py) 
+combined regular-expression parsing of commit trailers (Fixes:, Closes:, Resolves:) 
+with cached GitHub issue -closing events to identify query -commit pairs. A manual 
+audit of 30 randomly sampled pairs confirmed all 30 as valid bug-fix. The resulting 260 
+pairs were frozen in eval/ground_truth/MANIFEST.toml, with  BLAKE3 and 
+SHA-256 hashes to support integrity verification.  
+3. Ground Truth Set B: Why -Shaped Queries. A complementary set of 27 manually 
+authored queries (nine per repository) targets four categories: architectural decisions, 
+bug root causes, API evolutio n, and performance motivations. These queries evaluate 
+the system's ability to retrieve historical rationale beyond straightforward keyword 
+matching.  
+4. Leakage Prevention.  A six -stage sanitization pipeline, implemented in Rust and 
+Python, removes issue and pull-request identifiers, action and author trailers, squash -
+merge suffixes, and merge -commit boilerplate from indexed commit text. Legitimate 
+code identifiers and docstrings are preserved.  
+4.1.3  Phase 04: Git Traversal and AST Parsing 
+Phase 04 delivered an extraction engine operating directly on raw Git object databases without 
+working-tree checkouts: 
+
+=== PAGE 35 (Ch 4) ===
+1. Topological Traversal: GitWalker walks the commit DAG in reverse topological 
+order following first -parent edges (Invariant I8), utilizing an LRU cache for 
+decompressed blobs. 
+2. Nine-Language Tree-sitter Registry: A centralized LanguageRegistry dispatches 
+parsing across Python, Rust, JavaScript, TypeScript, Go, C, C++, Java, and PHP. It 
+extracts function boundaries, qualified names ( qualnames), signatures, and 
+docstrings. 
+3. Identifier Deltas and Secret Redaction:  Symmetric token differencing computes 
+added and removed identifiers per function, while an entropy and prefix scanner redacts 
+credentials prior to indexing. 
+4.1.4  Phase 05: Lineage Engine and Mutation Oracle 
+Phase 05 implements persistent function identity tracking across refactoring operations through 
+the LineageResolver. The resolver employs a four-tier matching cascade: Tier 1 uses exact 
+key matching, Tier 2 applies same -file MinHash Jaccard similarity with a threshold of 0.55, 
+Tier 3 leverages tree diff rename maps, and Tier 4 performs cross-file MinHash matching with 
+a threshold of 0.65 and decoy rejection at 0.20. The implementation supports identity resolution 
+across in -place rena mes (M1), cross -file moves (M2), move -and-renames (M3), signature 
+changes (M4), reformatting (M5), local variable renames (M6), function splits (M7), decoy 
+delete-and-add operations (M8), directory moves (M9), and function duplication (M10). The 
+matching thresholds are configurable and were calibrated through 66 parameter evaluations to 
+establish the resolver's behaviour across these mutation scenarios.  
+4.1.5  Phases 06 to 12: Storage, Retrieval, and Integration Surfaces 
+The remaining phases established the analytical and serving layers: 
+ Phase 06 (Storage and Retrieval):  Dual-engine persistence combining SQLite 
+(metadata and graph edges) and Tantivy (BM25 search within a 32 MB RAM budget), 
+integrated with offline ONNX BGE-Small-EN-v1.5 embeddings. 
+ Phase 07 (Co-Change Coupling):  Coupling graph computing support, confidence, 
+and lift, filtering bulk commits (>25 files) with exponential time-decay (h = 180 days). 
+ Phase 08 (CLI Interface):  Built gitctx-cli for interactive inspections and 
+scriptable JSON output. 
+=== PAGE 36 (Ch 4) ===
+ Phase 09 (MCP Server Surface):  Built gitctx-mcp exposing five analytical tools 
+over stdio JSON-RPC with token-budget modes (compact and full). 
+ Phases 10 to 12 (Benchmarking and Production):  Added automated benchmarks 
+(cargo xtask bench), validated sub-300 ms p95 latency, codified a ten-class failure 
+taxonomy, and configured cross-platform CI. 
+4.2  Indexing Pipeline and Asynchronous Dual-Write Sink 
+The central coordinating structure of repository ingestion is the  IndexPipeline, 
+implemented in  crates/gitctx-index/src/pipeline.rs, operating in synergy with 
+the IndexSink deep module (crates/gitctx-index/src/sink.rs). 
+ 
+
+=== PAGE 37 (Ch 4) ===
+Key decisions taken in the indexing pipeline include: 
+1. Batched Asynchronous Dual-Write (IndexSink): Instead of performing individual 
+disk writes for every function touch, IndexSink buffers up to 128 touch records before 
+flushing. It generates embeddings in a single batched ONNX forward pass using 
+FastEmbedGenerator::generate_embeddings_batched. Metadata and 
+embedding BLOBs are written to SQLite through a non -blocking 
+BackgroundWriter, which uses an mpsc queue and a dedicated worker thread. Text 
+documents are indexed using Tantivy BM25 within a 32 MB memory budget, while 
+normalized 384-dimensional vectors are stored in vectors.bin. 
+2. Enriched Schema and Metadata Persistence: The pipeline stores architectural 
+metadata for each function touch, including parameter count (arity), change 
+classification (change_type), previous signature (signature_before), and the 
+128-element MinHash signature as a 512-byte little-endian BLOB (fingerprint). 
+The repository's HEAD commit hash (head_at_index) is also recorded in SQLite's 
+index_state table. 
+3. Dynamic Identifier Delta Extraction:  The pipeline uses 
+IdentifierExtractor::extract_from_lines(&rt.diff_hunks) alongside 
+D4TemplateRenderer::render_touch to extract added and removed identifiers 
+from unified diff lines while filtering standard language keywords. Commit dates are 
+formatted as ISO-8601 strings (YYYY-MM-DD). 
+4. Chronological Traversal: Commits are collected and reversed to traverse the history 
+from the root commit to HEAD. This ensures that function lineage is tracked in 
+chronological order, maintaining consistent parent-child relationships across 
+successive commits. 
+5. Safe Two-Phase Atomic Rotation with Backup Rollback: To handle filesystem 
+locking issues, particularly on Windows, AtomicStorageManager uses a staged 
+rotation process. Existing index assets (index.db, tantivy, and vectors.bin) 
+are first moved to .bak paths before the staged assets are promoted. If promotion 
+fails, the previous state is restored from the backups. After successful promotion, 
+temporary backup files are removed. 
+ 
+=== PAGE 38 (Ch 4) ===
+4.3  MinHash Fingerprinting and LSH Band Inverted Index 
+To detect near-duplicate function bodies across token edits without external 
+dependencies, gitctx computes 128 -permutation MinHash fingerprints over 3 -shingles of 
+normalized code tokens using a pure -Rust Murmur3 -32 hash function ( crates/gitctx-
+core/src/lineage/minhash.rs): 
+The estimated Jaccard similarity is computed as: 
+𝐽̂ = 1
+128 ∑ 𝐼[ℎ𝑖(𝐴) = ℎ𝑖(𝐵)]
+128
+𝑖=1
+ 
+Functions with fewer than 10 normalized tokens are flagged with is_short = true  and 
+excluded from MinHash comparison, preventing false-positive matches on common boilerplate 
+routines. 
+ 
+Locality-Sensitive Hashing (LSH) Band Inverted Index 
+Comparing every function against all other functions in a large repository is computationally 
+expensive. To reduce this overhead, an LshIndex was implemented in crates/gitctx-
+core/src/lineage/lsh.rs to efficiently identify potential matches between functions. 
+
+=== PAGE 39 (Ch 4) ===
+The 128-element MinHash signature is divided into 16 bands, each containing 8 elements. Each 
+band is converted into a 64-bit hash using the FNV-1a hashing algorithm. The LshIndex stores 
+these hashes in an inverted index, mapping each band hash to the functions associated with it. 
+During lineage resolution, the index retrieves candidate functions that share at least one 
+matching band. The system then performs f ull Jaccard similarity verification on these 
+candidates instead of comparing every function in the repository. This reduces unnecessary 
+comparisons and improves the efficiency of cross-file function identity tracking. 
+4.4  Function Identity Resolution in Practice 
+The resolve_commit method of LineageResolver manages function identity tracking 
+across commits using a four-tier matching process: 
+1. Tier 1 (Exact Match): Matches functions with the same qualified name and file path. 
+2. Tier 2 (Same -File MinHash):  Identifies modified or renamed functions within the 
+same file using MinHash similarity, with a threshold of 0.55. 
+3. Tier 3 (Rename Map):  Detects functions relocated between files using rename 
+information obtained from Git tree diffs. 
+4. Tier 4 (Cross-File MinHash via LSH): Identifies relocated functions across files using 
+LSH-based candidate retrieval and MinHash similarity, requiring a score of at least 0.65 
+while rejecting potential false matches below 0.20. 
+ 
+
+=== PAGE 40 (Ch 4) ===
+4.5  Reciprocal Rank Fusion Implementation 
+The query engine fuses lexical and semantic retrieval streams using Reciprocal Rank Fusion 
+(RRF) in crates/gitctx-query/src/rrf.rs: 
+ 
+The tie -breaking clause ( then_with(|| a.touch_id.cmp(&b.touch_id)) ) 
+mechanically implements Invariant I2 (Topological Determinism). Because  touch_id is 
+assigned monotonically in insertion order, ranking outputs are byte -identical across operating 
+systems and execution runs. When a query exactly matches a known function qualified name 
+or commit hash, the record is injected  at rank zero, mathematically dominating the fused 
+ranking. 
+ 
+ 
+
+=== PAGE 41 (Ch 4) ===
+4.6  Co-Change Analytics and Schema Precomputation 
+The coupling engine computes co -change metrics between files and functions. To prioritize 
+recent interactions, each event is weighted using an exponential decay function 
+(crates/gitctx-query/src/cochange/decay.rs): 
+ 
+Elimination of N+1 Queries via Schema v2 Precomputation  
+In earlier prototypes, change impact analysis required over 20,000 individual SQLite queries 
+per invocation. To improve performance, the system was redesigned to precompute and store 
+co-change metrics during repository indexing. 
+1. Schema v2 Analytical Tables: Added  relational tables - cochange_file_metrics 
+and cochange_function_metrics, to store precomputed metrics for file and 
+function pairs. Composite primary keys and indexes support efficient lookups. 
+2. Bulk Computation During Ingestion:  After the process of indexing, 
+compute_and_persist_cochange() scans historical file touches in chronological 
+order using topo_order. It gro ups changes by commit, excludes bulk commits 
+involving more than 25 files and bot-generated commits, and calculates support, time-
+decay weighted support (with a half-life of 180 days), directional confidence, and lift. 
+3. Faster Impact Queries:  The precomputed metrics are stored in the database and 
+retrieved by ImpactService (crates/gitctx-query/src/impact.rs) to 
+estimate the potential impact of changes and identify coupled risks. This reduces the 
+reported query response time in sub-millisecond durations.  
+
+=== PAGE 42 (Ch 4) ===
+4.7  MCP Server and Warm Embedder Caching 
+The gitctx-mcp binary provides an offline Retrieval -Augmented Generation surface for 
+autonomous AI coding agents, communicating over standard input and output using newline -
+delimited JSON-RPC 2.0: 
+ 
+Warm Embedder Caching 
+Prior to the overhaul, each invocation of  search_history re-instantiated the ONNX 
+runtime, incurring an initialization penalty of hundreds of milliseconds. In the optimized 
+architecture, ToolContext holds a shared  Arc<Mutex<FastEmbedGenerator>>. The 
+ONNX session is warmed at startup and reused across requests, dropping query -time vector 
+generation to sub-5ms latencies. 
+Protocol Isolation and Token Budgeting 
+ Strict Stream Isolation:  All diagnostic logging and debug traces route strictly  to 
+standard error (stderr). Standard output ( stdout) contains only valid JSON -RPC 
+payloads, guaranteeing compatibility with MCP host specifications. 
+ Five Analytical Tools:   The server exposes mainly five different 
+tools: search_history, function_evolution, change_impact,        
+who_knows_this, and commit_detail. 
+ 
+
+=== PAGE 43 (Ch 4) ===
+ Adaptive Token Budgeting: Each retrieval tool supports a mode parameter: 
+o compact: Returns structured citation metadata  (commit hash, author, 
+timestamp, line ranges, and summary), conserving context budget. 
+o full: Returns the complete rendered D4 pseudo -document text, providing 
+full code diffs and docstrings for deep context. 
+With warm embedder caching, Schema v2 precomputed analytics, and LSH -accelerated 
+candidate retrieval, end -to-end query executi on across the entire RAG pipeline consistently 
+achieves p95 latencies under 300 ms, satisfying the real-time operational constraints of modern 
+AI coding workflows. 
+ 
+ 
+ 
+ 
+=== PAGE 44 (Ch 4) ===
+V.   EV ALUATION METHODOLOGY 
+This chapter establishes the empirical evaluation framework and benchmarking protocols 
+designed to validate  gitctx. We formulate multi -language repository gating criteria, non -
+circular ground-truth extraction pipelines, and statistical ablation suites to systematically assess 
+retrieval efficacy, function lineage tracking, and mechanical invariant compliance. 
+5.1  Evaluation Framework and Methodological Scope 
+The gitctx evaluation framework validates four orthogonal correctness dimensions: 
+1. Retrieval Efficacy: Semantic-lexical search precision on historical code and design 
+rationale. 
+2. Lineage Tracking Fidelity: Continuous function identity tracking across structural re-
+factorings and file moves. 
+3. Cryptographic Integrity:  Tamper-proof dataset locking, deterministic replay, and 
+zero gold leakage. 
+4. Mechanical Verification: Automated enforcement of system invariants (I1 –I8) and 
+operational latency budgets. 
+All benchmark artifacts (corpora, ground -truth labels, mutation fixtures, and calibrated 
+thresholds) are deterministically reproducible via a pinned loc kfile 
+(eval/corpus.lock.toml, Invariant I6). Dataset integrity is cryptographically sealed using 
+BLAKE3 and SHA-256 manifests (eval/ground_truth/MANIFEST.toml). 
+As illustrated in Figure 5.1, the evaluation framework is organized into a five-stage verification 
+pipeline. Candidate repositories undergo automated structural profiling and gating to produce 
+the locked evaluation triad. This locked corpus feeds into cryp tographic ground -truth 
+harvesting, which subsequently powers the 5 x 5 retrieval ablation grid and the synthetic 
+lineage mutation oracle. Concurrently, the corpus anchors mechanical invariant enforcement 
+and operational budget verification, ensuring all re ported metrics are fully reproducible, 
+tamper-proof, and isolated from evaluation leakage. 
+ 
+=== PAGE 44 (Ch 5) ===
+V.   EV ALUATION METHODOLOGY 
+This chapter establishes the empirical evaluation framework and benchmarking protocols 
+designed to validate  gitctx. We formulate multi -language repository gating criteria, non -
+circular ground-truth extraction pipelines, and statistical ablation suites to systematically assess 
+retrieval efficacy, function lineage tracking, and mechanical invariant compliance. 
+5.1  Evaluation Framework and Methodological Scope 
+The gitctx evaluation framework validates four orthogonal correctness dimensions: 
+1. Retrieval Efficacy: Semantic-lexical search precision on historical code and design 
+rationale. 
+2. Lineage Tracking Fidelity: Continuous function identity tracking across structural re-
+factorings and file moves. 
+3. Cryptographic Integrity:  Tamper-proof dataset locking, deterministic replay, and 
+zero gold leakage. 
+4. Mechanical Verification: Automated enforcement of system invariants (I1 –I8) and 
+operational latency budgets. 
+All benchmark artifacts (corpora, ground -truth labels, mutation fixtures, and calibrated 
+thresholds) are deterministically reproducible via a pinned loc kfile 
+(eval/corpus.lock.toml, Invariant I6). Dataset integrity is cryptographically sealed using 
+BLAKE3 and SHA-256 manifests (eval/ground_truth/MANIFEST.toml). 
+As illustrated in Figure 5.1, the evaluation framework is organized into a five-stage verification 
+pipeline. Candidate repositories undergo automated structural profiling and gating to produce 
+the locked evaluation triad. This locked corpus feeds into cryp tographic ground -truth 
+harvesting, which subsequently powers the 5 x 5 retrieval ablation grid and the synthetic 
+lineage mutation oracle. Concurrently, the corpus anchors mechanical invariant enforcement 
+and operational budget verification, ensuring all re ported metrics are fully reproducible, 
+tamper-proof, and isolated from evaluation leakage. 
+ 
+=== PAGE 45 (Ch 5) ===
+ 
+Figure 5.1: Multi-tiered evaluation architecture across corpus gating, ground-truth harvesting, retrieval ablation, 
+lineage benchmarking, and invariant verification. 
+ 
+5.2  Evaluation Corpus Selection and Gating Criteria 
+To ensure cross-language generalization, an evaluation triad spanning Go, Rust, and Python 
+was selected from 15 candidate repositories using an automated profiler (eval/profile.py). 
+The profiler measured 11 structural metrics against four pre-registered gating rules: 
+1. Traceable Closed Issue Density (Ntraceable ≥ 150 ): Guarantees adequate high -
+confidence issue-commit links. 
+2. Merge Commit Fraction (fmerge < 0.40): Excludes un-curated merge noise that distorts 
+co-change matrices. 
+3. Bot Commit Fraction (fbot ≤ 0.25): Prevents automated dependency bump noise (e.g., 
+Dependabot) from skewing commit churn. 
+
+=== PAGE 46 (Ch 5) ===
+4. Non-Universal Squash Ratio (f squash < 0.90): Preserves rich multi-commit historical 
+progressions required for lineage tracking. 
+Size Tier Repository Language Commits 1st Parent Traceable Issues Merge % Bot % Status 
+Small gin-gonic/gin Go 2,023 1,314 1,159 10.7% 6.2% Selected 
+Medium tokio-rs/tokio Rust 4,783 4,182 4,299 3.9% 0.1% Selected 
+Large psf/requests Python 6,495 2,669 333 24.8% 1.0% Selected 
+ 
+Table 5.1: Selected evaluation triad repositories across size tiers and languages with structural gating metrics 
+(pinned under Invariant I6) 
+Pinned commit SHAs are locked in eval/corpus.lock.toml (Invariant I6). Hard gating 
+disqualified tiangolo/fastapi (bot commit fraction: 44.5%) and trpc/trpc (30.5%) for 
+excessive bot activity, while sharkdp/fd failed the traceability threshold with 148 traceable 
+issues against the minimum of 150. Although expressjs/express qualified with a merge 
+commit fraction of 7.8%, it was reserved as a secondary baseline to maintain a balanced Go , 
+Rust, and Python evaluation triad. 
+5.3  Ground Truth Construction and Leakage Sanitation 
+V alid code search evaluation requires non-circular ground truth. V erbatim token overlap 
+between queries and indexed metadata artificially inflates retrieval metrics.  gitctx enforces 
+strict leakage prevention across three sealed datasets (eval/ground_truth/MANIFEST.toml): 
+1. Set A (260 Issue -Closing Pairs):  Extracted via action trailers ( Fixes: 
+#N, Resolves: #N ) and authoritative GitHub Issue Timeline API events. Commit 
+links are prioritized ( github_close_event > explicit_trailer > ref) and 
+capped at three commits per issue, excluding bots. A manual audit of n = 30 pairs 
+demonstrated 100% precision ( p = 1.000, 95% Wilson Score CI: [0.887, 1.000]), 
+satisfying the pre-registered p ≥ 0.85 threshold. 
+2. Set B (27 Curated Why-Queries): Human-authored natural-language questions (9 per 
+triad repository) querying historical rationale across four classes:  Architectural 
+Decisions, Bug Root Causes, API Evolution, and Performance Motivations. 
+3. Revert Pairs (42 Pairs):  Mined commit -revert pairs capturing  self-contained code 
+rollbacks for regression testing. 
+=== PAGE 47 (Ch 5) ===
+Leakage Sanitization Pipeline 
+ Six-Stage Sanitizer (eval/sanitize.py):  Strips issue identifiers (#123), PR URLs, 
+action trailers, squash suffixes, and merge boilerplate from indexed documents while 
+preserving genuine code identifiers and docstrings. 
+ Zero Gold-Rationale Leakage: Evaluated documents never contain text copied from 
+gold rationale summaries. test_zero_gold_rationale_leakage enforces this 
+invariant across all Set B queries, ensuring embedd ings match purely on semantic and 
+structural code relevance. 
+ 
+Figure 5.2: Evaluation corpus and ground-truth architecture (Invariant I6). Shows commit volumes and 
+traceable issues across Go (gin), Rust (tokio), and Python (requests), totaling 13,301 commits, alongside 
+the ground-truth split: Set A (260 pairs), Revert pairs (42), and Set B (27 queries), sealed in 
+eval/ground_truth/MANIFEST.toml. 
+ 
+5.4  5 x 5 Retrieval Ablation Protocol and Experimental Design 
+The retrieval ablation evaluates whether template-rendered pseudo-documents D4 outperform 
+raw diffs and un -curated commit logs across lexical, dense semantic, and hybrid retrieval 
+strategies. 
+5.4.1  Evaluation Axes (D1–D5 x R1–R5) 
+ Document Representations: 
+ D1 (Commit Message Only):  Traditional commit log baseline without diff 
+context. 
+
+=== PAGE 48 (Ch 5) ===
+ D2 (Raw Diff Only): Unstructured unified diff patch without commit message. 
+ D3 (Message + Raw Diff):  Standard developer view combining message and 
+patch text. 
+ D4 (Structured Pseudo -Document): Canonical six-section template 
+combining commit metadata, author intent, function qualified names, 
+signatures, surrounding docstrings, added/removed identifiers, and normalized 
+diffs. 
+ D5 (Ablated Template Without Message):  Structured pseudo -document 
+stripping commit messages to isolate AST structural grounding. 
+ Retrieval Strategies: 
+ R1 (Naive Keyword Matching):  Whitespace/punctuation tokenization 
+preserving compound identifiers without sub-token splitting. 
+ R2 (Code-Aware BM25):  Tantivy-style BM25 with camelCase/ snake_case 
+sub-token splitting and stop-word filtering. 
+ R3 (Standard Dense Embedding):  FastEmbed 384 -dimensional dense 
+projection with uniform prose token weighting. 
+ R4 (Code-Aware Dense Embedding): 384-dimensional projection with 2.5 x 
+symbol elevation on qualified names, signatures, and added identifiers, plus 
+0.2x diff header dampening. 
+ R5 (Hybrid Reciprocal Rank Fusion): RRF (k = 60.0) fusing R2 and R4 with 
+a gated Rank-0 exact symbol fast -path active on AST-indexed representations 
+(D4, D5). 
+5.4.2  Metrics, Results, and Pre-Registered Gate 
+Retrieval effectiveness is measured using Recall@K (K ∈{5, 10, 20}) and Mean Reciprocal 
+Rank (MRR), which evaluates how highly the first relevant result is ranked: 
+𝑀𝑅𝑅 = 1
+|𝑄| ∑ 1
+𝑟𝑎𝑛𝑘𝑖
+|𝑄|
+𝑖=1
+ 
+=== PAGE 49 (Ch 5) ===
+Here, Q  is the set of evaluation queries, and 𝑟𝑎𝑛𝑘𝑖 is the rank of the first relevant result for 
+query i. Higher Recall@K and MRR indicate better retrieval performance. 
+Rep \ Ret R1 (Naive) R2 (BM25) R3 (Dense) R4 (Code-Dense) R5 (RRF Hybrid) 
+D1 (Message) 0.6296 / 0.5265 0.7778 / 0.6040 0.8889 / 0.6827 0.8889 / 0.6827 0.8519 / 0.6794 
+D2 (Raw Diff) 0.6667 / 0.5700 0.7778 / 0.6630 0.7778 / 0.7163 0.7778 / 0.7401 0.8148 / 0.7001 
+D3 (Msg + Diff) 0.9259 / 0.7782 0.8889 / 0.7287 0.8889 / 0.7868 0.8889 / 0.7751 0.8889 / 0.8221 
+D4 (Template) 0.9259 / 0.7411 0.9630 / 0.8768 0.9630 / 0.8451 0.9630 / 0.8883 1.0000 / 0.9815 
+D5 (Ablated) 0.8148 / 0.7104 0.9630 / 0.8485 0.9259 / 0.7946 0.9630 / 0.8867 0.9630 / 0.9475 
+ 
+   Table 5.2: 5 x 5 ablation grid showing Recall@10 / MRR on 27 Set B queries across 100 indexed documents. 
+ 
+ 
+Figure 5.3: Retrieval architecture ablation dashboard. Compares five representations and five retrieval 
+engines across 27 queries, reporting Recall@10, MRR, Recall@5, and baseline-relative gain. Gold marks the 
+optimum (D4 + R5); red dashed marks the baseline (D3 + R1). 
+
+=== PAGE 50 (Ch 5) ===
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Figure 5.4: Three-dimensional MRR response surface across retrieval configurations, showing the 
+interaction between document representations and retrieval engines. The surface peaks at D4 + R5 (MRR = 
+0.9815), compared with the baseline D3 + R1 (MRR = 0.7782). Contour isolines highlight the progressive gains 
+achieved through code-aware structured templates and hybrid Reciprocal Rank Fusion. 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 51 (Ch 5) ===
+Decision Gate Evaluation (Passed): 
+ Best Template Config: D4+R5 (Recall@10 = 1.0000, MRR = 0.9815). 
+ Best Baseline Config: D3+R1 (Recall@10 = 0.9259, MRR = 0.7782). 
+ Empirical Margin:  ΔRecall@10 = 0.0741, exceeding the pre -registered threshold       
+(Δ ≥ 0.05). 
+ Statistical Uncertainty (Invariant I7):  95% paired bootstrap confidence interval of 
+[0.0000, 0.1852] computed over 1,000 resamples using deterministic SplitMix64 (seed 
+42). 
+5.5  Function Lineage Engine Evaluation Methodology 
+Because standard Git tools lack cross -file function tracking ground truth ( git log -L is 
+restricted to single files), the lineage engine is evaluated via a synthetic mutation oracle (cargo 
+xtask eval bench-lineage). 
+5.5.1  Mutation Taxonomy (M1 to M10) 
+The oracle generates synthetic repositories covering ten code transformations: 
+ M1–M3 (Renames/Moves):  In-place rename (M1), cross -file move (M2), 
+simultaneous move and rename (M3). 
+ M4–M6 (Signature/Body Edits):  Parameter/type modifications (M4), 
+formatting/docstrings (M5), local variable renaming (M6). 
+ M7–M10 (Structural Mutations): Function extraction (derived_from, M7), decoy 
+delete-and-add (adversarial false match, M8), directory reorganization (M9), 
+function duplication (copied_from, M10). 
+5.5.2  Threshold Calibration and Benchmark Results 
+The bipartite matcher optimizes four calibrated thresholds (eval/lineage_thresholds.json): 
+ τ{same} = 0.55: Same-file MinHash similarity (Tier 2). 
+ τ{cross} = 0.65: Scoped cross-file MinHash similarity (Tier 4). 
+ τ{decoy} = 0.20: Decoy rejection threshold penalizing false positives. 
+ τ{split} = 0.20: Shared token overlap for extracted functions. 
+=== PAGE 52 (Ch 5) ===
+A 66-point grid sweep (cargo xtask eval tune-thresholds) achieved an optimal F1 
+score of 1.000, 100.0% M8 decoy rejection, and 100.0% chain recovery at depth D = 5. 
+5.5.3  Diff Hunk-Overlap Filtering & Live Benchmark 
+Functions whose line bounds do not intersect unified diff hunks emit 
+zero FunctionTouch records, eliminating ghost touches. Live benchmarking 
+on BurntSushi/ripgrep across 100 commits demonstrated: 
+ Ghost Touch Reduction: Touches dropped from 6,958 to 2,569 (-63.1%). 
+ Indexing Throughput:  Indexing time dropped from 904.96s to 134.10s (6.74 x 
+speedup). 
+ CLI Surface Verification:  Certified-CLI outputs  across doctor, search, 
+evolution, impact, and blame.  
+ 
+ 
+Figure 5.5: Live repository benchmark on BurntSushi/ripgrep (100 commits). Compares gitctx with 
+unindexed ripgrep, showing a 6.74x speedup (160 ms vs. 1,080 ms) and 63.1% fewer ghost touches (7 vs. 19 
+files) through AST hunk-overlap filtering. 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 53 (Ch 5) ===
+5.6   System Invariants and Performance Budgets 
+Every CI build executes  cargo xtask test -invariants, verifying eight mechanical 
+invariants: 
+ I1 (Offline Air-Gap): Network sockets are sandboxed; outbound egress triggers test 
+failure (xtask test-offline). 
+ I2 (Deterministic Output):  Byte-identical SQLite database checksums on repeated 
+index runs (e2e_determinism_test). 
+ I3 (Incremental Equivalence):  Incremental single -commit indexing produces state 
+identical to a cold re-index. 
+ I4 (Non-Null Citations): Schema enforces non-null commit SHA, author, timestamp, 
+and line bounds on retrieved touches. 
+ I5 (Isolated Explain Cache): Optional LLM annotations are stored in a separate table, 
+isolating the core index. 
+ I6 (Pinned Corpus SHA Loc k): V erifies target repositories match hashes 
+in eval/corpus.lock.toml. 
+ I7 (Stated Baselines & Uncertainty): Rejects evaluation reports lacking baselines and 
+bootstrap confidence intervals. 
+ I8 (First -Parent Traversal): Confirms second -parent merge commits are excluded 
+from the index graph. 
+ 
+Performance Metric Operational Budget Measured Performance Verification Harness 
+Cold indexing (10,000 
+commits) 
+< 10 minutes ~4.8 minutes cargo xtask bench 
+Incremental indexing (1 
+commit) 
+< 2 seconds 120–350 ms Triad commit injection 
+Search query latency (p95) < 300 ms 48 ms (hybrid RRF) 1,000 query replay 
+MCP round-trip latency (p95) < 500 ms < 5 ms (warm ONNX cache) gitctx-mcp stdio harness 
+Disk footprint per 10,000 
+commits 
+< 100 MB ~38 MB (SQLite + Tantivy + 
+vectors) 
+Schema v2 storage audit 
+ 
+Table 5.3: Operational performance budgets and verified benchmark latencies. 
+ 
+=== PAGE 54 (Ch 5) ===
+5.7  Pre-Registered Failure Taxonomy 
+Retrieval misses are classified into a ten-category failure taxonomy: 
+Category Diagnostic Root Cause 
+AST Parse Degraded Tree-sitter parse failure on historical blob; fallback to file-level 
+chunking. 
+Cross-File Rename 
+Miss 
+Function moved across files where modifications dropped similarity 
+below τ{cross}        
+Directory Move Miss Function relocated outside active cross-file search scope. 
+Leakage Residual Issue IDs or trailers survived sanitization into indexed chunk text. 
+Tokenization 
+Boundary 
+Identifier casing produced token splits that hindered exact symbol 
+matches. 
+Sparse History Gap Commit modified fewer than 2 functions, yielding insufficient 
+ranking signals. 
+Decoy False Positive Delete-and-add pair incorrectly accepted despite τ{decoy} 
+Dense Misalignment High embedding similarity with an unrelated function due to dense 
+vocabulary overlap. 
+Vocabulary Gap Natural-language query used terms absent from docstrings, 
+signatures, and commit logs. 
+Large Commit 
+Corruption 
+Bulk commit (>25 files) bypassed filtering, distorting co-change 
+coupling. 
+ 
+Table 5.4: Pre-registered ten-category retrieval failure taxonomy . 
+ 
+Empirical Failure Distribution on Set B (D4 Baseline): Standalone dense retrieval exhibited 
+3 misses across 27 queries: two V ocabulary Gaps (why-req-001, why-req-003) and one Dense 
+Misalignment (why-req-007). Under canonical D4+R5, RRF h ybrid fusion and the exact 
+symbol fast-path resolved all three cases, achieving  Recall@10 = 1.0000 and confirming the 
+necessity of the dual-engine architecture. 
+=== PAGE 55 (Ch 5) ===
+VI.   RESULTS AND DISCUSSION 
+This chapter reports the empirical findings obtained  from executing the evaluation 
+methodology formulated in Chapter V . The results are organized around four core research 
+questions: 
+ RQ1 (Representation Grounding):  Does entity -aware AST pseudo -document 
+formatting ( D4) outperform unstructured commit messages  and raw unified diffs in 
+retrieving historical rationale? 
+ RQ2 (Retrieval Synthesis & Ranking Dynamics):  Does hybrid Reciprocal Rank 
+Fusion (R5) resolve the independent failure modes of lexical and semantic retrievers 
+without a Pareto trade-off? 
+ RQ3 (Linea ge Fidelity & Ghost Suppression):  Does four -tier bipartite MinHash 
+matching accurately track refactored functions while suppressing extraneous ghost 
+touches? 
+ RQ4 (Operational Scalability & Invariant Integrity):  Does gitctx satisfy sub -
+second latency budgets, offline isolation constraints, and deterministic reproducibility 
+in production? 
+6.1  Evaluation Corpus Profiling 
+We profiled fifteen candidate repositories across eleven structural metrics 
+using eval/profile.py. Table 6.1 lists the candidate audit results. It compares total commit 
+volume with first-parent mainline commits. gitctx indexes the first-parent sequence. 
+ We locked three repositories at immutable commit SHAs 
+in eval/corpus.lock.toml under Invariant I6: 
+ Small Tier (Go):  gin-gonic/gin - 2,023 commits (1,314 first -parent), 1,159 
+traceable issues. SHA: 0f09c3a9b4626d9fe9979cf4d0521d6ae32ab646. 
+ Medium Tier (Rust): tokio-rs/tokio - 4,783 commits (4,182 first-parent), 4,299 
+traceable issues. SHA: e279adbfcd8831412c3f19edf2e16d28345f0f95. 
+ Large Tier (Python): psf/requests - 6,495 commits  (2,669 first -parent), 333 
+traceable issues. SHA: 611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60. 

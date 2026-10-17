@@ -1,0 +1,126 @@
+=== PAGE 65 ===
+INDIVIDUAL CONTRIBUTION REPORT:  
+ 
+GITCTX: A TEMPORAL CONTEXT-A WARE RETRIEV AL ENGINE 
+FOR EVOLUTIONARY CODEBASE ANALYSIS 
+Aayush Beura 
+2305185 
+ 
+Abstract: The project aims to develop  gitctx, a local -first and fully offline Git history 
+intelligence engine in Rust that transforms raw version control history into an accessible 
+semantic knowledge base. Its primary objective is to bridge the semantic retrieval gap using 
+hybrid BM25 and dense vector search via Reciprocal Rank Fusion  (RRF), preserve function 
+identity across refactoring operations through a four-tier MinHash lineage resolver, and serve 
+verifiable, citation-backed evolutionary context to developers and AI coding agents via a local 
+Model Context Protocol (MCP) server. 
+ 
+Individual Contribution and Findings:  
+My primary role focused on repository ingestion, code parsing, function lineage resolution, and 
+change impact analysis. I developed the extraction and storage layers in gitctx-core and gitctx-
+index. 
+I built the repository ingestion pipeline using libgit2. It walks the first-parent commit history 
+from the root commit to HEAD. The pipeline splits raw patches into clean diff hunks. It also 
+removes sensitive tokens and secrets before storage. 
+To parse source code, I created the multi-language parser registry using Tree-sitter. It supports 
+nine programming languages, including Rust, Python, Go, and TypeScript. The parser extracts 
+syntax trees and identifies function names and signatures. If a commit contains invalid syntax, 
+the parser degrades gracefully to enclosing scopes instead of stopping execution. 
+To track functions across refactoring changes, I designed a four-tier lineage resolver: 
+ Tier 1 (Exact Match): Identifies functions that keep the same name and path. 
+ Tier 2 (Intra-File MinHash): Detects renamed functions within the same file using 
+signature similarity. 
+=== PAGE 66 ===
+ Tier 3 (Git Rename Map): Tracks files that Git renames or relocates. 
+ Tier 4 (Cross-File LSH Index): Locates functions moved across different files using 
+an inverted index with 16 bands. This provides fast candidate lookup without scanning 
+the full repository. 
+V alidation on code mutation test suites showed that the resolver tracks functions accurately 
+across multi-step re-factorings. 
+I also developed the historical co-change engine. It builds a directed coupling graph to identify 
+files and functions that change together. I applied an exponential time decay so that recent 
+commits carry more weight than older commits. The system precomputes these coupling 
+metrics into SQLite tables. As a result, the impact service returns blast-radius risk scores in sub 
+milliseconds. 
+During integration, I fixed runtime crashes on macOS and dynamic library loading errors on 
+Windows. I also set up GitHub Actions CI for cross -platform testing and automated binary 
+releases. 
+Individual Contribution to Project Report Preparation:  
+I authored the  introduction, system design and implementation, and evaluation methodology  
+chapters of the report. I described the first-parent commit walker, the Tree-sitter parser registry, 
+and the four-tier lineage resolution process. I explained the time-decay concept for co-change 
+coupling. I also created the pipeline flowcharts, the linea ge decision tree, and the database 
+schema diagrams. 
+Individual Contribution for Project Presentation and Demonstration:  
+For the final presentation, I will explain the repository ingestion pipeline, multi -language 
+parsing, and lineage resolution. During th e live demonstration, I will run gitctx -cli to index a 
+repository and track a refactored function across file moves. I will also demonstrate gitctx -cli 
+impact to show real-time coupling analysis. 
+ 
+ 
+_____________________________                                  _____________________________ 
+     Full Signature of Supervisor            Full Signature of Student 
+=== PAGE 67 ===
+INDIVIDUAL CONTRIBUTION REPORT:  
+ 
+GITCTX: A TEMPORAL CONTEXT-A WARE RETRIEV AL ENGINE 
+FOR EVOLUTIONARY CODEBASE ANALYSIS 
+Ashmit Mandal 
+2305201 
+ 
+Abstract: The project aims to develop  gitctx, a local -first and fully offline Git history 
+intelligence engine in Rust that transforms raw version control history into an accessible 
+semantic knowledge base. Its primary objective is to bridge the se mantic retrieval gap using 
+hybrid BM25 and dense vector search via Reciprocal Rank Fusion  (RRF), preserve function 
+identity across refactoring operations through a four -tier MinHash lineage resolver, and serve 
+verifiable, citation-backed evolutionary context to developers and AI coding agents via a local 
+Model Context Protocol (MCP) server. 
+ 
+Individual Contribution and Findings:  
+My primary role focused on hybrid retrieval, AI agent integration via MCP, the developer CLI, 
+cross-platform stability, and the e valuation framework. I developed gitctx-query, 
+gitctx-mcp, gitctx-cli, and gitctx-eval. 
+I built the hybrid retrieval engine in gitctx-query. Lexical search uses Tantivy BM25 with 
+tokenizers that split code identifiers. Dense search uses an offline ONNX emb edding model 
+(bge-small-en-v1.5). I stored raw vectors in memory -mapped files and used SIMD 
+instructions for fast similarity calculations. The engine fuses lexical and vector rankings using 
+Reciprocal Rank Fusion. This hybrid approach outperforms keyword search and vector search 
+used separately. 
+To connect the engine to AI coding assistants like Claude and Cursor, I built the Model Context 
+Protocol (MCP) server using JSON-RPC 2.0 over standard I/O: 
+ Channel Isolation: I routed all logs to stderr to keep stdout pure for protocol messages. 
+ Warm Session Cache:  I cached embedding sessions in memory, reducing query 
+response times below 5ms. 
+=== PAGE 68 ===
+ Token Budgeting: I added a budget mode that lets AI agents switch between compact 
+citations and full code diffs to save context tokens. 
+I developed the command-line tool in gitctx-cli. It provides coloured terminal tables for users 
+and JSON envelopes for IDE tools. It implements search, evolution, impact, and doctor. The 
+doctor command checks database schemas, indexes, and mode l files to verify system health 
+before execution. 
+I authored profile.py to screen fifteen candidate repositories against four quality gates, selecting 
+gin, requests, and tokio for our evaluation. I then built gitctx-eval to run our 5x5 
+ablation matrix across five document formats and five retrieval methods. The evaluation 
+showed that combining structured templates with hybrid search achieved the highest recall and 
+rank accuracy. 
+Finally, I designed the storage layer using  SQLite with Write -Ahead Logging. The pipeline 
+batches 128 chunks per transaction to reduce disk operations. It uses shadow files during writes 
+to ensure crash recovery. 
+Individual Contribution to Project Report Preparation:  
+I authored the literature review and foundations, results, discussions, and concluding chapters 
+of the report. I described the semantic retrieval gap in software engineering. I documented the 
+repository selection criteria, the 5  x 5 ablation experiment, and the failure taxonomy. I also  
+wrote the technical interface specifications for the MCP server and CLI commands. 
+Individual Contribution for Project Presentation and Demonstration:  
+For the final presentation, I will explain the hybrid retrieval architecture, the MCP server, and 
+our evaluation findings. During the live demonstration, I will show an AI coding assistant using 
+the MCP server to retrieve commit history in real time. I will also run gitctx -cli doctor and 
+perform semantic natural-language searches. 
+ 
+ 
+ 
+_____________________________                                  _____________________________ 
+     Full Signature of Supervisor            Full Signature of Student  
+=== PAGE 69 ===
+PLAGIARISM REPORT 
+ 
+ 
